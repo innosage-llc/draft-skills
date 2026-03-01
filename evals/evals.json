@@ -1,0 +1,40 @@
+{
+    "skill_name": "draft-cli",
+    "evals": [
+        {
+            "id": 1,
+            "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+            "expected_output": "Agent runs draft daemon, draft status, draft ls, identifies a page, then draft cat <id> --format markdown",
+            "files": [],
+            "expectations": [
+                "Agent checks or starts the daemon with draft daemon",
+                "Agent lists pages with draft ls",
+                "Agent reads a specific page with draft cat <id>",
+                "Output is in markdown format"
+            ]
+        },
+        {
+            "id": 2,
+            "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items",
+            "expected_output": "Agent runs draft create then draft append with markdown bullet list via stdin",
+            "files": [],
+            "expectations": [
+                "Agent creates page with draft create 'Sprint 42 Retro'",
+                "Agent appends content using draft append <id> via stdin",
+                "Content includes three bullet points",
+                "Markdown formatting is correct"
+            ]
+        },
+        {
+            "id": 3,
+            "prompt": "In my Draft page abc123, the Status section is outdated. Replace it with 'Status: Complete - shipped to production on March 1st'",
+            "expected_output": "Agent uses draft replace with --heading to target the Status section",
+            "files": [],
+            "expectations": [
+                "Agent uses draft replace command via stdin",
+                "Agent targets the correct heading with --heading 'Status'",
+                "New content includes the updated status text"
+            ]
+        }
+    ]
+}

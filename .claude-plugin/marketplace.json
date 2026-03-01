@@ -1,0 +1,15 @@
+{
+    "name": "draft-skills",
+    "owner": {
+        "name": "Innosage LLC",
+        "url": "https://draft.innosage.co"
+    },
+    "plugins": [
+        {
+            "name": "draft",
+            "source": "./",
+            "description": "Agent Skills for Draft — the performance-first markdown editor",
+            "version": "1.0.0"
+        }
+    ]
+}

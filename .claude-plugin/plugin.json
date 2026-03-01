@@ -1,0 +1,19 @@
+{
+    "name": "draft",
+    "version": "1.0.0",
+    "description": "Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line.",
+    "author": {
+        "name": "Innosage LLC",
+        "url": "https://draft.innosage.co"
+    },
+    "repository": "https://github.com/innosage-llc/draft-skills",
+    "license": "MIT",
+    "keywords": [
+        "draft",
+        "cli",
+        "markdown",
+        "editor",
+        "content-management",
+        "notion-alternative"
+    ]
+}
