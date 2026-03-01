@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "Agent creates page with draft create 'Sprint 42 Retro'",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Agent appends content using draft append <id> via stdin",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Content includes three bullet points",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Markdown formatting is correct",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 4,
+    "total": 4,
+    "pass_rate": 0.0
+  },
+  "execution_metrics": {},
+  "timing": {},
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

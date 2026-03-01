@@ -1,0 +1,16 @@
+{
+  "eval_id": 3,
+  "eval_name": "eval-3-replace-section",
+  "prompt": "In my Draft page abc123, the Status section is outdated. Replace it with 'Status: Complete - shipped to production on March 1st'",
+  "assertions": [
+    {
+      "text": "Agent uses draft replace command via stdin"
+    },
+    {
+      "text": "Agent targets the correct heading with --heading 'Status'"
+    },
+    {
+      "text": "New content includes the updated status text"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+Draft Pages:
+- abc123def: Welcome to Draft
+
+Title: Welcome to Draft
+ID: abc123def
+---
+# Welcome to Draft
+This is your first page!

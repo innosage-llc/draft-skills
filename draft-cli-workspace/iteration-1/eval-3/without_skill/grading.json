@@ -1,0 +1,33 @@
+{
+  "expectations": [
+    {
+      "text": "Agent uses draft replace command via stdin",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Agent targets the correct heading with --heading 'Status'",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "New content includes the updated status text",
+      "passed": false,
+      "evidence": "Simulated evidence"
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  },
+  "execution_metrics": {},
+  "timing": {},
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}

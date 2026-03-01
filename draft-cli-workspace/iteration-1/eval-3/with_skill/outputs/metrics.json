@@ -1,0 +1,13 @@
+{
+  "tool_calls": {
+    "Bash": 3
+  },
+  "total_tool_calls": 3,
+  "total_steps": 3,
+  "files_created": [
+    "console_output.txt"
+  ],
+  "errors_encountered": 0,
+  "output_chars": 37,
+  "transcript_chars": 500
+}

@@ -1,0 +1,38 @@
+{
+  "expectations": [
+    {
+      "text": "Agent checks or starts the daemon with draft daemon",
+      "passed": true,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Agent lists pages with draft ls",
+      "passed": true,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Agent reads a specific page with draft cat <id>",
+      "passed": true,
+      "evidence": "Simulated evidence"
+    },
+    {
+      "text": "Output is in markdown format",
+      "passed": true,
+      "evidence": "Simulated evidence"
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 0,
+    "total": 4,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {},
+  "timing": {},
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [],
+    "needs_review": [],
+    "workarounds": []
+  }
+}
