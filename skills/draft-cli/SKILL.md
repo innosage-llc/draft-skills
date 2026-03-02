@@ -121,7 +121,11 @@ draft cat abc-123-def
 ```
 
 **2. Multi-tab conflicts**
-If the user has multiple Draft tabs open, the daemon won't know which one to send commands to. `draft status` will warn you about this and list the IDs of the active tabs. Use the `--client <tab-id>` global flag to target a specific tab:
+If the user has multiple Draft tabs open, the daemon won't know which one to send commands to and your commands will fail with "Error: Multiple Draft PWA tabs are connected". To resolve this:
+  1. Run `draft status` to see the list of active PWA connection IDs.
+  2. Pick *any* of the active tab IDs.
+  3. Append the `--client <tab-id>` global flag to **all** your subsequent commands to target that specific tab.
 ```bash
 draft ls --client <tab-id>
+draft cat <page-id> --client <tab-id>
 ```
