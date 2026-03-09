@@ -1,15 +1,13 @@
 ---
 name: draft-cli
 description: >
-  Interact with Draft pages using the Draft CLI to list, read, create,
-  and edit documents. Supports appending content, replacing sections by
-  heading, and applying unified diffs. Use when the user asks to manage
-  Draft content from the command line or integrate Draft with development
-  workflows. Also use when the user mentions Draft pages, document editing,
-  content management, or wants a CLI-based writing workflow.
+  Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
+  Use this skill whenever the user explicitly asks to read, create, list, patch, or append content to a "Draft page", "Draft doc", or their "Draft workspace" (e.g., "my draft page named 'Founder Sync'", "all the pages I have in my draft workspace", "Draft CLI").
+  This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
+  DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
 compatibility: >
   Requires Node.js >= 18 and @innosage/draft-cli (npm install -g @innosage/draft-cli).
-  The Draft PWA (draft.innosage.co) must be open in a browser for the daemon to connect.
+  Running `draft daemon` will automatically open the Draft PWA and securely lock the connection.
 metadata:
   author: innosage-llc
   version: "1.0"
@@ -27,15 +25,15 @@ Before running Draft CLI commands, you must ensure the Draft CLI package is glob
 npm install -g @innosage/draft-cli
 ```
 
-The Draft CLI operates by connecting to an active tab of the Draft PWA running in the user's browser. To start this connection, you MUST start the daemon first:
+The Draft CLI operates by establishing a 1:1 secure "Locked Connection" with a single Draft PWA tab. To start this connection and launch the browser, you MUST start the daemon:
 
 ```bash
-# Starts the background localhost:1414 daemon and listens for connections
+# Starts the background daemon, opens a new browser tab with a unique token, and securely locks to it.
 draft daemon
 ```
 
 > [!IMPORTANT]
-> If a command fails with `ECONNREFUSED` or "PWA is not connected", instruct the user to run `draft daemon` and open `https://draft.innosage.co` in their browser.
+> If a command fails with `ECONNREFUSED` or "PWA is not connected", instruct the user to run `draft daemon`. It will automatically launch a securely trusted tab without requiring manual browser confirmation.
 
 To verify the connection is active and stable, use:
 
@@ -120,12 +118,8 @@ EOF
 draft cat abc-123-def
 ```
 
-**2. Multi-tab conflicts**
-If the user has multiple Draft tabs open, the daemon won't know which one to send commands to and your commands will fail with "Error: Multiple Draft PWA tabs are connected". To resolve this:
-  1. Run `draft status` to see the list of active PWA connection IDs.
-  2. Pick *any* of the active tab IDs.
-  3. Append the `--client <tab-id>` global flag to **all** your subsequent commands to target that specific tab.
-```bash
-draft ls --client <tab-id>
-draft cat <page-id> --client <tab-id>
-```
+**2. Switching Tabs/Context (Locked Connection)**
+The Draft daemon secures a strict 1:1 lock with the tab it opened. Multi-tab conflicts are eliminated because second tabs cannot connect to a locked daemon.
+If you need to connect to a new document session:
+  1. Kill the running daemon (e.g., `Ctrl+C` or kill the process).
+  2. Run `draft daemon` again to generate a new token and open a new locked tab.
