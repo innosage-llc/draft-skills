@@ -41,4 +41,4 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [draft-cli](skills/draft-cli) | Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line. |
+| [draft-cli](skills/draft-cli) | Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
