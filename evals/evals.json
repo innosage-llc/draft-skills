@@ -3,11 +3,13 @@
     "evals": [
         {
             "id": 1,
+            "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent runs draft daemon, draft status, draft ls, identifies a page, then draft cat <id> --format markdown",
+            "expected_output": "Agent runs draft status, then draft daemon if needed, then draft status again, then draft ls, identifies a page, then draft cat <id> --format markdown",
             "files": [],
             "expectations": [
-                "Agent checks or starts the daemon with draft daemon",
+                "Agent starts by running draft status",
+                "Agent runs draft daemon if draft status indicates disconnection",
                 "Agent lists pages with draft ls",
                 "Agent reads a specific page with draft cat <id>",
                 "Output is in markdown format"
@@ -15,25 +17,27 @@
         },
         {
             "id": 2,
-            "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items",
-            "expected_output": "Agent runs draft create then draft append with markdown bullet list via stdin",
+            "name": "create-and-append-with-connection-check",
+            "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items. Make sure you check if you are connected first.",
+            "expected_output": "Agent runs draft status first, then draft create, then draft append with markdown bullet list via stdin",
             "files": [],
             "expectations": [
+                "Agent starts by running draft status",
                 "Agent creates page with draft create 'Sprint 42 Retro'",
                 "Agent appends content using draft append <id> via stdin",
-                "Content includes three bullet points",
-                "Markdown formatting is correct"
+                "Content includes three bullet points"
             ]
         },
         {
             "id": 3,
-            "prompt": "In my Draft page abc123, the Status section is outdated. Replace it with 'Status: Complete - shipped to production on March 1st'",
-            "expected_output": "Agent uses draft replace with --heading to target the Status section",
+            "name": "replace-section-on-staging",
+            "prompt": "I'm working on staging (https://markdown-editor-staging.web.app/). In my Draft page abc123, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first.",
+            "expected_output": "Agent runs draft status, then draft daemon https://markdown-editor-staging.web.app/ because staging was requested, then draft replace",
             "files": [],
             "expectations": [
-                "Agent uses draft replace command via stdin",
-                "Agent targets the correct heading with --heading 'Status'",
-                "New content includes the updated status text"
+                "Agent starts by running draft status",
+                "Agent runs draft daemon https://markdown-editor-staging.web.app/ (specifying the correct staging URL)",
+                "Agent uses draft replace command with --heading 'Status'"
             ]
         }
     ]

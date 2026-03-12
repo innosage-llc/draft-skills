@@ -1,5 +1,14 @@
 Draft Pages:
 
+- a4fqofhhg: Untitled (Parent: root)
+- bdr27uipv: Untitled (Parent: root)
+- sezu30s7v: 【精修版】全网爆火的OpenClaw：长了手脚的数字打工人 (Parent: root)
+- av7fuooh0: 全网爆火的OpenClaw：长了“手脚”的数字打工人 (Parent: root)
+- lzm3qs4d4: OpenCLO：AI 的“动手”革命 (Parent: root)
+- y0tlpgpq3: Google Gemini (Parent: root)
+- p1mcs994j: 123 (Parent: root)
+- 1f70meof6: The Luck Vaccine: How to Build an Unshakeable Identity (Parent: root)
+- w6rdk3fta: Sprint 42 Retro (Parent: root)
 - hznmwke0o: Feb 28 - Arnold : Jim Retrospect (Parent: d65hlwuew)
 - bhajsiw5b: 劳伦斯 on X: "使用 Claudian 操作文件 跟 使用Obsidian CLI 的区别，分几个场景说一下 场景一：随手记点东西不想被打断 比如你正在看网页，或者在聊天时冒出一个绝妙的点子，想立刻记到今天的日记里。 如果只用插件：你得复制这段话，切回桌面，把 Obsidian 呼叫出来，点开Claudian" / X (Parent: root)
 - d65hlwuew: Arnold : Jim Catch Up (Parent: root)

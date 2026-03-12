@@ -5,6 +5,7 @@ description: >
   Use this skill whenever the user explicitly asks to read, create, list, patch, or append content to a "Draft page", "Draft doc", or their "Draft workspace" (e.g., "my draft page named 'Founder Sync'", "all the pages I have in my draft workspace", "Draft CLI").
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
+  When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the daemon if not connected.
 compatibility: >
   Requires Node.js >= 18 and @innosage/draft-cli (npm install -g @innosage/draft-cli).
   Running `draft daemon` will automatically open the Draft PWA and securely lock the connection.
@@ -25,21 +26,30 @@ Before running Draft CLI commands, you must ensure the Draft CLI package is glob
 npm install -g @innosage/draft-cli
 ```
 
-The Draft CLI operates by establishing a 1:1 secure "Locked Connection" with a single Draft PWA tab. To start this connection and launch the browser, you MUST start the daemon:
+### Operational Pattern: Always Check Connection First
+
+To ensure a stable session, you MUST follow this sequence before executing any functional Draft command (like `ls`, `cat`, `create`, etc.):
+
+1.  **Check Status**: Always start by running `draft status`.
+2.  **Handle Disconnection**: If `draft status` reports that it is not connected (e.g., "not connected", "PWA is not connected", or `ECONNREFUSED`), you MUST attempt to connect.
+3.  **Start Daemon**: Run `draft daemon [url]`.
+    *   The `[url]` parameter is optional and defaults to the production environment (https://draft.innosage.co). 
+    *   Only specify a `[url]` if the user explicitly instructs you to use a specific staging or development environment.
+4.  **Verify**: After starting the daemon, run `draft status` again to confirm the "Locked Connection" is established.
 
 ```bash
-# Starts the background daemon, opens a new browser tab with a unique token, and securely locks to it.
+# 1. ALWAYS start with status
+draft status
+
+# 2. If NOT connected, start the daemon (url defaults to production)
 draft daemon
+
+# 3. Confirm connection is stable
+draft status
 ```
 
 > [!IMPORTANT]
-> If a command fails with `ECONNREFUSED` or "PWA is not connected", instruct the user to run `draft daemon`. It will automatically launch a securely trusted tab without requiring manual browser confirmation.
-
-To verify the connection is active and stable, use:
-
-```bash
-draft status
-```
+> The Draft CLI operates by establishing a 1:1 secure "Locked Connection" with a single Draft PWA tab. Starting the daemon will automatically launch a securely trusted tab. If you encounter a connection error later in the session, repeat this status-check-and-daemon-start sequence.
 
 ## Command Reference
 
@@ -50,6 +60,7 @@ The Draft CLI uses conventional command structures.
 To see all available pages in the user's Draft workspace:
 
 ```bash
+# Requires active connection
 draft ls
 ```
 Output includes the page `id`, `title`, and `parentId`. You need the `id` to read or modify a page.
@@ -104,17 +115,22 @@ cat patch.diff | draft patch <id>
 ## Common Workflows
 
 **1. The Edit Cycle (Read, Modify, Verify)**
-ALWAYS read the page first before modifying it so you know exactly what is there.
+ALWAYS follow the "Connection First" pattern, then read the page before modifying it.
 ```bash
-# 1. Read
+# 1. Check/Start Connection
+draft status
+# (if needed: draft daemon && draft status)
+
+# 2. Read
+draft ls
 draft cat abc-123-def
 
-# 2. Modify
+# 3. Modify
 cat << 'EOF' | draft append abc-123-def
 New content...
 EOF
 
-# 3. Verify
+# 4. Verify
 draft cat abc-123-def
 ```
 
