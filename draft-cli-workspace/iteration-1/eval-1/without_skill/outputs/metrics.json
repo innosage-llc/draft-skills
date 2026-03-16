@@ -1,13 +1,5 @@
 {
-  "tool_calls": {
-    "Bash": 0
-  },
-  "total_tool_calls": 0,
-  "total_steps": 1,
-  "files_created": [
-    "console_output.txt"
-  ],
-  "errors_encountered": 0,
-  "output_chars": 108,
-  "transcript_chars": 500
+  "total_pages": 66,
+  "most_recent_page_id": "aiwqy4m0k",
+  "most_recent_page_title": "Sprint 42 Retro"
 }

@@ -76,12 +76,22 @@ draft cat <id> --format json
 draft cat <id> --format raw
 ```
 
-### Creating and Modifying
+### Creating, Modifying, and Publishing
 
 To create a brand new page:
 
 ```bash
 draft create "My New Page Title"
+```
+
+To publish a page to the web:
+
+```bash
+# This will make the page publicly accessible via a unique URL.
+# NOTE: For free beta testing, you MUST set the environment variable
+# GLOBAL_PUBLISH_PASSWORD=innosage before running this command.
+# This requirement is subject to change in the future.
+GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id>
 ```
 
 To append content to the END of a page. You can pass the content as a string, but for multiline Markdown, it is usually safer and much more robust to pipe it via `stdin`:

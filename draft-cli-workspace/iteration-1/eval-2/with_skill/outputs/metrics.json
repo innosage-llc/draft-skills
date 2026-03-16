@@ -1,13 +1,11 @@
 {
-  "tool_calls": {
-    "Bash": 3
-  },
-  "total_tool_calls": 3,
-  "total_steps": 3,
-  "files_created": [
-    "console_output.txt"
-  ],
-  "errors_encountered": 0,
-  "output_chars": 63,
-  "transcript_chars": 500
+  "turns": 7,
+  "successful_calls": 6,
+  "failed_calls": 1,
+  "status": "success",
+  "outputs_saved": [
+    "transcript.md",
+    "metrics.json",
+    "sprint-42-retro.md"
+  ]
 }

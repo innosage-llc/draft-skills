@@ -30,14 +30,27 @@
         },
         {
             "id": 3,
-            "name": "replace-section-on-staging",
-            "prompt": "I'm working on staging (https://markdown-editor-staging.web.app/). In my Draft page abc123, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first.",
-            "expected_output": "Agent runs draft status, then draft daemon https://markdown-editor-staging.web.app/ because staging was requested, then draft replace",
+            "name": "replace-section-on-recent-page",
+            "prompt": "In my most recent Draft page, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
+            "expected_output": "Agent runs draft status, then draft daemon https://markdown-editor-staging.web.app/, then draft ls to find the most recent ID, then draft replace <id> --heading 'Status'",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status",
-                "Agent runs draft daemon https://markdown-editor-staging.web.app/ (specifying the correct staging URL)",
-                "Agent uses draft replace command with --heading 'Status'"
+                "Agent connects to staging URL",
+                "Agent lists pages to find the correct ID",
+                "Agent uses draft replace command on the correct ID"
+            ]
+        },
+        {
+            "id": 4,
+            "name": "create-and-publish-roadmap",
+            "prompt": "I want to share my project roadmap. Create a new Draft page titled 'Project Roadmap', and then publish it to the web. Remember to check your connection first.",
+            "expected_output": "Agent runs draft status, then draft create 'Project Roadmap', captures the generated ID, and runs GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id>",
+            "files": [],
+            "expectations": [
+                "Agent starts by running draft status",
+                "Agent creates the page and captures the ID",
+                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> command with the correct ID"
             ]
         }
     ]
