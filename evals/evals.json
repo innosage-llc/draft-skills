@@ -5,7 +5,7 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent starts with draft status --json, restores readiness with draft start-server or draft daemon if needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> --format json.",
+            "expected_output": "Agent starts with draft status --json, restores readiness with draft start-server or draft daemon if needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> to return the page in markdown for review.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
@@ -13,7 +13,7 @@
                 "Agent runs draft start-server only when status indicates the daemon is offline",
                 "Agent runs draft daemon when status indicates the browser is not connected",
                 "Agent lists pages with draft ls --json",
-                "Agent reads a specific page with draft cat <id> --format json",
+                "Agent reads a specific page with draft cat <id> for markdown review",
                 "Agent verifies READY before reading content"
             ]
         },
