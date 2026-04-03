@@ -80,6 +80,13 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
   Run `draft ls --json` to confirm the correct page ID.
 
+Preferred recovery sequence:
+
+- If `draft status` says `DAEMON_OFFLINE`, run `draft start-server`, then re-check `draft status`.
+- If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
+- If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
+- If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
+
 ### What Humans Should See
 
 When the browser tab is connected to the Draft CLI daemon, the GUI now shows a small `CLI Connected` badge in the sidebar header while the local-mode session is active.
