@@ -47,14 +47,14 @@
         {
             "id": 3,
             "name": "replace-section-on-recent-page",
-            "prompt": "In my most recent Draft page, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
-            "expected_output": "Agent uses the explicit staging URL when starting or pairing the Draft session, verifies readiness with draft status --json, finds the correct page with draft ls --json, then runs draft replace <id> --heading 'Status' --json.",
+            "prompt": "In my Draft page titled 'Eval Replace Status Seed', replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
+            "expected_output": "Agent verifies readiness with draft status --json, rejects a READY session on the wrong origin when staging is required, reconnects with the explicit staging URL if needed, finds the correct page with draft ls --json, then runs draft replace <id> --heading 'Status' --json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
-                "Agent uses https://markdown-editor-staging.web.app/ when connecting to Draft",
-                "Agent reuses the same staging URL for draft start-server or draft daemon if a reconnect is needed",
-                "Agent lists pages with draft ls --json to find the correct ID",
+                "Agent rejects a READY session on the wrong origin when the user explicitly asks for staging",
+                "Agent uses https://markdown-editor-staging.web.app/ when reconnecting to Draft",
+                "Agent lists pages with draft ls --json to find the ID for 'Eval Replace Status Seed'",
                 "Agent uses draft replace command with --json on the correct ID"
             ]
         },

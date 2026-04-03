@@ -35,6 +35,7 @@ To ensure a stable session, you MUST follow this sequence before executing any f
 3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` to re-open or re-pair the browser tab.
 4.  **Verify**: Run `draft status --json` again and only proceed once the state is `READY`.
 5.  **Respect Environment URLs**: The optional `[url]` positional defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
+6.  **Reject the Wrong Origin**: If the user explicitly asks for staging or another environment, inspect `clients[].origin` from `draft status --json`. A `READY` session connected to the wrong origin is not good enough. Run `draft stop-server`, reconnect with the requested URL, then verify that `clients[].origin` matches before you continue.
 
 ```bash
 # 1. Start with machine-readable status
@@ -95,6 +96,7 @@ Preferred recovery sequence:
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
 - If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
 - If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server [url]` and `draft daemon [url]`.
+- If `draft status --json` shows `READY` but the connected `clients[].origin` does not match the requested environment, stop the server and reconnect to the requested URL before making changes.
 - In CI or headless sessions, browser auto-launch may be skipped. Treat that as a diagnosis cue, then pair from a desktop session and verify with `draft status --json`.
 
 ### What Humans Should See
@@ -205,6 +207,7 @@ Only do this when the user explicitly asks for a non-production Draft environmen
 
 ```bash
 draft status --json
+draft stop-server
 draft start-server https://markdown-editor-staging.web.app/
 draft status --json
 draft daemon https://markdown-editor-staging.web.app/
