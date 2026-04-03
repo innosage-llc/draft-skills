@@ -68,7 +68,7 @@ draft patch <id> --json
 draft publish <id> --json
 ```
 
-Use `draft cat <id> --format json` when you want the lean raw document content only. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
+Use `draft cat <id>` when you want the page content in plain markdown for human review. Use `draft cat <id> --format json` only when you need the raw structured document data for parsing or automation. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
 
 Prefer the JSON workflow for branching and retries:
 
@@ -124,7 +124,7 @@ To read the content of a specific page:
 draft cat <id>
 
 # Other available formats if you need raw data:
-draft cat <id> --format json
+draft cat <id>
 draft cat <id> --format raw
 ```
 
@@ -186,7 +186,7 @@ draft status --json
 
 # 2. Read
 draft ls --json
-draft cat abc-123-def --format json
+draft cat abc-123-def
 
 # 3. Modify
 cat << 'EOF' | draft append abc-123-def --json
@@ -194,7 +194,7 @@ New content...
 EOF
 
 # 4. Verify
-draft cat abc-123-def --format json
+draft cat abc-123-def
 ```
 
 **2. Switching Tabs/Context**
