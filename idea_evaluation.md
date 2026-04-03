@@ -12,7 +12,9 @@ Create a public `innosage-llc/draft-skills` repo following the [Agent Skills spe
 
 | Command | Purpose |
 |---|---|
-| `draft daemon [url]` | Start background daemon for PWA connections |
+| `draft start-server [url]` | Start the background server for PWA connections |
+| `draft stop-server` | Stop the background server cleanly |
+| `draft daemon [url]` | Convenience interactive command that starts the server and launches a locked PWA tab |
 | `draft status` | Check connection with Draft PWA |
 | `draft ls` | List all pages |
 | `draft cat <id>` | View page content (markdown/json/raw) |
