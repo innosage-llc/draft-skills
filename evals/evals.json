@@ -5,26 +5,26 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent runs draft status, then draft start-server if needed, then draft status again, then draft ls, identifies a page, then draft cat <id> --format markdown",
+            "expected_output": "Agent runs draft status --json, then draft start-server if needed, then draft status --json again, then draft ls --json, identifies a page, then draft cat <id> --format json",
             "files": [],
             "expectations": [
-                "Agent starts by running draft status",
+                "Agent starts by running draft status --json",
                 "Agent runs draft start-server if draft status indicates the server is not running or the browser is not connected",
-                "Agent lists pages with draft ls",
-                "Agent reads a specific page with draft cat <id>",
-                "Output is in markdown format"
+                "Agent lists pages with draft ls --json",
+                "Agent reads a specific page with draft cat <id> --format json",
+                "Output is in structured format"
             ]
         },
         {
             "id": 2,
             "name": "create-and-append-with-connection-check",
             "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items. Make sure you check if you are connected first.",
-            "expected_output": "Agent runs draft status first, then draft create, then draft append with markdown bullet list via stdin",
+            "expected_output": "Agent runs draft status --json first, then draft create --json, then draft append --json with markdown bullet list via stdin",
             "files": [],
             "expectations": [
-                "Agent starts by running draft status",
-                "Agent creates page with draft create 'Sprint 42 Retro'",
-                "Agent appends content using draft append <id> via stdin",
+                "Agent starts by running draft status --json",
+                "Agent creates page with draft create 'Sprint 42 Retro' --json",
+                "Agent appends content using draft append <id> --json via stdin",
                 "Content includes three bullet points"
             ]
         },
@@ -32,25 +32,25 @@
             "id": 3,
             "name": "replace-section-on-recent-page",
             "prompt": "In my most recent Draft page, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
-            "expected_output": "Agent runs draft status, then draft start-server https://markdown-editor-staging.web.app/ if needed, then draft status again, then draft ls to find the most recent ID, then draft replace <id> --heading 'Status'",
+            "expected_output": "Agent runs draft status --json, then draft start-server https://markdown-editor-staging.web.app/ if needed, then draft status --json again, then draft ls --json to find the most recent ID, then draft replace <id> --heading 'Status' --json",
             "files": [],
             "expectations": [
-                "Agent starts by running draft status",
+                "Agent starts by running draft status --json",
                 "Agent connects to staging URL",
-                "Agent lists pages to find the correct ID",
-                "Agent uses draft replace command on the correct ID"
+                "Agent lists pages with draft ls --json to find the correct ID",
+                "Agent uses draft replace command with --json on the correct ID"
             ]
         },
         {
             "id": 4,
             "name": "create-and-publish-roadmap",
             "prompt": "I want to share my project roadmap. Create a new Draft page titled 'Project Roadmap', and then publish it to the web. Remember to check your connection first.",
-            "expected_output": "Agent runs draft status, then draft create 'Project Roadmap', captures the generated ID, and runs GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id>",
+            "expected_output": "Agent runs draft status --json, then draft create 'Project Roadmap' --json, captures the generated ID, and runs GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> --json",
             "files": [],
             "expectations": [
-                "Agent starts by running draft status",
-                "Agent creates the page and captures the ID",
-                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> command with the correct ID"
+                "Agent starts by running draft status --json",
+                "Agent creates the page and captures the ID from JSON output",
+                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> --json command with the correct ID"
             ]
         }
     ]

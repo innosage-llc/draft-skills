@@ -51,6 +51,22 @@ draft status
 > [!IMPORTANT]
 > The Draft CLI operates by establishing a 1:1 secure "Locked Connection" with a single Draft PWA tab. Starting the background server will automatically launch a securely trusted tab. If you encounter a connection error later in the session, repeat this status-check-and-server-start sequence.
 
+### Agent-Friendly Structured Output
+
+When the task is being executed by an agent or automation, prefer machine-readable output for operational commands:
+
+```bash
+draft status --json
+draft ls --json
+draft create "My New Page Title" --json
+draft append <id> "More content" --json
+draft replace <id> --heading "Status" --json
+draft patch <id> --json
+draft publish <id> --json
+```
+
+Use `draft cat <id> --format json` when you want the lean raw document content only. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
+
 ## Command Reference
 
 The Draft CLI uses conventional command structures.
@@ -128,20 +144,20 @@ cat patch.diff | draft patch <id>
 ALWAYS follow the "Connection First" pattern, then read the page before modifying it.
 ```bash
 # 1. Check/Start Connection
-draft status
-# (if needed: draft start-server && draft status)
+draft status --json
+# (if needed: draft start-server && draft status --json)
 
 # 2. Read
-draft ls
-draft cat abc-123-def
+draft ls --json
+draft cat abc-123-def --format json
 
 # 3. Modify
-cat << 'EOF' | draft append abc-123-def
+cat << 'EOF' | draft append abc-123-def --json
 New content...
 EOF
 
 # 4. Verify
-draft cat abc-123-def
+draft cat abc-123-def --format json
 ```
 
 **2. Switching Tabs/Context (Locked Connection)**
