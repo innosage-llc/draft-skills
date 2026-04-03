@@ -16,6 +16,18 @@
             ]
         },
         {
+            "id": 5,
+            "name": "diagnose-browser-missing-before-retry",
+            "prompt": "My Draft command failed because the browser session seems missing. Diagnose the problem before retrying and tell me the right next command.",
+            "expected_output": "Agent runs draft status --json, identifies the explicit state, and uses draft daemon when the daemon is running but the browser is not connected.",
+            "files": [],
+            "expectations": [
+                "Agent starts by running draft status --json",
+                "Agent treats draft status as the authoritative diagnosis step",
+                "Agent uses draft daemon when the status indicates browser-not-connected"
+            ]
+        },
+        {
             "id": 2,
             "name": "create-and-append-with-connection-check",
             "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items. Make sure you check if you are connected first.",

@@ -67,6 +67,19 @@ draft publish <id> --json
 
 Use `draft cat <id> --format json` when you want the lean raw document content only. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
 
+### Troubleshooting
+
+Treat `draft status` as the authoritative diagnosis step before retrying a failed command.
+
+- `DAEMON_OFFLINE`: the local daemon is not running.
+  Run `draft start-server`, then re-run `draft status`.
+- `BROWSER_NOT_CONNECTED`: the daemon is running, but no Draft browser tab is paired.
+  Run `draft daemon`, then re-run `draft status`.
+- `REQUEST_TIMEOUT`: the connected browser session did not respond in time.
+  Run `draft status` to confirm the session is still connected before retrying.
+- `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
+  Run `draft ls --json` to confirm the correct page ID.
+
 ## Command Reference
 
 The Draft CLI uses conventional command structures.
