@@ -80,6 +80,10 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
   Run `draft ls --json` to confirm the correct page ID.
 
+### What Humans Should See
+
+When the browser tab is connected to the Draft CLI daemon, the GUI now shows a small `CLI Connected` badge in the sidebar header while the local-mode session is active.
+
 ## Command Reference
 
 The Draft CLI uses conventional command structures.
