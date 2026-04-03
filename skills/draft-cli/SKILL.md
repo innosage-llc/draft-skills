@@ -8,10 +8,10 @@ description: >
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
 compatibility: >
   Requires Node.js >= 18 and @innosage/draft-cli (npm install -g @innosage/draft-cli).
-  Running `draft start-server` will start the local server, launch the Draft PWA, and securely lock the connection.
+  Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.0"
+  version: "1.1"
 ---
 
 # Draft CLI Skill
@@ -30,30 +30,32 @@ npm install -g @innosage/draft-cli
 
 To ensure a stable session, you MUST follow this sequence before executing any functional Draft command (like `ls`, `cat`, `create`, etc.):
 
-1.  **Check Status**: Always start by running `draft status`.
-2.  **Handle Disconnection**: If `draft status` reports that the server is not running or the browser is not connected, you MUST attempt to connect.
-3.  **Start Server**: Run `draft start-server [url]`.
-    *   The `[url]` parameter is optional and defaults to the production environment (https://draft.innosage.co). 
-    *   Only specify a `[url]` if the user explicitly instructs you to use a specific staging or development environment.
-4.  **Verify**: After starting the server, run `draft status` again to confirm the "Locked Connection" is established.
+1.  **Check Status**: Start with `draft status --json` unless the user explicitly wants human-readable output.
+2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server [url]`.
+3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` to re-open or re-pair the browser tab.
+4.  **Verify**: Run `draft status --json` again and only proceed once the state is `READY`.
+5.  **Respect Environment URLs**: The optional `[url]` positional defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
 
 ```bash
-# 1. ALWAYS start with status
-draft status
+# 1. Start with machine-readable status
+draft status --json
 
-# 2. If the server is not running or the browser is not connected, start the server
+# 2a. If the daemon is offline, start it
 draft start-server
 
-# 3. Confirm connection is stable
-draft status
+# 2b. If the daemon is running but the browser is missing, pair a tab
+draft daemon
+
+# 3. Confirm the live path is ready
+draft status --json
 ```
 
 > [!IMPORTANT]
-> The Draft CLI operates by establishing a 1:1 secure "Locked Connection" with a single Draft PWA tab. Starting the background server will automatically launch a securely trusted tab. If you encounter a connection error later in the session, repeat this status-check-and-server-start sequence.
+> The Draft CLI uses one daemon and one active browser-backed session at a time. `draft start-server` starts the daemon, but it does not by itself prove that the browser paired successfully. Always trust `draft status` over startup copy before issuing read/write commands.
 
 ### Agent-Friendly Structured Output
 
-When the task is being executed by an agent or automation, prefer machine-readable output for operational commands:
+When the task is being executed by an agent or automation, prefer machine-readable output for operational commands and mutations:
 
 ```bash
 draft status --json
@@ -66,6 +68,12 @@ draft publish <id> --json
 ```
 
 Use `draft cat <id> --format json` when you want the lean raw document content only. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
+
+Prefer the JSON workflow for branching and retries:
+
+- Use `state`, `server_running`, `browser_connected`, and `read_write_ready` from `draft status --json` to decide what to do next.
+- Use JSON mutation responses to capture created page IDs and publish URLs without scraping terminal prose.
+- Keep human-readable commands for manual inspection or when the user explicitly wants prose output.
 
 ### Troubleshooting
 
@@ -86,10 +94,12 @@ Preferred recovery sequence:
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
 - If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
+- If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server [url]` and `draft daemon [url]`.
+- In CI or headless sessions, browser auto-launch may be skipped. Treat that as a diagnosis cue, then pair from a desktop session and verify with `draft status --json`.
 
 ### What Humans Should See
 
-When the browser tab is connected to the Draft CLI daemon, the GUI now shows a small `CLI Connected` badge in the sidebar header while the local-mode session is active.
+When the browser tab is connected to the Draft CLI daemon, the GUI shows a small `CLI Connected` badge in the sidebar header while the local-mode session is active.
 
 ## Command Reference
 
@@ -165,11 +175,12 @@ cat patch.diff | draft patch <id>
 ## Common Workflows
 
 **1. The Edit Cycle (Read, Modify, Verify)**
-ALWAYS follow the "Connection First" pattern, then read the page before modifying it.
+Always follow the connection-first pattern, then read the page before modifying it.
 ```bash
 # 1. Check/Start Connection
 draft status --json
 # (if needed: draft start-server && draft status --json)
+# (if browser missing: draft daemon && draft status --json)
 
 # 2. Read
 draft ls --json
@@ -184,8 +195,18 @@ EOF
 draft cat abc-123-def --format json
 ```
 
-**2. Switching Tabs/Context (Locked Connection)**
-The Draft daemon secures a strict 1:1 lock with the tab it opened. Multi-tab conflicts are eliminated because second tabs cannot connect to a locked daemon.
-If you need to connect to a new document session:
+**2. Switching Tabs/Context**
+The Draft daemon is intentionally single-session. If you need to connect to a different browser tab or recover from a stale pairing:
   1. Stop the running server with `draft stop-server`.
   2. Run `draft start-server` again to generate a new token and open a new locked tab.
+
+**3. Using Staging or Another Environment**
+Only do this when the user explicitly asks for a non-production Draft environment.
+
+```bash
+draft status --json
+draft start-server https://markdown-editor-staging.web.app/
+draft status --json
+draft daemon https://markdown-editor-staging.web.app/
+draft status --json
+```

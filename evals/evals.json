@@ -5,25 +5,28 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent runs draft status --json, then draft start-server if needed, then draft status --json again, then draft ls --json, identifies a page, then draft cat <id> --format json",
+            "expected_output": "Agent starts with draft status --json, restores readiness with draft start-server or draft daemon if needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> --format json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
-                "Agent runs draft start-server if draft status indicates the server is not running or the browser is not connected",
+                "Agent treats draft status --json as the authoritative readiness check",
+                "Agent runs draft start-server only when status indicates the daemon is offline",
+                "Agent runs draft daemon when status indicates the browser is not connected",
                 "Agent lists pages with draft ls --json",
                 "Agent reads a specific page with draft cat <id> --format json",
-                "Output is in structured format"
+                "Agent verifies READY before reading content"
             ]
         },
         {
             "id": 5,
             "name": "diagnose-browser-missing-before-retry",
-            "prompt": "My Draft command failed because the browser session seems missing. Diagnose the problem before retrying and tell me the right next command.",
-            "expected_output": "Agent runs draft status --json, identifies the explicit state, and uses draft daemon when the daemon is running but the browser is not connected.",
+            "prompt": "My Draft command failed because the browser session seems missing. Diagnose the problem before retrying and tell me the right next command. Do not just retry the original command blindly.",
+            "expected_output": "Agent runs draft status --json first, identifies the explicit state, and recommends draft daemon only when the daemon is running but the browser is not connected.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent treats draft status as the authoritative diagnosis step",
+                "Agent does not retry the failed live command before checking status",
                 "Agent uses draft daemon when the status indicates browser-not-connected"
             ]
         },
@@ -31,10 +34,11 @@
             "id": 2,
             "name": "create-and-append-with-connection-check",
             "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items. Make sure you check if you are connected first.",
-            "expected_output": "Agent runs draft status --json first, then draft create --json, then draft append --json with markdown bullet list via stdin",
+            "expected_output": "Agent runs draft status --json first, restores readiness if needed, creates the page with draft create --json, captures the page ID from JSON, then appends markdown bullets with draft append --json via stdin.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
+                "Agent verifies readiness before mutating",
                 "Agent creates page with draft create 'Sprint 42 Retro' --json",
                 "Agent appends content using draft append <id> --json via stdin",
                 "Content includes three bullet points"
@@ -44,11 +48,12 @@
             "id": 3,
             "name": "replace-section-on-recent-page",
             "prompt": "In my most recent Draft page, replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
-            "expected_output": "Agent runs draft status --json, then draft start-server https://markdown-editor-staging.web.app/ if needed, then draft status --json again, then draft ls --json to find the most recent ID, then draft replace <id> --heading 'Status' --json",
+            "expected_output": "Agent uses the explicit staging URL when starting or pairing the Draft session, verifies readiness with draft status --json, finds the correct page with draft ls --json, then runs draft replace <id> --heading 'Status' --json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
-                "Agent connects to staging URL",
+                "Agent uses https://markdown-editor-staging.web.app/ when connecting to Draft",
+                "Agent reuses the same staging URL for draft start-server or draft daemon if a reconnect is needed",
                 "Agent lists pages with draft ls --json to find the correct ID",
                 "Agent uses draft replace command with --json on the correct ID"
             ]
@@ -57,10 +62,11 @@
             "id": 4,
             "name": "create-and-publish-roadmap",
             "prompt": "I want to share my project roadmap. Create a new Draft page titled 'Project Roadmap', and then publish it to the web. Remember to check your connection first.",
-            "expected_output": "Agent runs draft status --json, then draft create 'Project Roadmap' --json, captures the generated ID, and runs GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> --json",
+            "expected_output": "Agent runs draft status --json, restores readiness if needed, creates 'Project Roadmap' with --json, captures the generated ID, and uses the legacy GLOBAL_PUBLISH_PASSWORD flow to publish with --json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
+                "Agent verifies readiness before create and publish",
                 "Agent creates the page and captures the ID from JSON output",
                 "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> --json command with the correct ID"
             ]
