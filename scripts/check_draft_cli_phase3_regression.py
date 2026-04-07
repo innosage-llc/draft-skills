@@ -213,7 +213,11 @@ def run_fixture_once(
             continue
 
         if assertion_type == "artifact_exists":
-            artifact_path = str(assertion.get("path", ""))
+            artifact_path_value = assertion.get("path")
+            if not artifact_path_value:
+                failures.append(f"{fixture_id}: artifact_exists assertion missing 'path'")
+                continue
+            artifact_path = str(artifact_path_value)
             if artifact_path.startswith("eval:"):
                 eval_name = artifact_path.split(":", 1)[1]
                 if eval_name not in eval_by_name:
@@ -340,17 +344,18 @@ def run_fixture_with_policy(
         )
         attempts.append(failures)
 
-        # Assertion failures are final for deterministic/retryable policy.
-        if mode in {"deterministic", "retryable"}:
+        if mode == "deterministic":
+            break
+        if mode == "retryable" and not failures:
             break
 
-    attempt_failures: list[str] = attempts[0] if attempts else []
+    attempt_failures: list[str] = attempts[-1] if attempts else []
     if mode == "drifted":
         # For drifted checks, assertions should usually be score_within and aggregate-friendly.
         # Current Phase 3 corpus is deterministic; this path remains forward-compatible.
         median_failures_count = int(statistics.median(len(run) for run in attempts)) if attempts else 0
         if median_failures_count > 0:
-            attempt_failures = attempts[0]
+            attempt_failures = next((run for run in attempts if run), attempts[-1])
         else:
             attempt_failures = []
 
