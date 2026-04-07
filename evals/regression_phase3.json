@@ -199,6 +199,117 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-append-stdin-pattern",
+      "title": "SKILL.md documents the recommended stdin append pattern",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Append a block of multiline markdown to my Draft page.",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": ["cat << 'EOF' | draft append", "--json"]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:create-and-append-with-connection-check"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["append", "stdin", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-replace-heading-command-shape",
+      "title": "SKILL.md documents draft replace --heading command shape",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Replace the Status section of my Draft page with new content.",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": ["draft replace", "--heading", "--json"]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:replace-section-on-recent-page"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["replace", "heading", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-daemon-offline-recovery-sequence",
+      "title": "SKILL.md documents DAEMON_OFFLINE -> start-server -> recheck sequence",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My draft status returned DAEMON_OFFLINE. How do I recover?",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": ["DAEMON_OFFLINE", "draft start-server"]
+        },
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": ["DAEMON_OFFLINE", "draft start-server", "draft status"]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["recovery", "daemon-offline"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-env-switch-sequence",
+      "title": "SKILL.md documents stop -> restart -> verify sequence for env switching",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Switch my Draft CLI connection from production to staging.",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft stop-server",
+            "draft start-server https://markdown-editor-staging.web.app/",
+            "draft daemon https://markdown-editor-staging.web.app/"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": ["clients[].origin", "wrong origin"]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["env-switch", "staging"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-publish-auth-pattern",
+      "title": "SKILL.md documents the GLOBAL_PUBLISH_PASSWORD publish pattern",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Publish my Draft page to the web.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": ["GLOBAL_PUBLISH_PASSWORD=innosage", "draft publish"]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:create-and-publish-roadmap"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["publish", "auth"],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-coverage-sanity",
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
@@ -208,7 +319,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 8
+          "minimum": 13
         },
         {
           "type": "count_at_least",
@@ -250,6 +361,36 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "e2e",
+          "minimum": 3
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "append",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "replace",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "recovery",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "env-switch",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "publish",
           "minimum": 1
         }
       ],
