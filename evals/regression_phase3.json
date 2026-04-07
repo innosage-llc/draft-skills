@@ -181,9 +181,8 @@
           "type": "command_sequence",
           "target": "skill",
           "sequence": [
-            "draft cat <id> > /tmp/before.md",
-            "diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff",
-            "cat /tmp/patch.diff | draft patch <id> --json"
+            "draft cat <id> | sed '1,3d' > /tmp/before.md",
+            "diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json"
           ]
         }
       ],

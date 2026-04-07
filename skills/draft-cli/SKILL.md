@@ -11,7 +11,7 @@ compatibility: >
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.2"
+  version: "1.3"
 ---
 
 # Draft CLI Skill
@@ -188,24 +188,27 @@ cat patch.diff | draft patch <id>
 >
 > **Safe patch workflow:**
 > ```bash
-> # 1. Capture the exact live markdown
-> draft cat <id> > /tmp/before.md
+> # 1. Capture live content and strip the 3-line metadata header (Title:, ID:, ---)
+> #    draft cat always emits exactly 3 header lines before the body.
+> #    The patch engine operates on body-only content; including the headers causes PATCH_MISMATCH.
+> draft cat <id> | sed '1,3d' > /tmp/before.md
 >
-> # 2. Copy and edit
+> # 2. Copy and edit — do NOT reformat or reflow the body text.
+> #    The live serialization is the ground truth. Even a single trailing newline
+> #    difference between your edited file and the live before.md will cause a mismatch.
 > cp /tmp/before.md /tmp/after.md
-> # (make your text edits to /tmp/after.md)
+> # (make your text edits to /tmp/after.md using sed or similar)
 >
-> # 3. Generate diff from live content
-> diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff
+> # 3. Generate diff from live content.
+> #    IMPORTANT: `diff` exits with code 1 when files differ (not an error — that is expected).
+> #    Use `;` (not `&&`) so the patch command always runs regardless of diff's exit code.
+> diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
 >
-> # 4. Apply
-> cat /tmp/patch.diff | draft patch <id> --json
->
-> # 5. Verify
+> # 4. Verify
 > draft cat <id>
 > ```
 >
-> If you receive `PATCH_MISMATCH`, re-run `draft cat <id>` and regenerate the diff — do not retry with the same diff file.
+> If you receive `PATCH_MISMATCH`, re-run `draft cat <id> | sed '1,3d'` and regenerate the diff — do not retry with the same diff file.
 
 ## Common Workflows
 
@@ -236,23 +239,25 @@ Use `draft patch` for precise edits to existing text. Always anchor the diff to 
 # 1. Check/Start Connection
 draft status --json
 
-# 2. Capture the exact live markdown (this is the ground truth)
-draft cat <id> > /tmp/before.md
+# 2. Capture live content and strip the 3-line metadata header.
+#    `draft cat` always emits: Title: / ID: / --- before the body.
+#    The patch engine expects body-only content. Use sed '1,3d' to strip headers.
+draft cat <id> | sed '1,3d' > /tmp/before.md
 
-# 3. Edit a copy
+# 3. Edit a copy — do NOT reformat or reflow the body.
+#    The content from before.md is the only valid anchor.
 cp /tmp/before.md /tmp/after.md
 # (edit /tmp/after.md — sed, your editor, etc.)
 
-# 4. Generate the diff from live content
-diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff
+# 4. Generate the diff from live content.
+#    Use `;` not `&&` — diff exits 1 when files differ, which would silently
+#    break `&&` chains before the patch command runs.
+diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
 
-# 5. Apply
-cat /tmp/patch.diff | draft patch <id> --json
-
-# 6. Verify the change landed
+# 5. Verify the change landed
 draft cat <id>
 
-# If PATCH_MISMATCH: re-read and regenerate — do NOT retry with the same diff
+# If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,3d'` and regenerate — do NOT retry with the same diff
 ```
 
 **2. Switching Tabs/Context**
