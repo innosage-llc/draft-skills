@@ -141,6 +141,64 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-bugfix-patch-mismatch-caution-block",
+      "title": "Bugfix regression guard: draft patch CAUTION block must exist in SKILL.md",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Apply a precise unified diff to my Draft page to change the first sentence of a paragraph.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "PATCH_MISMATCH",
+            "tiptap",
+            "Always generate the diff from",
+            "draft cat",
+            "never from a locally authored file"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "bugfix",
+        "patch",
+        "tc5"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-bugfix-patch-safe-workflow-sequence",
+      "title": "Bugfix regression guard: safe patch workflow steps are present in correct order",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Apply a precise unified diff to my Draft page to change the first sentence of a paragraph.",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft cat <id> > /tmp/before.md",
+            "diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff",
+            "cat /tmp/patch.diff | draft patch <id> --json"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "bugfix",
+        "patch",
+        "tc5"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-coverage-sanity",
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
@@ -150,7 +208,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 6
+          "minimum": 8
         },
         {
           "type": "count_at_least",
@@ -180,7 +238,13 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "bugfix",
-          "minimum": 1
+          "minimum": 2
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "patch",
+          "minimum": 2
         },
         {
           "type": "count_at_least",

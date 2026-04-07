@@ -181,6 +181,32 @@ To apply a precise unified diff to a page. This is best for surgical edits to ex
 cat patch.diff | draft patch <id>
 ```
 
+> [!CAUTION]
+> **Always generate the diff from `draft cat <id>` output — never from a locally authored file.**
+>
+> Draft's tiptap editor stores multi-line text blocks as a **single paragraph node**. When serialized by `draft cat`, this appears as one continuous space-joined line, not multiple lines. If you generate a diff against a multi-line file you wrote yourself, the patch engine will return `PATCH_MISMATCH` even though `ok:true` was returned by a previous write.
+>
+> **Safe patch workflow:**
+> ```bash
+> # 1. Capture the exact live markdown
+> draft cat <id> > /tmp/before.md
+>
+> # 2. Copy and edit
+> cp /tmp/before.md /tmp/after.md
+> # (make your text edits to /tmp/after.md)
+>
+> # 3. Generate diff from live content
+> diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff
+>
+> # 4. Apply
+> cat /tmp/patch.diff | draft patch <id> --json
+>
+> # 5. Verify
+> draft cat <id>
+> ```
+>
+> If you receive `PATCH_MISMATCH`, re-run `draft cat <id>` and regenerate the diff — do not retry with the same diff file.
+
 ## Common Workflows
 
 **1. The Edit Cycle (Read, Modify, Verify)**
@@ -202,6 +228,31 @@ EOF
 
 # 4. Verify
 draft cat abc-123-def
+```
+
+**2. The Safe Patch Cycle (Surgical Line Edit)**
+Use `draft patch` for precise edits to existing text. Always anchor the diff to the live markdown.
+```bash
+# 1. Check/Start Connection
+draft status --json
+
+# 2. Capture the exact live markdown (this is the ground truth)
+draft cat <id> > /tmp/before.md
+
+# 3. Edit a copy
+cp /tmp/before.md /tmp/after.md
+# (edit /tmp/after.md — sed, your editor, etc.)
+
+# 4. Generate the diff from live content
+diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff
+
+# 5. Apply
+cat /tmp/patch.diff | draft patch <id> --json
+
+# 6. Verify the change landed
+draft cat <id>
+
+# If PATCH_MISMATCH: re-read and regenerate — do NOT retry with the same diff
 ```
 
 **2. Switching Tabs/Context**
