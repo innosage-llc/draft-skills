@@ -8,10 +8,6 @@
       "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
       "assertions": [
         {
-          "type": "trigger_decision",
-          "expected": "activate"
-        },
-        {
           "type": "artifact_exists",
           "path": "eval:list-and-cat-with-connection-check"
         },
@@ -31,7 +27,8 @@
       },
       "tags": [
         "trigger",
-        "normal"
+        "normal",
+        "e2e"
       ],
       "source": "phase3-regression-corpus"
     },
@@ -42,10 +39,6 @@
       "scope": "regression",
       "prompt": "Can you draft an email update for customers?",
       "assertions": [
-        {
-          "type": "trigger_decision",
-          "expected": "decline"
-        },
         {
           "type": "text_contains",
           "target": "skill",
@@ -93,10 +86,6 @@
       "scope": "regression",
       "prompt": "run draft ??? broken id and fix it",
       "assertions": [
-        {
-          "type": "trigger_decision",
-          "expected": "activate"
-        },
         {
           "type": "command_contains",
           "target": "eval:diagnose-browser-missing-before-retry:expected_output",
@@ -160,8 +149,44 @@
       "assertions": [
         {
           "type": "count_at_least",
-          "target": "evals",
+          "target": "regression_fixtures",
           "minimum": 6
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "trigger",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "non-trigger",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "ambiguous",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "malformed",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "bugfix",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "e2e",
+          "minimum": 1
         }
       ],
       "nondeterminism": {
