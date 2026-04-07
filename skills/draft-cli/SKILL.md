@@ -160,11 +160,11 @@ cat << 'EOF' | draft append <id>
 EOF
 ```
 
-To replace the content underneath a specific heading (up until the next heading of the same or higher level). This is incredibly useful for updating specific sections like "Status" or "Action Items" without overwriting the whole document.
+To replace the content underneath a specific heading (up until the next heading of the same or higher level). The matched heading itself is preserved, and only that section body is replaced. This is useful for updating specific sections like "Status" or "Action Items" without overwriting the whole document.
 
 ```bash
 cat << 'EOF' | draft replace <id> --heading "Status"
-This is the new status content. Everything previously under the 'Status' heading was replaced by this text.
+This is the new status content. The 'Status' heading is preserved, and everything previously under it is replaced by this text.
 EOF
 ```
 
