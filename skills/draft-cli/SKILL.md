@@ -91,6 +91,7 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
   If you already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
   If you do not have a page ID yet, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
+  For example, running `draft comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found** in the workspace.
   Run `draft ls --json` to confirm the correct page ID.
 
 Preferred recovery sequence:
