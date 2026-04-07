@@ -57,9 +57,16 @@ Equivalent npm shortcut:
 npm run gate
 ```
 
+Phase 2 smoke command (runs only deterministic smoke assertions):
+
+```bash
+npm run smoke
+```
+
 Validator location (repo-local default):
 - `./.agents/skills/skill-creator/scripts/quick_validate.py`
 
 Merge rule (local-only workflow):
 - If `scripts/gate` fails, do not merge.
 - If `scripts/gate` passes, PR is eligible to merge.
+- Gate order is structural (`quick_validate.py`) first, then behavioral smoke checks.

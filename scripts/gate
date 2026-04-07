@@ -36,4 +36,7 @@ done
 echo "Running draft-cli review-loop regression guard..."
 python3 "$REPO_ROOT/scripts/check_draft_cli_review_loop.py"
 
+echo "Running draft-cli Phase 2 deterministic smoke gate..."
+python3 "$REPO_ROOT/scripts/check_draft_cli_phase2_smoke.py"
+
 echo "All local gates passed."
