@@ -2,32 +2,32 @@
 
 > [!IMPORTANT]
 > Product: shared agent skills for Draft.
-> Source of truth for merge readiness: [`README.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/README.md).
+> Source of truth for merge readiness: [`README.md`](./README.md).
 
 ## Scope
 
-- This product packages reusable agent skills under [`skills/`](/Users/weijingliunyu/innosage-hub/products/draft-skills/skills).
+- This product packages reusable agent skills under [`skills/`](./skills).
 - Treat each skill directory as a shippable artifact. Structural validity and behavior both matter.
 - Do not make assumptions from general agent-skill conventions when this repo already defines a local gate.
 
 ## Primary Files
 
-- [`README.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/README.md): installation, product positioning, and the authoritative local merge gate.
-- [`scripts/gate`](/Users/weijingliunyu/innosage-hub/products/draft-skills/scripts/gate): executable merge gate. If documentation and code diverge, fix the divergence.
-- [`package.json`](/Users/weijingliunyu/innosage-hub/products/draft-skills/package.json): stable command entrypoints.
-- [`skills/draft-cli/SKILL.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/skills/draft-cli/SKILL.md): current shipped skill.
-- [`evals/`](/Users/weijingliunyu/innosage-hub/products/draft-skills/evals): checked-in smoke and regression fixtures.
+- [`README.md`](./README.md): installation, product positioning, and the authoritative local merge gate.
+- [`scripts/gate`](./scripts/gate): executable merge gate. If documentation and code diverge, fix the divergence.
+- [`package.json`](./package.json): stable command entrypoints.
+- [`skills/draft-cli/SKILL.md`](./skills/draft-cli/SKILL.md): current shipped skill.
+- [`evals/`](./evals): checked-in smoke and regression fixtures.
 
 ## Required Workflow
 
-1. Read [`README.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/README.md) before changing any shipped skill, eval fixture, or gate logic.
-2. Prefer repo-local commands from [`package.json`](/Users/weijingliunyu/innosage-hub/products/draft-skills/package.json) over ad hoc validation commands.
+1. Read [`README.md`](./README.md) before changing any shipped skill, eval fixture, or gate logic.
+2. Prefer repo-local commands from [`package.json`](./package.json) over ad hoc validation commands.
 3. When behavior changes, update the checked-in fixtures or docs in the same change.
 4. Do not treat manual spot checks as a substitute for the local gate.
 
 ## Local Verification Gate
 
-Run from [`products/draft-skills`](/Users/weijingliunyu/innosage-hub/products/draft-skills):
+Run from [`products/draft-skills`](.):
 
 ```bash
 npm run gate
@@ -62,10 +62,10 @@ Focused commands:
 
 - Keep skill packaging compatible with the validator expectations enforced by `quick_validate.py`.
 - Preserve or improve checked-in coverage for trigger, non-trigger, malformed, ambiguous, and bugfix scenarios when relevant.
-- If you modify instructions that affect `draft-cli` behavior, expect to update files under [`evals/`](/Users/weijingliunyu/innosage-hub/products/draft-skills/evals) and rerun the gate.
-- If you change the gate contract itself, update [`README.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/README.md) and this file in the same change.
+- If you modify instructions that affect `draft-cli` behavior, expect to update files under [`evals/`](./evals) and rerun the gate.
+- If you change the gate contract itself, update [`README.md`](./README.md) and this file in the same change.
 
 ## Documentation Rule
 
-- [`README.md`](/Users/weijingliunyu/innosage-hub/products/draft-skills/README.md) is the public-facing authority for verification and merge policy.
+- [`README.md`](./README.md) is the public-facing authority for verification and merge policy.
 - This file exists to make agents follow that policy consistently, not to replace it with a different one.
