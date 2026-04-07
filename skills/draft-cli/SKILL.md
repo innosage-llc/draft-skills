@@ -11,7 +11,7 @@ compatibility: >
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.1"
+  version: "1.2"
 ---
 
 # Draft CLI Skill
@@ -32,7 +32,7 @@ To ensure a stable session, you MUST follow this sequence before executing any f
 
 1.  **Check Status**: Start with `draft status --json` unless the user explicitly wants human-readable output.
 2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server [url]`.
-3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` to re-open or re-pair the browser tab.
+3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` (the currently implemented pairing/retarget command) to re-open or re-pair the browser tab.
 4.  **Verify**: Run `draft status --json` again and only proceed once the state is `READY`.
 5.  **Respect Environment URLs**: The optional `[url]` positional defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
 6.  **Reject the Wrong Origin**: If the user explicitly asks for staging or another environment, inspect `clients[].origin` from `draft status --json`. A `READY` session connected to the wrong origin is not good enough. Run `draft stop-server`, reconnect with the requested URL, then verify that `clients[].origin` matches before you continue.
@@ -53,6 +53,7 @@ draft status --json
 
 > [!IMPORTANT]
 > The Draft CLI uses one daemon and one active browser-backed session at a time. `draft start-server` starts the daemon, but it does not by itself prove that the browser paired successfully. Always trust `draft status` over startup copy before issuing read/write commands.
+> For agent lifecycle control, prefer `draft start-server` and `draft stop-server`. Keep `draft daemon` as the active pairing/retarget command when status shows no browser or when you need to retarget the connected tab.
 
 ### Agent-Friendly Structured Output
 
@@ -83,12 +84,12 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 - `DAEMON_OFFLINE`: the local daemon is not running.
   Run `draft start-server`, then re-run `draft status`.
 - `BROWSER_NOT_CONNECTED`: the daemon is running, but no Draft browser tab is paired.
-  Run `draft daemon`, then re-run `draft status`.
+  Run `draft daemon` (pairing/retarget), then re-run `draft status`.
 - `REQUEST_TIMEOUT`: the connected browser session did not respond in time.
   Run `draft status` to confirm the session is still connected before retrying.
 - `EDITOR_NOT_READY`: a browser tab is connected, but no writable editor is mounted.
-  If you already have a target page ID, retarget the connected tab to `https://draft.innosage.co/#/page/<id>` and re-run `draft status --json`.
-  If you do not have a page ID yet, run `draft ls --json` first, then retarget and re-run `draft status --json`.
+  If you already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
+  If you do not have a page ID yet, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
   Run `draft ls --json` to confirm the correct page ID.
 
@@ -97,8 +98,9 @@ Preferred recovery sequence:
 - If `draft status` says `DAEMON_OFFLINE`, run `draft start-server`, then re-check `draft status`.
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
-- If `draft status` or a mutation error indicates `EDITOR_NOT_READY`, open a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
-  If needed, use `draft ls --json` to discover the page ID before retargeting.
+- If `draft status` or a mutation error indicates `EDITOR_NOT_READY`, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
+  If needed, use `draft ls --json` to discover the page ID before route-mounting.
+- Do not treat `draft create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
 - If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
 - If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server [url]` and `draft daemon [url]`.
 - If `draft status --json` shows `READY` but the connected `clients[].origin` does not match the requested environment, stop the server and reconnect to the requested URL before making changes.

@@ -5,13 +5,14 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent starts with draft status --json, restores readiness with draft start-server or draft daemon if needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> to return the page in markdown for review.",
+            "expected_output": "Agent starts with draft status --json, uses draft start-server for daemon lifecycle recovery when offline, uses draft daemon only for browser pairing/retarget when needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> to return the page in markdown for review.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent treats draft status --json as the authoritative readiness check",
                 "Agent runs draft start-server only when status indicates the daemon is offline",
                 "Agent runs draft daemon when status indicates the browser is not connected",
+                "Agent uses draft stop-server plus draft start-server when a lifecycle reset is required",
                 "Agent lists pages with draft ls --json",
                 "Agent reads a specific page with draft cat <id> for markdown review",
                 "Agent verifies READY before reading content"
@@ -21,7 +22,7 @@
             "id": 5,
             "name": "diagnose-browser-missing-before-retry",
             "prompt": "My Draft command failed because the browser session seems missing. Diagnose the problem before retrying and tell me the right next command. Do not just retry the original command blindly.",
-            "expected_output": "Agent runs draft status --json first, identifies the explicit state, and recommends draft daemon only when the daemon is running but the browser is not connected.",
+            "expected_output": "Agent runs draft status --json first, identifies the explicit state, and recommends draft daemon only when the daemon is running but the browser is not connected; otherwise it recommends state-specific recovery.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
@@ -42,6 +43,21 @@
                 "Agent creates page with draft create 'Sprint 42 Retro' --json",
                 "Agent appends content using draft append <id> --json via stdin",
                 "Content includes three bullet points"
+            ]
+        },
+        {
+            "id": 6,
+            "name": "recover-editor-not-ready-before-write",
+            "prompt": "I already connected Draft, but append failed with EDITOR_NOT_READY. Recover correctly and continue the write without creating a new page as the first fix.",
+            "expected_output": "Agent runs draft status --json, identifies EDITOR_NOT_READY, mounts a real page route (https://draft.innosage.co/#/page/<id>) in the connected tab, re-runs draft status --json to confirm READY, then retries the intended write command.",
+            "files": [],
+            "expectations": [
+                "Agent starts by running draft status --json",
+                "Agent treats EDITOR_NOT_READY as an editor-mount problem, not a daemon lifecycle problem",
+                "Agent uses draft ls --json to discover a page ID when needed",
+                "Agent mounts a real page route before retrying writes",
+                "Agent does not propose draft create as the primary first recovery action",
+                "Agent verifies READY with draft status --json before retrying the failed write"
             ]
         },
         {
