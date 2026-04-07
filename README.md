@@ -42,3 +42,21 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | [draft-cli](skills/draft-cli) | Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
+
+## Local Merge Gate
+
+Run this before merging any PR to `main`:
+
+```bash
+./scripts/gate
+```
+
+Equivalent npm shortcut:
+
+```bash
+npm run gate
+```
+
+Merge rule (local-only workflow):
+- If `scripts/gate` fails, do not merge.
+- If `scripts/gate` passes, PR is eligible to merge.

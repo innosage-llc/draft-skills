@@ -1,0 +1,7 @@
+{
+  "name": "@innosage/draft-skills-local",
+  "private": true,
+  "scripts": {
+    "gate": "./scripts/gate"
+  }
+}
