@@ -63,10 +63,16 @@ Phase 2 smoke command (runs only deterministic smoke assertions):
 npm run smoke
 ```
 
+Phase 3 regression command (runs checked-in typed regression corpus):
+
+```bash
+npm run regression
+```
+
 Validator location (repo-local default):
 - `./.agents/skills/skill-creator/scripts/quick_validate.py`
 
 Merge rule (local-only workflow):
 - If `scripts/gate` fails, do not merge.
 - If `scripts/gate` passes, PR is eligible to merge.
-- Gate order is structural (`quick_validate.py`) first, then behavioral smoke checks.
+- Gate order is structural (`quick_validate.py`) first, then behavioral smoke checks, then regression corpus checks.

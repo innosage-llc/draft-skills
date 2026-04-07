@@ -1,0 +1,202 @@
+{
+  "fixtures": [
+    {
+      "id": "phase3-trigger-list-and-cat-normal",
+      "title": "Normal trigger path stays active",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": "eval:list-and-cat-with-connection-check"
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:list-and-cat-with-connection-check:expectations",
+          "sequence": [
+            "draft status --json",
+            "draft ls --json",
+            "draft cat <id>"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "trigger",
+        "normal",
+        "e2e"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-nontrigger-draft-verb",
+      "title": "General writing request does not trigger draft-cli",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Can you draft an email update for customers?",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "DO NOT use this skill for generalized writing tasks",
+            "draft an email",
+            "draft a response"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "non-trigger"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-ambiguous-draft-defer",
+      "title": "Ambiguous draft wording remains defer",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Please draft something for tomorrow's meeting.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "defer"
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "ambiguous"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-malformed-still-connection-first",
+      "title": "Malformed command request still enforces connection-first",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "run draft ??? broken id and fix it",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "eval:diagnose-browser-missing-before-retry:expected_output",
+          "tokens": [
+            "draft status --json"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "malformed"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-bugfix-editor-not-ready-recovery",
+      "title": "Bugfix regression guard for EDITOR_NOT_READY recovery",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Append failed with EDITOR_NOT_READY. Recover correctly before retrying.",
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": "eval:recover-editor-not-ready-before-write"
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:recover-editor-not-ready-before-write:expected_output",
+          "tokens": [
+            "draft status --json",
+            "https://draft.innosage.co/#/page/<id>"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:recover-editor-not-ready-before-write:expectations",
+          "tokens": [
+            "Agent does not propose draft create as the primary first recovery action"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "bugfix",
+        "editor-not-ready"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-coverage-sanity",
+      "title": "Regression corpus covers minimum scenario count",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "meta",
+      "assertions": [
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "minimum": 6
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "trigger",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "non-trigger",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "ambiguous",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "malformed",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "bugfix",
+          "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "e2e",
+          "minimum": 1
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "meta"
+      ],
+      "source": "phase3-regression-corpus"
+    }
+  ]
+}
