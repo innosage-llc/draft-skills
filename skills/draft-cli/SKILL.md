@@ -188,10 +188,10 @@ cat patch.diff | draft patch <id>
 >
 > **Safe patch workflow:**
 > ```bash
-> # 1. Capture live content and strip the 3-line metadata header (Title:, ID:, ---)
-> #    draft cat always emits exactly 3 header lines before the body.
-> #    The patch engine operates on body-only content; including the headers causes PATCH_MISMATCH.
-> draft cat <id> | sed '1,3d' > /tmp/before.md
+> # 1. Capture live content and strip the 4-line metadata envelope (Title:, ID:, ---, blank line)
+> #    and the trailing --- delimiter. draft cat wraps body content in this envelope.
+> #    The patch engine operates on body-only content; including any envelope line causes PATCH_MISMATCH.
+> draft cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
 >
 > # 2. Copy and edit — do NOT reformat or reflow the body text.
 > #    The live serialization is the ground truth. Even a single trailing newline
@@ -204,11 +204,13 @@ cat patch.diff | draft patch <id>
 > #    Use `;` (not `&&`) so the patch command always runs regardless of diff's exit code.
 > diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
 >
-> # 4. Verify
-> draft cat <id>
+> # 4. Verify — wait 2-3 seconds after mutation before reading back.
+> #    Draft CLI relays mutations to a live TipTap editor asynchronously. A read immediately
+> #    after a write may return stale or empty content. Add a short sleep for reliable verification.
+> sleep 2 && draft cat <id>
 > ```
 >
-> If you receive `PATCH_MISMATCH`, re-run `draft cat <id> | sed '1,3d'` and regenerate the diff — do not retry with the same diff file.
+> If you receive `PATCH_MISMATCH`, re-run `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate the diff — do not retry with the same diff file.
 
 ## Common Workflows
 
@@ -239,10 +241,10 @@ Use `draft patch` for precise edits to existing text. Always anchor the diff to 
 # 1. Check/Start Connection
 draft status --json
 
-# 2. Capture live content and strip the 3-line metadata header.
-#    `draft cat` always emits: Title: / ID: / --- before the body.
-#    The patch engine expects body-only content. Use sed '1,3d' to strip headers.
-draft cat <id> | sed '1,3d' > /tmp/before.md
+# 2. Capture live content and strip the 4-line metadata envelope + trailing delimiter.
+#    `draft cat` wraps body content in: Title: / ID: / --- / (blank) ... (body) ... ---
+#    The patch engine expects body-only content. Use sed '1,4d' | sed '$d' to strip.
+draft cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
 
 # 3. Edit a copy — do NOT reformat or reflow the body.
 #    The content from before.md is the only valid anchor.
@@ -254,10 +256,12 @@ cp /tmp/before.md /tmp/after.md
 #    break `&&` chains before the patch command runs.
 diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
 
-# 5. Verify the change landed
-draft cat <id>
+# 5. Verify the change landed — wait 2-3 seconds first.
+#    Mutations are relayed asynchronously to the TipTap editor. Reading immediately
+#    after a write may return stale content. Always add a short sleep before verifying.
+sleep 2 && draft cat <id>
 
-# If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,3d'` and regenerate — do NOT retry with the same diff
+# If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
 ```
 
 **2. Switching Tabs/Context**
