@@ -57,6 +57,9 @@ Equivalent npm shortcut:
 npm run gate
 ```
 
+Validator location (repo-local default):
+- `./.agents/skills/skill-creator/scripts/quick_validate.py`
+
 Merge rule (local-only workflow):
 - If `scripts/gate` fails, do not merge.
 - If `scripts/gate` passes, PR is eligible to merge.

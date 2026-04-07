@@ -5,6 +5,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ -n "${SKILL_VALIDATOR:-}" ]]; then
   VALIDATOR="$SKILL_VALIDATOR"
+elif [[ -f "$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
+  VALIDATOR="$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py"
 elif [[ -f "$HOME/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
   VALIDATOR="$HOME/.agents/skills/skill-creator/scripts/quick_validate.py"
 elif [[ -f "$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py" ]]; then
