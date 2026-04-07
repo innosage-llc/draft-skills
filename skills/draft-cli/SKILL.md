@@ -135,6 +135,29 @@ draft cat <id>
 draft cat <id> --format raw
 ```
 
+### Listing and Inspecting Comments
+
+> [!NOTE]
+> "Comments" in Draft are annotation highlights attached to text spans. The CLI exposes them as
+> read-only records via two scoped commands. Use these commands to discover user feedback efficiently
+> instead of rereading the entire page.
+
+To list all comments (annotations) on a page in compact discovery mode:
+
+```bash
+draft comments <page_id> --json
+```
+
+Output includes `comment_id`, `anchor_text` (the highlighted span), `note` (the comment body), and `position_hint` (character offset). Use this for quick triage — identify which comment IDs need deeper inspection.
+
+To inspect a single comment with bounded context (±100 chars before/after the anchor):
+
+```bash
+draft comment <comment_id> <page_id> --json
+```
+
+Output includes `note`, `anchor_text`, and a `bounded_context` object with `before` and `after` fields. Use `bounded_context.before + anchor_text + bounded_context.after` to locate the exact edit site before patching.
+
 ### Creating, Modifying, and Publishing
 
 To create a brand new page:
@@ -264,12 +287,32 @@ sleep 2 && draft cat <id>
 # If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
 ```
 
-**2. Switching Tabs/Context**
+**3. The Comment Discovery Cycle (Review → Locate → Patch)**
+Use `draft comments` and `draft comment` to efficiently action user annotations without rereading
+entire pages.
+
+```bash
+# 1. Check connection
+draft status --json
+
+# 2. Discover all comments on a page (compact)
+draft comments <page_id> --json
+
+# 3. Inspect the specific comment you intend to address (bounded context)
+draft comment <comment_id> <page_id> --json
+
+# 4. Use anchor + bounded_context to generate a precise diff, then patch
+draft cat <page_id> | sed '1,4d' | sed '$d' > /tmp/before.md
+# (edit /tmp/after.md with the fix informed by the bounded_context)
+diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
+```
+
+**4. Switching Tabs/Context**
 The Draft daemon is intentionally single-session. If you need to connect to a different browser tab or recover from a stale pairing:
   1. Stop the running server with `draft stop-server`.
   2. Run `draft start-server` again to generate a new token and open a new locked tab.
 
-**3. Using Staging or Another Environment**
+**5. Using Staging or Another Environment**
 Only do this when the user explicitly asks for a non-production Draft environment.
 
 ```bash

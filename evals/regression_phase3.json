@@ -309,6 +309,90 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-comments-command-documented-in-skill",
+      "title": "SKILL.md documents draft comments <page_id> --json discovery command",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "List all reviewer comments on my Draft page so I can triage which to address first.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft comments",
+            "comment_id",
+            "anchor_text",
+            "note",
+            "position_hint"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:list-comments-on-page"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "discovery", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-comment-inspect-bounded-context-documented",
+      "title": "SKILL.md documents draft comment <id> --json with bounded_context fields",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Inspect a specific comment on my Draft page and show me the text around it so I know where to patch.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft comment",
+            "bounded_context",
+            "before",
+            "after",
+            "anchor_text"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:inspect-comment-with-context"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "inspection", "bounded-context", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-comment-discovery-cycle-workflow-documented",
+      "title": "SKILL.md documents the Comment Discovery Cycle workflow (review → locate → patch)",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "A reviewer left comments on my Draft page. Efficiently find the comment, understand its context, and apply a surgical patch to address it.",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft status --json",
+            "draft comments",
+            "draft comment",
+            "draft patch"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "discovery", "patch", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-coverage-sanity",
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
@@ -318,7 +402,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 13
+          "minimum": 16
         },
         {
           "type": "count_at_least",
@@ -360,6 +444,12 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "e2e",
+          "minimum": 6
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "comments",
           "minimum": 3
         },
         {
