@@ -491,6 +491,28 @@
         "meta"
       ],
       "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-validate-comment-existence-error",
+      "title": "Agent appropriately recognizes and handles PAGE_NOT_FOUND for invalid draft comments",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "List comments for the Draft page with ID 'does-not-exist-9999'.",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "skill",
+          "tokens": ["draft comments does-not-exist-9999 --json"]
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": ["not found", "does-not-exist-9999"]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "error-handling", "regression"],
+      "source": "phase3-regression-corpus"
     }
   ]
 }
