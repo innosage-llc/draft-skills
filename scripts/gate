@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+if [[ -n "${SKILL_VALIDATOR:-}" ]]; then
+  VALIDATOR="$SKILL_VALIDATOR"
+elif [[ -f "$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
+  VALIDATOR="$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py"
+elif [[ -f "$HOME/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
+  VALIDATOR="$HOME/.agents/skills/skill-creator/scripts/quick_validate.py"
+elif [[ -f "$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py" ]]; then
+  VALIDATOR="$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
+else
+  echo "ERROR: quick_validate.py not found. Set SKILL_VALIDATOR to its full path."
+  exit 1
+fi
+
+echo "Running structural validation gate..."
+SKILL_MDS=()
+while IFS= read -r line; do
+  SKILL_MDS+=("$line")
+done < <(find -L "$REPO_ROOT/skills" -type f -name "SKILL.md" | sort)
+
+if [[ "${#SKILL_MDS[@]}" -eq 0 ]]; then
+  echo "ERROR: No SKILL.md files found under $REPO_ROOT/skills"
+  exit 1
+fi
+
+for skill_md in "${SKILL_MDS[@]}"; do
+  skill_dir="$(dirname "$skill_md")"
+  echo "  - $skill_dir"
+  python3 "$VALIDATOR" "$skill_dir"
+done
+
+echo "Running draft-cli review-loop regression guard..."
+python3 "$REPO_ROOT/scripts/check_draft_cli_review_loop.py"
+
+echo "Running draft-cli Phase 2 deterministic smoke gate..."
+python3 "$REPO_ROOT/scripts/check_draft_cli_phase2_smoke.py"
+
+echo "All local gates passed."

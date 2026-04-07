@@ -1,0 +1,8 @@
+{
+  "name": "@innosage/draft-skills-local",
+  "private": true,
+  "scripts": {
+    "smoke": "python3 ./scripts/check_draft_cli_phase2_smoke.py",
+    "gate": "./scripts/gate"
+  }
+}

@@ -42,3 +42,31 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | [draft-cli](skills/draft-cli) | Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
+
+## Local Merge Gate
+
+Run this before merging any PR to `main`:
+
+```bash
+./scripts/gate
+```
+
+Equivalent npm shortcut:
+
+```bash
+npm run gate
+```
+
+Phase 2 smoke command (runs only deterministic smoke assertions):
+
+```bash
+npm run smoke
+```
+
+Validator location (repo-local default):
+- `./.agents/skills/skill-creator/scripts/quick_validate.py`
+
+Merge rule (local-only workflow):
+- If `scripts/gate` fails, do not merge.
+- If `scripts/gate` passes, PR is eligible to merge.
+- Gate order is structural (`quick_validate.py`) first, then behavioral smoke checks.

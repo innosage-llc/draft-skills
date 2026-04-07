@@ -1,0 +1,82 @@
+{
+  "fixtures": [
+    {
+      "id": "phase2-trigger-list-and-cat",
+      "title": "Trigger draft-cli for list-and-cat activation path",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:list-and-cat-with-connection-check"
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:list-and-cat-with-connection-check:expectations",
+          "sequence": [
+            "draft status --json",
+            "draft ls --json",
+            "draft cat <id>"
+          ]
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:list-and-cat-with-connection-check:expected_output",
+          "tokens": [
+            "draft status --json",
+            "draft start-server",
+            "draft ls --json",
+            "draft cat <id>"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "trigger",
+        "activation",
+        "e2e"
+      ],
+      "source": "phase2-smoke-gate"
+    },
+    {
+      "id": "phase2-nontrigger-draft-as-verb",
+      "title": "Do not trigger on draft-as-verb writing request",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "Can you draft an email update for my team about the release timeline?",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "decline"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "DO NOT use this skill for generalized writing tasks",
+            "draft an email",
+            "draft a response"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "non-trigger"
+      ],
+      "source": "phase2-smoke-gate"
+    }
+  ]
+}
