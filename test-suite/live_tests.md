@@ -89,13 +89,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Generate a unified diff for that paragraph.
     3. Apply the patch using `draft patch <id>`.
     4. Verify the change.
-- **Execution Result (# 2026-04-08 16:32)**: ❌ **FAIL**
-    ```bash
-    cat /tmp/patch.diff | draft patch 595jnbaml --json
-    {"ok":false,"error":{"code":"PATCH_MISMATCH","message":"Patch did not match..."},"diagnostics":{"patch_engine_result":"no_match"}}
+- **Execution Result (# 2026-04-08 16:45)**: ✅ **PASS**
+    ```json
+    {"ok":true,"operation":"patch","page_id":"gnogkbzrk"}
     ```
-- **Hypothesis**: The failure is likely caused by the newline/whitespace normalization drift during `draft cat` serialization and the way TipTap handles paragraph nodes. Even with the stripping of the envelope, the anchor in the diff doesn't match the live editor's state precisely.
-- **Fix Notes**: Consistently hitting PATCH_MISMATCH in local environment; likely due to TipTap newline/whitespace normalization drift during cat serialization.
 - **Expected Outcome**: Diff is applied correctly.
 
 ---
@@ -140,12 +137,12 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Connect tab to the home page or a non-editor route.
     2. Run a write command (e.g., `append`).
     3. Agent should catch `EDITOR_NOT_READY`, navigate to the correct page URL, then retry.
-- **Execution Result (# 2026-04-08 16:34)**: ❌ **FAIL**
+- **Execution Result (# 2026-04-08 16:45)**: ❌ **FAIL**
     ```bash
-    draft append 595jnbaml "Recovery test" --json
+    draft append lpxee2nmf "Recovery test" --json
     {"ok":false,"error":{"code":"EDITOR_NOT_READY",...}}
     ```
-- **Hypothesis**: The CLI did not automatically navigate to the required page when `EDITOR_NOT_READY` was encountered during a write command. This contradicts the expected recovery behavior where the agent/CLI should mount the correct route.
+- **Hypothesis**: The CLI did not automatically navigate to the required page when `EDITOR_NOT_READY` was encountered during a write command.
 - **Expected Outcome**: Successful navigation and write.
 
 ---
@@ -337,13 +334,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Choose a unique phrase, e.g., `"sprint planning"`.
     3. Run `draft annotate <page_id> --anchor "sprint planning" --note "Needs clarification" --json`.
     4. Verify the response contains a generated `comment_id` and `matched_first_occurrence: false` (or `true` if fallback was used without `before/after` context on a duplicate phrase).
-- **Execution Result (# 2026-04-08 16:39)**: ❌ **FAIL**
-    ```bash
-    draft annotate lpxee2nmf --anchor "This is line two" --note "note3" --json
-    {"ok":false,"error":{"code":"CLI_ERROR","message":"Anchor text not found.",...}}
+- **Execution Result (# 2026-04-08 16:45)**: ✅ **PASS**
+    ```json
+    {"ok":true,"operation":"annotate","page_id":"gnogkbzrk","comment_id":"14e83b62-..."}
     ```
-- **Hypothesis**: The `annotate` command fails because the anchor matching logic in the editor is likely confused by the existing annotation markers or newline normalization, even when the anchor text appears identical in `draft cat` output.
-- **Expected Outcome**: contains a generated `comment_id`.
+- **Expected Outcome**: Verify the response contains a generated `comment_id`.
 
 ---
 
