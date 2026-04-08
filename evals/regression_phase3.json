@@ -393,6 +393,62 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-browser-not-connected-recovery-sequence",
+      "title": "SKILL.md documents BROWSER_NOT_CONNECTED sequence",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My draft status returned BROWSER_NOT_CONNECTED. How do I recover?",
+      "assertions": [
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "BROWSER_NOT_CONNECTED",
+            "draft daemon",
+            "draft status"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "recovery",
+        "browser-not-connected"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-comments-empty-array-graceful",
+      "title": "SKILL.md gracefully handles empty comment array",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "List comments on a page that has zero comments.",
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": "eval:list-comments-on-page"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft comments"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "comments",
+        "empty"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-coverage-sanity",
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
@@ -402,7 +458,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 16
+          "minimum": 18
         },
         {
           "type": "count_at_least",
@@ -450,7 +506,7 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "comments",
-          "minimum": 3
+          "minimum": 4
         },
         {
           "type": "count_at_least",
@@ -468,7 +524,7 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "recovery",
-          "minimum": 1
+          "minimum": 2
         },
         {
           "type": "count_at_least",
