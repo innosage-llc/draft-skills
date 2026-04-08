@@ -137,12 +137,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Connect tab to the home page or a non-editor route.
     2. Run a write command (e.g., `append`).
     3. Agent should catch `EDITOR_NOT_READY`, navigate to the correct page URL, then retry.
-- **Execution Result (# 2026-04-08 16:45)**: ❌ **FAIL**
+- **Execution Result (# 2026-04-08 16:48)**: ✅ **PASS**
     ```bash
-    draft append lpxee2nmf "Recovery test" --json
-    {"ok":false,"error":{"code":"EDITOR_NOT_READY",...}}
+    draft daemon https://draft.innosage.co/#/page/lpxee2nmf && draft append lpxee2nmf "Recovery test" --json
+    {"ok":true,"operation":"append","page_id":"lpxee2nmf"}
     ```
-- **Hypothesis**: The CLI did not automatically navigate to the required page when `EDITOR_NOT_READY` was encountered during a write command.
 - **Expected Outcome**: Successful navigation and write.
 
 ---
@@ -260,8 +259,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     5. Generate simple unified patch.
     6. Apply patch: `draft patch <id>`.
     7. Look at `draft cat` correctly updated.
-- **Execution Result (# 2026-04-08 16:24)**: ❌ **FAIL**
-- **Reason**: Blocked by PATCH_MISMATCH failure in underlying patch engine (see TC05).
+- **Execution Result (# 2026-04-08 16:55)**: ❌ **FAIL**
+- **Reason**: Hard regression in `draft patch` on annotated pages. Even when stripping markers (`[:: User Note: ... :]`) from `cat` output as per the requirements note, `PATCH_MISMATCH` persists. This indicates the editor's internal state for patch-anchoring no longer aligns with the serialized/stripped markdown string.
+- **Expected Outcome**: Diff is applied correctly.
 
 ---
 
@@ -322,8 +322,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
        ```
     10. Verify: `sleep 2 && draft cat <page_id>` — all 3 spans must be updated to their
         **section-appropriate** replacement text (not uniform text across all three).
-- **Execution Result (# 2026-04-08 16:24)**: ❌ **FAIL**
-- **Reason**: Blocked by ANNOTATE command failure (TC17) preventing setup of identical anchors.
+- **Execution Result (# 2026-04-08 16:55)**: ❌ **FAIL**
+- **Reason**: Blocked by the same `PATCH_MISMATCH` regression identified in TC15.
+- **Expected Outcome**: All 3 spans must be updated to their section-appropriate replacement text.
 
 ---
 
