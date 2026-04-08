@@ -70,6 +70,7 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ---
 
 ### TC04: Replace Nested Heading
+- **Eval ID**: `3`
 - **Goal**: Verify replacement logic for sub-headings.
 - **Scenario**:
     1. Replace content under `### Sub-heading`.
