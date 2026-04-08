@@ -236,6 +236,12 @@ cat patch.diff | draft patch <id>
 >
 > If you receive `PATCH_MISMATCH`, re-run `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate the diff — do not retry with the same diff file.
 
+> [!NOTE]
+> **Annotated pages:** `draft cat` output for pages with comments includes inline markers like ` [:: User Note: A :] `. These markers cause `PATCH_MISMATCH` if left in your diff. Always add a marker-strip step when patching annotated pages:
+> ```bash
+> draft cat <id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
+> ```
+
 ## Common Workflows
 
 **1. The Edit Cycle (Read, Modify, Verify)**
@@ -303,7 +309,8 @@ draft comments <page_id> --json
 draft comment <comment_id> <page_id> --json
 
 # 4. Use anchor + bounded_context to generate a precise diff, then patch
-draft cat <page_id> | sed '1,4d' | sed '$d' > /tmp/before.md
+# Note: We strip comment markers [:: User Note: ... :] to prevent PATCH_MISMATCH
+draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
 # (edit /tmp/after.md with the fix informed by the bounded_context)
 diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
 ```

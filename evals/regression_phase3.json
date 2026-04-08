@@ -449,6 +449,41 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-comment-patch-marker-strip-required",
+      "title": "Agent must strip User Note markers before patching annotated paragraphs",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "I have a comment on my Draft page. I've inspected it and I'm ready to apply a patch. Please generate a diff and patch the page.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "Annotated pages",
+            "[:: User Note:",
+            "PATCH_MISMATCH"
+          ]
+        },
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \\[:: User Note: [^:]* :\\]//g' > /tmp/before.md"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "bugfix",
+        "patch",
+        "comments"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-coverage-sanity",
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
@@ -458,7 +493,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 18
+          "minimum": 19
         },
         {
           "type": "count_at_least",
