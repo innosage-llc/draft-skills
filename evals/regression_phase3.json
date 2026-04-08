@@ -544,7 +544,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 20
+          "minimum": 22
         },
         {
           "type": "count_at_least",
@@ -592,7 +592,7 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "comments",
-          "minimum": 5
+          "minimum": 7
         },
         {
           "type": "count_at_least",
@@ -654,6 +654,40 @@
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "tags": ["comments", "error-handling", "regression"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-annotate-creation-basic",
+      "title": "Agent successfully creates a new annotation with annotate command",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Create an annotation on my Draft page highlighting the text 'scalable infrastructure' with the note 'Specify AWS or GCP'.",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "skill",
+          "tokens": ["draft annotate", "--anchor", "\"scalable infrastructure\"", "--note", "\"Specify AWS or GCP\""]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "annotate", "e2e"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-annotate-disambiguation-context",
+      "title": "Agent uses before/after context to disambiguate anchor text for annotation",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Add a comment on the word 'status' that appears after 'The current ', and set the note to 'Needs update'.",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "skill",
+          "tokens": ["draft annotate", "--anchor", "\"status\"", "--before", "\"The current \""]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "annotate", "disambiguation"],
       "source": "phase3-regression-corpus"
     }
   ]

@@ -344,7 +344,22 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ---
 
+### TC17: Agent Annotation Creation
+- **Goal**: Verify that an agent can programmatically create a comment (annotation highlight) on a page.
+- **Scenario**:
+    1. Read the page content `draft cat <page_id>`.
+    2. Choose a unique phrase, e.g., `"sprint planning"`.
+    3. Run `draft annotate <page_id> --anchor "sprint planning" --note "Needs clarification" --json`.
+    4. Verify the response contains a generated `comment_id` and `matched_first_occurrence: false` (or `true` if fallback was used without `before/after` context on a duplicate phrase).
+- **Execution Result**: 🆕 **NEW**
+- **Expected Outcome**:
+    - Agent successfully creates the annotation.
+    - JSON response contains `ok: true`.
+
+---
+
 ## Changelog
 
 *Initial commit creating Layer 3 consolidated live E2E Test Suite.*
 *2026-04-08: Added TC16 — tricky multi-comment resolution with identical anchor text.*
+*2026-04-08: Added TC17 — draft annotate command verification.*
