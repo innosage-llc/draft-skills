@@ -276,6 +276,75 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ---
 
+### TC16: Resolve Multiple Comments with Identical Anchor Text via Per-Comment Inspection
+
+- **Goal**: Verify that an agent calls `draft comment <id> <page_id>` **once per comment ID** to
+  obtain `bounded_context` when multiple comments share the same `anchor_text`. An agent that relies
+  solely on the `draft comments` summary list and never calls `draft comment` per-ID will conflate
+  the locations and patch the wrong text span — or apply the same edit to all matching anchor
+  occurrences indiscriminately.
+- **Confusion Design**:
+    - A page contains the word **"status"** in 3 different sections (Planning, Engineering, Design).
+    - Three annotation highlights are placed on each instance. Two of the three comments have
+      **identical `note` text** (`"reword"`). The third has a distinct note (`"needs specifics"`).
+    - The `draft comments` list returns all three with `anchor_text: "status"`. There is no section
+      name in the list output. `position_hint` is a raw character offset and must **not** be used as
+      a text-location signal.
+    - Only `bounded_context.before` from `draft comment <id> <page_id>` reliably identifies which
+      section each comment belongs to:
+        - `c1` → `before: "The current "` → Planning section
+        - `c2` → `before: "Current "` → Engineering section (capital C)
+        - `c3` → `before: "the current "` → Design section (lowercase, trailing "the")
+- **Requirements Note**: Strip comment markers (`[:: User Note: ... :]`) from `draft cat` output
+  before generating the diff, per TC15.
+- **Scenario**:
+    1. Open a Draft page and ensure the body contains a structure like:
+       ```
+       ## Planning
+       The current status of sprint planning is incomplete. Action required.
+
+       ## Engineering
+       Current status: backend APIs are blocked on auth service.
+
+       ## Design
+       Review the current status before the retro.
+       ```
+    2. Add **3 annotation highlights** — one on each instance of "status" — with notes:
+       `"reword"`, `"reword"`, `"needs specifics"` (in document order).
+    3. Check status (`draft status --json`). Confirm `state: "READY"`.
+    4. Run `draft comments <page_id> --json`.
+       Observe: 3 entries, all `anchor_text: "status"`, two with `note: "reword"`.
+       Note: you **cannot** determine section from this output alone.
+    5. For **each** of the 3 `comment_id` values, run:
+       ```bash
+       draft comment <comment_id> <page_id> --json
+       ```
+       Record `bounded_context.before` and `bounded_context.after` for each.
+    6. Map each comment to its section using `bounded_context.before`.
+    7. Strip markers and capture clean base:
+       ```bash
+       draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
+       ```
+    8. Edit `/tmp/after.md` applying all 3 targeted changes (each "status" reworded or elaborated
+       according to its specific comment note and section context).
+    9. Generate and apply patch:
+       ```bash
+       diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
+       ```
+    10. Verify: `sleep 2 && draft cat <page_id>` — all 3 spans must be updated to their
+        **section-appropriate** replacement text (not uniform text across all three).
+- **Execution Result**: 🆕 **NEW**
+- **Expected Outcome**:
+    - Agent calls `draft comment` **3 times** (once per comment ID before patching).
+    - Each `bounded_context` is used to determine section before editing.
+    - Patch applies with no `PATCH_MISMATCH`.
+    - Each "status" span receives a **different**, context-appropriate replacement.
+    - **Anti-pattern / FAIL condition**: Agent applies the same replacement to all three "status"
+      occurrences, or calls `draft comment` fewer than 3 times and guesses based on the list.
+
+---
+
 ## Changelog
 
 *Initial commit creating Layer 3 consolidated live E2E Test Suite.*
+*2026-04-08: Added TC16 — tricky multi-comment resolution with identical anchor text.*

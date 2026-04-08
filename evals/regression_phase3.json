@@ -484,7 +484,58 @@
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-coverage-sanity",
+      "id": "phase3-ambiguous-anchor-requires-per-comment-inspection",
+      "title": "Agent must call draft comment per-ID to resolve identical anchor text across multiple comments",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My Draft page has 3 comments. The reviewer highlighted the word 'status' in three different places with notes 'reword', 'reword', and 'needs specifics'. Please address all of them with surgical patches.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft status --json",
+            "draft comments",
+            "draft comment",
+            "bounded_context"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "bounded_context",
+            "before",
+            "after",
+            "draft comment <comment_id> <page_id>"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "Use anchor + bounded_context"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "comments",
+        "bounded-context",
+        "patch",
+        "ambiguous",
+        "e2e"
+      ],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "title": "Regression corpus covers minimum scenario count",
       "scenario_class": "hard-pass",
       "scope": "regression",
@@ -493,7 +544,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 19
+          "minimum": 20
         },
         {
           "type": "count_at_least",
@@ -541,7 +592,7 @@
           "type": "count_at_least",
           "target": "regression_fixtures",
           "tag": "comments",
-          "minimum": 4
+          "minimum": 5
         },
         {
           "type": "count_at_least",
