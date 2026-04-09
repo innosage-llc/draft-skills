@@ -27,9 +27,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. List pages (`draft ls --json`).
     3. Create a new page titled "Test Page" (`draft create "Test Page" --json`).
     4. Read the content of the new page (`draft cat <id>`).
-- **Execution Result (# 2026-04-09 16:31)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```json
-    {"ok":true,"operation":"create","page_id":"xeiyyb89q","title":"TC01 Smoke Test 20260409-local","url":"http://localhost:3000/#/page/xeiyyb89q"}
+    {"ok":true,"operation":"create","page_id":"27i2e79kg","title":"TC01 Smoke Test 20260409-1724","url":"https://draft.innosage.co/#/page/27i2e79kg"}
     ```
 - **Expected Outcome**: All commands succeed and return correct data.
 
@@ -42,11 +42,14 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Prepare a multiline Markdown string.
     2. Pipe it to `draft append <id>`.
     3. Verify the end of the file matches the appended content.
-- **Execution Result (# 2026-04-09 16:31)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:43)**: ✅ **PASS**
     ```bash
-    printf '## Section 1\n- Item 1\n- Item 2\n' | node products/notion-editor/cli/dist/index.js append xeiyyb89q --json
-    {"ok":true,"operation":"append","page_id":"xeiyyb89q"}
-    sleep 2 && node products/notion-editor/cli/dist/index.js cat xeiyyb89q
+    draft stop-server
+    draft start-server https://draft.innosage.co
+    draft daemon https://draft.innosage.co/#/page/eawkjhj9k
+    printf '## Section 1\n- Item 1\n- Item 2\n' | draft append eawkjhj9k --json
+    {"ok":true,"operation":"append","page_id":"eawkjhj9k"}
+    sleep 2 && draft cat eawkjhj9k
     ```
 - **Expected Outcome**: Content is appended exactly as provided.
 
@@ -59,11 +62,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Create a page with multiple sections.
     2. Replace "Section 2" with "New Content 2".
     3. Verify that "Section 1" and "Section 3" are untouched, and "Section 2" heading remains but its body is updated.
-- **Execution Result (# 2026-04-09 16:32)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```bash
-    printf 'New Content 2' | node products/notion-editor/cli/dist/index.js replace r8v82uze2 --heading 'Section 2' --json
-    {"ok":true,"operation":"replace_section","page_id":"r8v82uze2","heading":"Section 2"}
-    sleep 2 && node products/notion-editor/cli/dist/index.js cat r8v82uze2
+    printf 'New Content 2' | draft replace jkpfs9kfa --heading 'Section 2' --json
+    {"ok":true,"operation":"replace_section","page_id":"jkpfs9kfa","heading":"Section 2"}
+    sleep 2 && draft cat jkpfs9kfa | rg -n "## Section 2|New Content 2" -n
     ```
 - **Expected Outcome**: Surgical replacement within the targeted section.
 
@@ -75,11 +78,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Scenario**:
     1. Replace content under `### Sub-heading`.
     2. Ensure it doesn't leak into the next `## Heading` (higher level) or next `### Sub-heading` (same level).
-- **Execution Result (# 2026-04-09 16:32)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```bash
-    printf 'REPLACED Sub 1' | node products/notion-editor/cli/dist/index.js replace r8v82uze2 --heading 'Sub 1' --json
-    {"ok":true,"operation":"replace_section","page_id":"r8v82uze2","heading":"Sub 1"}
-    sleep 2 && node products/notion-editor/cli/dist/index.js cat r8v82uze2
+    printf 'REPLACED Sub 1' | draft replace jkpfs9kfa --heading 'Sub 1' --json
+    {"ok":true,"operation":"replace_section","page_id":"jkpfs9kfa","heading":"Sub 1"}
+    sleep 2 && draft cat jkpfs9kfa | rg -n "### Sub 1|REPLACED Sub 1" -n
     ```
 - **Expected Outcome**: Correct boundary detection for nested structures.
 
@@ -92,9 +95,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Generate a unified diff for that paragraph.
     3. Apply the patch using `draft patch <id>`.
     4. Verify the change.
-- **Execution Result (# 2026-04-09 16:32)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```json
-    {"ok":true,"operation":"patch","page_id":"zp5r1juvk"}
+    {"ok":true,"operation":"patch","page_id":"28eeistl8"}
     ```
 - **Expected Outcome**: Diff is applied correctly.
 
@@ -108,13 +111,18 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Stop the server (`draft stop-server`).
     2. Run a command (e.g., `draft ls`).
     3. Agent should catch `DAEMON_OFFLINE`, run `draft start-server`, then retry.
-- **Execution Result (# 2026-04-09 16:33)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:30)**: ✅ **PASS**
     ```bash
-    kill 59266
-    node products/notion-editor/cli/dist/index.js status --json
+    draft stop-server
+    ✅ Draft CLI daemon on port 1414 gracefully stopped.
+    draft status --json
     {"ok":true,"state":"DAEMON_OFFLINE",...}
-    node products/notion-editor/cli/dist/index.js start-server http://localhost:3000
+    draft start-server https://draft.innosage.co
+    ✅ Draft CLI daemon started in the background on port 1414
     Draft browser tab connected and ready.
+    draft daemon https://draft.innosage.co/#/page/27i2e79kg
+    draft status --json
+    {"ok":true,"state":"READY",...}
     ```
 - **Expected Outcome**: Successful recovery and execution.
 
@@ -142,12 +150,16 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Connect tab to the home page or a non-editor route.
     2. Run a write command (e.g., `append`).
     3. Agent should catch `EDITOR_NOT_READY`, navigate to the correct page URL, then retry.
-- **Execution Result (# 2026-04-09 16:33)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:30)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js status --json
+    draft daemon https://draft.innosage.co/
+    draft status --json
     {"ok":true,"state":"EDITOR_NOT_READY",...}
-    node products/notion-editor/cli/dist/index.js append zp5r1juvk --json
-    {"ok":true,"operation":"append","page_id":"zp5r1juvk"}
+    draft append 27i2e79kg "TC08 write" --json
+    {"ok":false,"error":{"code":"EDITOR_NOT_READY",...}}
+    draft daemon https://draft.innosage.co/#/page/27i2e79kg
+    draft append 27i2e79kg "TC08 write" --json
+    {"ok":true,"operation":"append","page_id":"27i2e79kg"}
     ```
 - **Expected Outcome**: Successful navigation and write.
 
@@ -177,9 +189,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Set `GLOBAL_PUBLISH_PASSWORD=innosage`.
     2. Run `draft publish <id> --json`.
     3. Verify the JSON response contains a `publish_url`.
-- **Execution Result (# 2026-04-09 16:36)**: ❌ **FAIL**
+- **Execution Result (# 2026-04-09 17:46)**: ❌ **FAIL**
     ```json
-    {"ok":false,"error":{"code":"CLI_ERROR","message":"Publish failed: invalid_api_key"}}
+    {"ok":false,"error":{"code":"CLI_ERROR","message":"Publish failed: limit_exceeded"}}
     ```
 - **Expected Outcome**: Page is published and URL is retrieved.
 
@@ -195,10 +207,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Check status (`draft status --json`).
     3. Run `draft comments <page_id> --json`.
     4. Verify the response shape and field presence.
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js comments ubw4ctelc --json
-    {"ok":true,"page_id":"ubw4ctelc","comments":[{"comment_id":"55e1ff37-...","anchor_text":"marker A","note":"note1"},{"comment_id":"cfe4d4fc-...","anchor_text":"marker C","note":"note2"}]}
+    draft comments lpxee2nmf --json
+    {"ok":true,"page_id":"lpxee2nmf","comments":[{"comment_id":"ac8c5784-...","anchor_text":"line one","note":"note1"},{"comment_id":"4965fd83-...","anchor_text":"line two","note":"note2"}]}
     ```
 - **Expected Outcome**: `ok: true`, `comments` array with ≥ 2 items. Fields `resolved`, `author`, and `timestamp` must **not** be present.
 
@@ -211,10 +223,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Check status (`draft status --json`).
     3. Run `draft comments <page_id> --json`.
     4. Verify the response is `ok: true` with an empty `comments` array.
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js comments v3icyogkz --json
-    {"ok":true,"page_id":"v3icyogkz","comments":[]}
+    draft comments lophsq3wy --json
+    {"ok":true,"page_id":"lophsq3wy","comments":[]}
     ```
 - **Expected Outcome**: `ok: true`, `comments: []`. No error or failure field.
 
@@ -226,9 +238,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Check status (`draft status --json`).
     2. Run `draft comments does-not-exist-00000 --json`.
     3. Verify the response surface is a clean error, not an unhandled exception.
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js comments does-not-exist-00000 --json
+    draft comments does-not-exist-00000 --json
     {"ok":false,"error":{"code":"PAGE_NOT_FOUND","message":"Page does-not-exist-00000 not found."}}
     ```
 - **Expected Outcome**: `ok: false`, with describing error fields. Exit code 1.
@@ -246,10 +258,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     3. Run `draft comments <page_id> --json` to retrieve a valid `comment_id`.
     4. Run `draft comment <comment_id> <page_id> --json`.
     5. Verify the response. `before + anchor_text + after` should match a contiguous block of `draft cat <page_id>`.
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js comment 55e1ff37-4447-402d-add9-333c37f2ed6e ubw4ctelc --json
-    {"ok":true,"comment_id":"55e1ff37-...","bounded_context":{"before":"Intro paragraph with alpha.\\n\\nThis is line one with ","after":" [:: User Note: note1 :] and marker B..."}}
+    draft comment ac8c5784-c44b-4f1b-be2f-2269cbcd885b lpxee2nmf --json
+    {"ok":true,"comment_id":"ac8c5784-...","bounded_context":{"before":"This is ","after":" [:: User Note: note1 :] . \\nThis is line two [:: User Note: note2 :] .\\n\\nTC08 Skill-based Recovery Test (Success)"}}
     ```
 - **Expected Outcome**: `bounded_context.before` and `after` are correct; text matches exactly.
 
@@ -266,10 +278,12 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     5. Generate simple unified patch.
     6. Apply patch: `draft patch <id>`.
     7. Look at `draft cat` correctly updated.
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
-    cat /tmp/tc15.patch | node products/notion-editor/cli/dist/index.js patch ubw4ctelc --json
-    {"ok":true,"operation":"patch","page_id":"ubw4ctelc"}
+    draft comments bab0hc970 --json
+    {"ok":true,"page_id":"bab0hc970","comments":[{"comment_id":"d54ba05e-...","anchor_text":"needs fixing","note":"reword to 'needs improvement'"}]}
+    cat /tmp/tc15.patch | draft patch bab0hc970 --json
+    {"ok":true,"operation":"patch","page_id":"bab0hc970"}
     ```
 - **Expected Outcome**: Diff is applied correctly.
 
@@ -332,12 +346,35 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
        ```
     10. Verify: `sleep 2 && draft cat <page_id>` — all 3 spans must be updated to their
         **section-appropriate** replacement text (not uniform text across all three).
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:46)**: ❌ **FAIL**
     ```bash
-    node products/notion-editor/cli/dist/index.js comments al29yx7oj --json
-    {"ok":true,"page_id":"al29yx7oj","comments":[{"comment_id":"e1c582ed-...","anchor_text":"status","note":"reword"},{"comment_id":"6ea5206e-...","anchor_text":"status","note":"reword"},{"comment_id":"c9c734fd-...","anchor_text":"status","note":"needs specifics"}]}
-    node products/notion-editor/cli/dist/index.js patch al29yx7oj --json
-    {"ok":true,"operation":"patch","page_id":"al29yx7oj"}
+    draft stop-server
+    draft start-server https://draft.innosage.co
+
+    # Fresh TC16 page with 3 annotations
+    page_id=0mwj74du9
+    draft comments $page_id --json
+    {"ok":true,"page_id":"0mwj74du9","comments":[
+      {"comment_id":"70f55cf4-...","anchor_text":"status","note":"reword"},
+      {"comment_id":"e7f8f015-...","anchor_text":"status","note":"reword"},
+      {"comment_id":"ac4255ac-...","anchor_text":"status","note":"needs specifics"}
+    ]}
+
+    # Per-comment inspect
+    draft comment 70f55cf4-... 0mwj74du9 --json
+    draft comment e7f8f015-... 0mwj74du9 --json
+    # Result: both "reword" comments returned identical bounded_context.before ("## Planning\\n\\nThe current "), so section-mapping remained ambiguous.
+
+    # Patch anyway; verify via raw read-back after sleep
+    cat /tmp/tc16-clean.patch | draft patch 0mwj74du9 --json
+    {"ok":true,"operation":"patch","page_id":"0mwj74du9"}
+    cat /tmp/tc16-clean2.patch | draft patch 0mwj74du9 --json
+    {"ok":true,"operation":"patch","page_id":"0mwj74du9"}
+    sleep 2 && draft cat 0mwj74du9 --format raw | head -n 1
+    # Observed underlying content:
+    # - "The current state of sprint planning..." (Planning updated)
+    # - "Current state: backend APIs..." (Engineering updated)
+    # - "Review the current status of design deliverables..." (Design updated)
     ```
 - **Expected Outcome**: All 3 spans must be updated to their section-appropriate replacement text.
 
@@ -350,9 +387,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Choose a unique phrase, e.g., `"sprint planning"`.
     3. Run `draft annotate <page_id> --anchor "sprint planning" --note "Needs clarification" --json`.
     4. Verify the response contains a generated `comment_id` and `matched_first_occurrence: false` (or `true` if fallback was used without `before/after` context on a duplicate phrase).
-- **Execution Result (# 2026-04-09 16:36)**: ✅ **PASS**
+- **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```json
-    {"ok":true,"operation":"annotate","page_id":"pfc5ypv3l","comment_id":"e26bf641-18cc-469c-b383-845b67d3e36a","anchor_text":"Sprint planning","matched_first_occurrence":false}
+    {"ok":true,"operation":"annotate","page_id":"6eaaagd3l","comment_id":"6d84a3f1-1db7-4956-8667-8e714cc5c5fb","anchor_text":"Sprint planning","matched_first_occurrence":true}
     ```
 - **Expected Outcome**: Verify the response contains a generated `comment_id`.
 
