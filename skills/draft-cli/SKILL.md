@@ -159,6 +159,25 @@ draft comment <comment_id> <page_id> --json
 
 Output includes `note`, `anchor_text`, and a `bounded_context` object with `before` and `after` fields. Use `bounded_context.before + anchor_text + bounded_context.after` to locate the exact edit site before patching.
 
+### Creating Annotations (Comments)
+
+Use `draft annotate` to create a new comment on a selected text span.
+
+```bash
+# Basic annotation
+draft annotate <page_id> --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
+```
+
+When the anchor text appears more than once, disambiguate with surrounding context so the CLI can target the correct occurrence.
+
+```bash
+# Disambiguate repeated anchors with nearby prefix/suffix context
+draft annotate <page_id> --anchor "status" --before "The current " --note "Needs update" --json
+draft annotate <page_id> --anchor "status" --after " is blocked" --note "Needs update" --json
+```
+
+Use `--before` and/or `--after` whenever the anchor is ambiguous or repeated in the same page.
+
 ### Creating, Modifying, and Publishing
 
 To create a brand new page:
