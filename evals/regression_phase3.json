@@ -689,6 +689,56 @@
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "tags": ["comments", "annotate", "disambiguation"],
       "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-workspace-open-guidance-present",
+      "title": "Workspace-backed open and persisted comment guidance is present",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Review comments on my local markdown file in Draft and update the file in my repo.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "### Workspace-Backed Open",
+            "draft open <path> --json",
+            "the local markdown file is the source of truth",
+            "### Persisted Comment Artifacts",
+            "draft comments list <path|document_id> --json",
+            "### Legacy Page Annotations"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workspace-open-and-comment-review-cycle"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["workspace", "comments", "structure"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-workspace-failure-guidance-present",
+      "title": "Workspace-specific failure guidance is documented",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "draft comments list failed for my local file because it is not bound or outside the workspace root.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "UNBOUND_DOCUMENT",
+            "draft open <path> --json",
+            "Workspace-scope/input rejection",
+            "outside the daemon's active workspace root"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["workspace", "failures"],
+      "source": "phase3-regression-corpus"
     }
   ]
 }
