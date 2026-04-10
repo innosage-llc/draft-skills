@@ -77,6 +77,46 @@
         "non-trigger"
       ],
       "source": "phase2-smoke-gate"
+    },
+    {
+      "id": "phase2-workspace-open-review-cycle",
+      "title": "Workspace-backed review loop is documented and covered",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "Review comments on my local file docs/spec.md in Draft, then update the markdown file in the repo instead of patching the Draft page directly.",
+      "assertions": [
+        {
+          "type": "artifact_exists",
+          "path": "eval:workspace-open-and-comment-review-cycle"
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:workspace-open-and-comment-review-cycle:expected_output",
+          "tokens": [
+            "draft status --json",
+            "draft open docs/spec.md --json",
+            "draft comments list docs/spec.md --json"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:workspace-open-and-comment-review-cycle:expectations",
+          "tokens": [
+            "Agent treats the local markdown file as the source of truth in workspace mode",
+            "Agent does not default to draft patch for the file-backed edit path"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "workspace",
+        "review-loop"
+      ],
+      "source": "phase2-smoke-gate"
     }
   ]
 }

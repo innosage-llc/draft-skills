@@ -11,7 +11,7 @@ compatibility: >
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.3"
+  version: "1.4"
 ---
 
 # Draft CLI Skill
@@ -62,7 +62,9 @@ When the task is being executed by an agent or automation, prefer machine-readab
 ```bash
 draft status --json
 draft ls --json
+draft open path/to/file.md --json
 draft create "My New Page Title" --json
+draft comments list path/to/file.md --json
 draft append <id> "More content" --json
 draft replace <id> --heading "Status" --json
 draft patch <id> --json
@@ -77,6 +79,19 @@ Prefer the JSON workflow for branching and retries:
 - Use JSON mutation responses to capture created page IDs and publish URLs without scraping terminal prose.
 - Keep human-readable commands for manual inspection or when the user explicitly wants prose output.
 
+### Workspace-Backed Open
+
+For repo-backed local markdown work, prefer the workspace-backed flow over manual page-ID discovery:
+
+```bash
+draft status --json
+draft open path/to/file.md --json
+```
+
+Use `draft open <path> --json` as the canonical entrypoint for file-backed review work. It binds or reuses a durable document/page mapping, opens the Draft review surface for that file, and is the preferred `EDITOR_NOT_READY` recovery when the task starts from a local file path.
+
+In workspace mode, the local markdown file is the source of truth. The Draft page is the review surface, and persisted comment artifacts are the durable review/control layer.
+
 ### Troubleshooting
 
 Treat `draft status` as the authoritative diagnosis step before retrying a failed command.
@@ -88,20 +103,28 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 - `REQUEST_TIMEOUT`: the connected browser session did not respond in time.
   Run `draft status` to confirm the session is still connected before retrying.
 - `EDITOR_NOT_READY`: a browser tab is connected, but no writable editor is mounted.
-  If you already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
-  If you do not have a page ID yet, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
+  If the task starts from a local file path, run `draft open <path> --json`, then re-run `draft status --json`.
+  If you are in a legacy page-centric flow and already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
+  If you do not have a page ID yet in a legacy flow, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
   For example, running `draft comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found** in the workspace.
   Run `draft ls --json` to confirm the correct page ID.
+- `UNBOUND_DOCUMENT`: the requested path or `document_id` is not currently bound in the active workspace.
+  Run `draft open <path> --json`, then retry `draft comments list <path> --json`.
+- Workspace-scope/input rejection: the requested path resolves outside the daemon's active workspace root.
+  Re-run the command from the correct workspace root and use a path under that root. Do not assume `/tmp` or another directory is valid unless the daemon was started there.
 
 Preferred recovery sequence:
 
 - If `draft status` says `DAEMON_OFFLINE`, run `draft start-server`, then re-check `draft status`.
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
-- If `draft status` or a mutation error indicates `EDITOR_NOT_READY`, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
+- If `draft status` or a mutation error indicates `EDITOR_NOT_READY` for a local file workflow, run `draft open <path> --json`, then re-run `draft status --json` before retrying reads or writes.
+- If `draft status` or a mutation error indicates `EDITOR_NOT_READY` in a legacy page-centric flow, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
   If needed, use `draft ls --json` to discover the page ID before route-mounting.
 - Do not treat `draft create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
+- If `draft comments list <path|document_id> --json` returns `UNBOUND_DOCUMENT`, bind the file first with `draft open <path> --json`.
+- If a workspace command fails because the path is outside the active workspace root, correct the working directory or path before retrying.
 - If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
 - If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server [url]` and `draft daemon [url]`.
 - If `draft status --json` shows `READY` but the connected `clients[].origin` does not match the requested environment, stop the server and reconnect to the requested URL before making changes.
@@ -136,12 +159,24 @@ draft cat <id>
 draft cat <id> --format raw
 ```
 
-### Listing and Inspecting Comments
+### Persisted Comment Artifacts
+
+For workspace-backed files, prefer the persisted artifact read path:
+
+```bash
+draft comments list <path|document_id> --json
+```
+
+This is the preferred machine-readable read path for human comments on workspace-bound files. The JSON payload includes top-level metadata like `document_id`, `page_id`, `source_path`, and `comments[]`. Each comment record can include fields like `comment_id`, `body`, `status`, `author`, `created_at`, `anchor`, and `anchor_status`.
+
+Use this flow when the user starts from a repo file path or a workspace-bound document and you want to read review feedback without switching your source of truth away from local markdown.
+
+### Legacy Page Annotations
 
 > [!NOTE]
 > "Comments" in Draft are annotation highlights attached to text spans. The CLI exposes them as
 > read-only records via two scoped commands. Use these commands to discover user feedback efficiently
-> instead of rereading the entire page.
+> instead of rereading the entire page. This is the legacy page-centric path; keep using it when the task starts from a known `page_id` or an existing annotation workflow.
 
 To list all comments (annotations) on a page in compact discovery mode:
 
@@ -313,7 +348,26 @@ sleep 2 && draft cat <id>
 # If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
 ```
 
-**3. The Comment Discovery Cycle (Review → Locate → Patch)**
+**3. The Workspace Review Cycle (Open → Review → Edit Local Markdown)**
+Use this as the default review loop for repo-backed markdown files.
+
+```bash
+# 1. Check connection
+draft status --json
+
+# 2. Bind or reopen the workspace-backed file in Draft
+draft open path/to/file.md --json
+
+# 3. Read persisted review comments
+draft comments list path/to/file.md --json
+
+# 4. Edit the local markdown file with your normal repo tools
+# 5. Re-run `draft comments list path/to/file.md --json` if you need to inspect drift or comment state after edits
+```
+
+Read `comments[]` for human feedback, edit the local markdown file in the repo, then optionally re-read persisted comments to inspect drift-aware state. In workspace mode, do not treat `draft patch` as the default write path unless the user explicitly wants to mutate the Draft page itself.
+
+**4. The Comment Discovery Cycle (Review → Locate → Patch)**
 Use `draft comments` and `draft comment` to efficiently action user annotations without rereading
 entire pages.
 
@@ -334,12 +388,12 @@ draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]/
 diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
 ```
 
-**4. Switching Tabs/Context**
+**5. Switching Tabs/Context**
 The Draft daemon is intentionally single-session. If you need to connect to a different browser tab or recover from a stale pairing:
   1. Stop the running server with `draft stop-server`.
   2. Run `draft start-server` again to generate a new token and open a new locked tab.
 
-**5. Using Staging or Another Environment**
+**6. Using Staging or Another Environment**
 Only do this when the user explicitly asks for a non-production Draft environment.
 
 ```bash
