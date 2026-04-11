@@ -409,9 +409,104 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ---
 
+## Workspace Capabilities
+
+### TC18: CLI Open Workspace Mode
+- **Goal**: Verify that a local markdown file can be bound to Draft successfully via the `open` command in workspace mode.
+- **Scenario**:
+    1. Stop any running daemons (`draft stop-server --all`).
+    2. Start the server in workspace mode anchored to the current directory (`draft start-server --mode workspace --workspace .`).
+    3. Verify the daemon is running in workspace mode (`draft status`).
+    4. Open and bind a local file (for example `draft open products/notion-editor/README.md`).
+- **Execution Result (# 2026-04-11 12:47)**: ✅ **PASS**
+    ```bash
+    node products/notion-editor/cli/dist/index.js open products/notion-editor/README.md
+    Bound products/notion-editor/README.md to Draft page n3zbmahe1.
+    Workspace ID: ws_78292824153329c59279b0f4
+    Document ID: a3f81050-1876-46a0-971a-4888043fef9d
+    Binding Status: active
+    ```
+- **Expected Outcome**: `draft open <path>` binds the workspace file and returns a stable workspace/document/page mapping.
+
+---
+
+### TC19: CLI Open/Create Workspace File In Paired Tab
+- **Goal**: Verify that `draft open <new-path> --create` creates and binds a missing workspace file, retargets the same paired workspace tab into a writable editor, and that the GUI sidebar can reopen that file.
+- **Scenario**:
+    1. Stop any running daemons (`draft stop-server --all`).
+    2. Start the server in workspace mode against the local-source app (`draft start-server --mode workspace --workspace . --app http://localhost:3000`).
+    3. Pair exactly one Draft browser tab to the daemon and leave it on the workspace root route `/#/local`.
+    4. Run `draft status`.
+       - Expect the initial paired root view to report `state: EDITOR_NOT_READY`, `browser_connected: true`, and a client route ending in `#/local`.
+    5. Select a unique workspace-relative markdown path that does not already exist (for example `docs/sessions/<active-session>/tmp_tc19_<timestamp>.md`).
+    6. Run `draft open <new-path> --create`.
+    7. Verify the terminal reports `source_created: true`, `binding_status: active`, and returns the new `page_id` / `document_id`.
+    8. Verify the same paired tab retargets to `/#/local?file=<source_path>`.
+    9. Verify the browser session becomes writable:
+       - `draft status` must transition to `state: READY`.
+       - The connected client route must still point at `/#/local?file=<source_path>`.
+       - The Draft tab title/editor heading must reflect the new file name and the seeded markdown heading.
+    10. In the GUI sidebar, click the created file entry.
+    11. Verify the sidebar click keeps the tab on the same file route and the writable editor remains mounted.
+- **Execution Result (# 2026-04-11 15:06)**: ✅ **PASS**
+    ```bash
+    node products/notion-editor/cli/dist/index.js status --port 1419 --json
+    {"ok":true,"state":"EDITOR_NOT_READY","browser_connected":true,"clients":[{"route":"/?draft_api=true&draft_token=c7920482-8072-4392-9119-2264bb12bf6b&draft_port=1419#/local","editor_ready":false}]}
+
+    node products/notion-editor/cli/dist/index.js open docs/sessions/20260411_070529-evaluate-draft-cli-workspace-mode/tmp_tc02_20260411-150611.md --create --port 1419 --json
+    {"ok":true,"source_path":"docs/sessions/20260411_070529-evaluate-draft-cli-workspace-mode/tmp_tc02_20260411-150611.md","document_id":"024815af-4fb5-4245-b81c-9d03762e6233","page_id":"gcg7xu8en","binding_status":"active","source_created":true}
+
+    node products/notion-editor/cli/dist/index.js status --port 1419 --json
+    {"ok":true,"state":"READY","read_write_ready":true,"clients":[{"route":"/?draft_api=true&draft_token=c7920482-8072-4392-9119-2264bb12bf6b&draft_port=1419#/local?file=docs%2Fsessions%2F20260411_070529-evaluate-draft-cli-workspace-mode%2Ftmp_tc02_20260411-150611.md","editor_ready":true}]}
+    ```
+- **Expected Outcome**: `draft open <new-path> --create` creates and binds the missing file, the already-paired workspace tab retargets from `/#/local` to `/#/local?file=<source_path>`, `draft status` transitions from `EDITOR_NOT_READY` to `READY`, and clicking the file in the GUI sidebar reopens that same writable editor successfully.
+- **Notes**:
+    - `EDITOR_NOT_READY` is an expected precondition while the paired tab is still showing the workspace tree at `/#/local`. It is only a failure if the session does not become `READY` after retarget to `/#/local?file=<source_path>`.
+    - `draft open --create` creates the markdown file if missing. Without `--create`, missing files still fail with `SOURCE_PATH_NOT_FOUND`.
+    - TC19 should be executed with a single known paired client. Stale or secondary tabs can produce misleading authorization or reconnect noise without changing the actual `open --create` contract.
+
+---
+
+### TC20: CLI Annotate Workspace Comment
+- **Goal**: Verify that `draft annotate <workspace-path>` creates a durable workspace comment artifact and renders the corresponding highlight in the paired workspace editor.
+- **Scenario**:
+    1. Stop any running daemons (`draft stop-server --all`).
+    2. Start the server in workspace mode against the local-source app (`draft start-server --mode workspace --workspace . --app http://localhost:3000`).
+    3. Pair exactly one Draft browser tab to the daemon.
+    4. Open a known workspace markdown file with stable anchor text (for example a TC19 file or `products/notion-editor/README.md`) using `draft open <path>`.
+    5. Confirm `draft status --json` reaches `state: READY` on the opened file route.
+    6. Run `draft annotate <path> --anchor "<exact text>" --note "<unique note>"`.
+    7. Verify the terminal reports a successful annotation operation and returns the target `page_id` and `comment_id`.
+    8. Verify the paired Draft tab shows the new highlight on the anchored text.
+    9. Run `draft comments list <path> --json`.
+    10. Verify the persisted workspace comment artifact includes the same CLI-created comment by matching the returned `comment_id` and note body from step 6.
+    11. Verify the persisted artifact also includes the expected `source_path` / `page_id`.
+- **Execution Result (# 2026-04-11 15:58)**: ✅ **PASS**
+    ```bash
+    node products/notion-editor/cli/dist/index.js status --json
+    {"ok":true,"state":"READY","browser_connected":true,"read_write_ready":true,"mode":"workspace","app_target":"http://localhost:3000","clients":[{"origin":"http://localhost:3000","route":"/?draft_api=true&draft_token=ef0d3181-aa3e-4e76-9124-bcda547cb61f#/local?file=products%2Fnotion-editor%2FREADME.md","editor_ready":true}]}
+
+    node products/notion-editor/cli/dist/index.js annotate products/notion-editor/README.md --anchor "Cloudflare Workers" --note "TC03 rerun note 2026-04-11T15:58:00" --json
+    {"ok":true,"operation":"annotate","page_id":"n3zbmahe1","comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a","anchor_text":"Cloudflare Workers","document_id":"a3f81050-1876-46a0-971a-4888043fef9d","source_path":"products/notion-editor/README.md"}
+
+    # Browser confirmation: the paired localhost workspace tab remained on the file route and showed the "Cloudflare Workers" highlight with the comment card visible in the review panel.
+
+    node products/notion-editor/cli/dist/index.js comments list products/notion-editor/README.md --json
+    {"ok":true,"document_id":"a3f81050-1876-46a0-971a-4888043fef9d","page_id":"n3zbmahe1","source_path":"products/notion-editor/README.md","comments":[{"comment_id":"6f7bbed3-8110-4c5f-b57e-0396929375e4","source_path":"products/notion-editor/README.md","body":"TC03 workspace live note 2026-04-11T15:47:17","status":"open","created_at":"2026-04-11T07:47:23.344Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"},{"comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a","source_path":"products/notion-editor/README.md","body":"TC03 rerun note 2026-04-11T15:58:00","status":"open","created_at":"2026-04-11T07:54:29.642Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"}]}
+    ```
+- **Expected Outcome**: The CLI annotation command succeeds against a workspace path, the paired editor shows the live highlight, and `draft comments list <path> --json` returns the same CLI-created comment artifact when matched by `comment_id` and note body, with the expected `source_path` / `page_id`.
+- **Notes**:
+    - TC20 depends on a `READY` workspace editor session. If the tab is still on `/#/local` and `draft status` reports `EDITOR_NOT_READY`, the test is not ready to execute.
+    - Use anchor text that appears exactly once in the target file to avoid ambiguous highlight matches.
+    - Do not treat a generic non-empty `comments list` response as sufficient. TC20 only passes when the CLI can read back the exact comment it just created.
+    - Prefer a workspace-relative path over a `document_id` for this case so the test validates the full workspace-path contract.
+
+---
+
 ## Changelog
 
 *Initial commit creating Layer 3 consolidated live E2E Test Suite.*
 *2026-04-08: Added TC16 — tricky multi-comment resolution with identical anchor text.*
 *2026-04-08: Added TC17 — draft annotate command verification.*
 *2026-04-08: Full suite execution. Identified Patch and Annotate regressions in local environment.*
+*2026-04-11: Added workspace-mode live cases TC18-TC20 so this file is the single source of truth for both classic and workspace live verification.*
