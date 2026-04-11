@@ -5,6 +5,14 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ## Execution Guide
 - **Execution Policy**: These test cases are to be executed against live environments.
+- **Workflow-Owned Runtime Selection**: This suite must stay environment-agnostic. The active workflow chooses:
+  - the CLI command prefix, referenced here as `<CLI_CMD>`
+  - the connected app/environment, referenced here as `<APP_TARGET>`
+  - any required daemon options such as page-mode vs workspace-mode startup flags
+- **Command Interpretation**: Treat command examples in scenarios and expected outcomes as templates. Replace
+  `<CLI_CMD>` and `<APP_TARGET>` with the values defined by the selected workflow:
+  - `.agent/workflows/run-draft-cli-tests.md` selects the published/global CLI and deployed app target
+  - `.agent/workflows/run-draft-cli-tests-local-source.md` selects the source-built CLI and local app target
 - **History Update**: Every test run **MUST** overwrite the `Execution Result` block for that TC with a timestamped result snippet (do not append continuously).
 - **Changelog**: Additions to the test suite logic itself should be recorded at the bottom in the `Changelog` section.
 
@@ -23,10 +31,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Eval ID**: `1`
 - **Goal**: Verify that `ls`, `cat`, and `create` work in a basic ready state.
 - **Scenario**:
-    1. Check status (`draft status --json`).
-    2. List pages (`draft ls --json`).
-    3. Create a new page titled "Test Page" (`draft create "Test Page" --json`).
-    4. Read the content of the new page (`draft cat <id>`).
+    1. Check status (`<CLI_CMD> status --json`).
+    2. List pages (`<CLI_CMD> ls --json`).
+    3. Create a new page titled "Test Page" (`<CLI_CMD> create "Test Page" --json`).
+    4. Read the content of the new page (`<CLI_CMD> cat <id>`).
 - **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```json
     {"ok":true,"operation":"create","page_id":"27i2e79kg","title":"TC01 Smoke Test 20260409-1724","url":"https://draft.innosage.co/#/page/27i2e79kg"}
@@ -40,7 +48,7 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Goal**: Verify that multiline Markdown can be appended via stdin without formatting loss.
 - **Scenario**:
     1. Prepare a multiline Markdown string.
-    2. Pipe it to `draft append <id>`.
+    2. Pipe it to `<CLI_CMD> append <id>`.
     3. Verify the end of the file matches the appended content.
 - **Execution Result (# 2026-04-11 13:30)**: ✅ **PASS**
     ```bash
@@ -103,11 +111,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ---
 
 ### TC05: Patch with Unified Diff
-- **Goal**: Verify surgical editing via `draft patch`.
+- **Goal**: Verify surgical editing via `<CLI_CMD> patch`.
 - **Scenario**:
     1. Create a page with a specific paragraph.
     2. Generate a unified diff for that paragraph.
-    3. Apply the patch using `draft patch <id>`.
+    3. Apply the patch using `<CLI_CMD> patch <id>`.
     4. Verify the change.
 - **Execution Result (# 2026-04-09 17:28)**: ✅ **PASS**
     ```json
@@ -122,9 +130,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ### TC06: Recovery: Daemon Offline
 - **Goal**: Verify the agent can recover when the local server is not running.
 - **Scenario**:
-    1. Stop the server (`draft stop-server`).
-    2. Run a command (e.g., `draft ls`).
-    3. Agent should catch `DAEMON_OFFLINE`, run `draft start-server`, then retry.
+    1. Stop the server (`<CLI_CMD> stop-server`).
+    2. Run a command (e.g., `<CLI_CMD> ls`).
+    3. Agent should catch `DAEMON_OFFLINE`, run `<CLI_CMD> start-server` using the workflow-selected target, then retry.
 - **Execution Result (# 2026-04-09 17:30)**: ✅ **PASS**
     ```bash
     draft stop-server
@@ -148,7 +156,7 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Scenario**:
     1. Ensure daemon is running but close the paired tab.
     2. Run a command.
-    3. Agent should catch `BROWSER_NOT_CONNECTED`, run `draft daemon`, then retry.
+    3. Agent should catch `BROWSER_NOT_CONNECTED`, run `<CLI_CMD> daemon`, then retry.
 - **Execution Result (# 2026-04-09 16:36)**: ⏭ **SKIPPED**
     ```bash
     Browser tab detachment could not be reproduced safely from this shell-only environment.
@@ -161,9 +169,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Eval ID**: `6`
 - **Goal**: Verify recovery when a tab is connected but not on a writable page.
 - **Scenario**:
-    1. Connect tab to the home page or a non-editor route.
+    1. Connect tab to the workflow-selected app root or another non-editor route.
     2. Run a write command (e.g., `append`).
-    3. Agent should catch `EDITOR_NOT_READY`, navigate to the correct page URL, then retry.
+    3. Agent should catch `EDITOR_NOT_READY`, navigate to the correct editor route under `<APP_TARGET>`, then retry.
 - **Execution Result (# 2026-04-09 17:30)**: ✅ **PASS**
     ```bash
     draft daemon https://draft.innosage.co/
@@ -182,11 +190,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ## Advanced Scenarios
 
 ### TC09: Switching Environments
-- **Goal**: Verify the agent can switch between production and staging.
+- **Goal**: Verify the agent can switch between two workflow-selected environments.
 - **Scenario**:
-    1. Connect to production.
-    2. Request to use staging (`https://markdown-editor-staging.web.app/`).
-    3. Agent should stop the server and restart it with the new URL.
+    1. Connect to Environment A selected by the workflow.
+    2. Request a switch to Environment B with a different origin from the current one.
+    3. Agent should stop the server and restart it against the requested target.
 - **Execution Result (# 2026-04-09 16:36)**: ⏭ **SKIPPED**
     ```bash
     node products/notion-editor/cli/dist/index.js start-server https://draft.innosage.co/
@@ -201,7 +209,7 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 - **Goal**: Verify the publish flow and URL return.
 - **Scenario**:
     1. Set `GLOBAL_PUBLISH_PASSWORD=innosage`.
-    2. Run `draft publish <id> --json`.
+    2. Run `<CLI_CMD> publish <id> --json`.
     3. Verify the JSON response contains a `publish_url`.
 - **Execution Result (# 2026-04-09 17:46)**: ❌ **FAIL**
     ```json
@@ -215,11 +223,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ### TC11: List Comments on a Page
 - **Eval ID**: `7`
-- **Goal**: Verify that `draft comments <page_id> --json` returns all annotation records from a page with multiple highlights.
+- **Goal**: Verify that `<CLI_CMD> comments <page_id> --json` returns all annotation records from a page with multiple highlights.
 - **Scenario**:
     1. Open a Draft page in the editor and add **at least 2 annotation highlights** with distinct note text.
-    2. Check status (`draft status --json`).
-    3. Run `draft comments <page_id> --json`.
+    2. Check status (`<CLI_CMD> status --json`).
+    3. Run `<CLI_CMD> comments <page_id> --json`.
     4. Verify the response shape and field presence.
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
@@ -231,11 +239,11 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ---
 
 ### TC12: List Comments on a Page with No Annotations
-- **Goal**: Verify that `draft comments` returns an empty array (not an error) when a page has no highlights.
+- **Goal**: Verify that `<CLI_CMD> comments` returns an empty array (not an error) when a page has no highlights.
 - **Scenario**:
     1. Identify a Draft page with **zero annotation highlights** (plain text only).
-    2. Check status (`draft status --json`).
-    3. Run `draft comments <page_id> --json`.
+    2. Check status (`<CLI_CMD> status --json`).
+    3. Run `<CLI_CMD> comments <page_id> --json`.
     4. Verify the response is `ok: true` with an empty `comments` array.
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
@@ -247,10 +255,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ---
 
 ### TC13: Invalid Page ID Returns Error
-- **Goal**: Verify that `draft comments` with a non-existent page ID returns a clear error and does not crash.
+- **Goal**: Verify that `<CLI_CMD> comments` with a non-existent page ID returns a clear error and does not crash.
 - **Scenario**:
-    1. Check status (`draft status --json`).
-    2. Run `draft comments does-not-exist-00000 --json`.
+    1. Check status (`<CLI_CMD> status --json`).
+    2. Run `<CLI_CMD> comments does-not-exist-00000 --json`.
     3. Verify the response surface is a clean error, not an unhandled exception.
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
@@ -265,13 +273,13 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ### TC14: Inspect a Single Comment with Bounded Context
 - **Eval ID**: `8`
-- **Goal**: Verify that `draft comment <comment_id> <page_id> --json` returns the note, anchor text, and a valid bounded context window.
+- **Goal**: Verify that `<CLI_CMD> comment <comment_id> <page_id> --json` returns the note, anchor text, and a valid bounded context window.
 - **Scenario**:
     1. Use a page with at least one annotation **not at the very beginning or end of the document**.
-    2. Check status (`draft status --json`).
-    3. Run `draft comments <page_id> --json` to retrieve a valid `comment_id`.
-    4. Run `draft comment <comment_id> <page_id> --json`.
-    5. Verify the response. `before + anchor_text + after` should match a contiguous block of `draft cat <page_id>`.
+    2. Check status (`<CLI_CMD> status --json`).
+    3. Run `<CLI_CMD> comments <page_id> --json` to retrieve a valid `comment_id`.
+    4. Run `<CLI_CMD> comment <comment_id> <page_id> --json`.
+    5. Verify the response. `before + anchor_text + after` should match a contiguous block of `<CLI_CMD> cat <page_id>`.
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
     draft comment ac8c5784-c44b-4f1b-be2f-2269cbcd885b lpxee2nmf --json
@@ -283,15 +291,15 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ### TC15: End-to-End: Comment Discovery → Inspect → Surgical Patch
 - **Goal**: Verify the full review-locate-patch cycle using comment context as the edit anchor.
-- **Requirements Note**: You **MUST strip note markers** (`[:: User Note: ... :]`) from the `draft cat` output before generating the diff, otherwise `PATCH_MISMATCH` will occur as the editor state expects clean markdown.
+- **Requirements Note**: You **MUST strip note markers** (`[:: User Note: ... :]`) from the `<CLI_CMD> cat` output before generating the diff, otherwise `PATCH_MISMATCH` will occur as the editor state expects clean markdown.
 - **Scenario**:
     1. Spot annotation over `"Fix: reword this sentence"`.
     2. Use `comments` and `comment` commands to obtain context and note.
-    3. Strip markers out of `draft cat` output for base cleanly.
+    3. Strip markers out of `<CLI_CMD> cat` output for base cleanly.
     4. Make edits based on anchor location context.
     5. Generate simple unified patch.
-    6. Apply patch: `draft patch <id>`.
-    7. Look at `draft cat` correctly updated.
+    6. Apply patch: `<CLI_CMD> patch <id>`.
+    7. Look at `<CLI_CMD> cat` correctly updated.
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```bash
     draft comments bab0hc970 --json
@@ -305,24 +313,24 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 ### TC16: Resolve Multiple Comments with Identical Anchor Text via Per-Comment Inspection
 
-- **Goal**: Verify that an agent calls `draft comment <id> <page_id>` **once per comment ID** to
+- **Goal**: Verify that an agent calls `<CLI_CMD> comment <id> <page_id>` **once per comment ID** to
   obtain `bounded_context` when multiple comments share the same `anchor_text`. An agent that relies
-  solely on the `draft comments` summary list and never calls `draft comment` per-ID will conflate
+  solely on the `<CLI_CMD> comments` summary list and never calls `<CLI_CMD> comment` per-ID will conflate
   the locations and patch the wrong text span — or apply the same edit to all matching anchor
   occurrences indiscriminately.
 - **Confusion Design**:
     - A page contains the word **"status"** in 3 different sections (Planning, Engineering, Design).
     - Three annotation highlights are placed on each instance. Two of the three comments have
       **identical `note` text** (`"reword"`). The third has a distinct note (`"needs specifics"`).
-    - The `draft comments` list returns all three with `anchor_text: "status"`. There is no section
+    - The `<CLI_CMD> comments` list returns all three with `anchor_text: "status"`. There is no section
       name in the list output. `position_hint` is a raw character offset and must **not** be used as
       a text-location signal.
-    - Only `bounded_context.before` from `draft comment <id> <page_id>` reliably identifies which
+    - Only `bounded_context.before` from `<CLI_CMD> comment <id> <page_id>` reliably identifies which
       section each comment belongs to:
         - `c1` → `before: "The current "` → Planning section
         - `c2` → `before: "Current "` → Engineering section (capital C)
         - `c3` → `before: "the current "` → Design section (lowercase, trailing "the")
-- **Requirements Note**: Strip comment markers (`[:: User Note: ... :]`) from `draft cat` output
+- **Requirements Note**: Strip comment markers (`[:: User Note: ... :]`) from `<CLI_CMD> cat` output
   before generating the diff, per TC15.
 - **Scenario**:
     1. Open a Draft page and ensure the body contains a structure like:
@@ -338,27 +346,27 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
        ```
     2. Add **3 annotation highlights** — one on each instance of "status" — with notes:
        `"reword"`, `"reword"`, `"needs specifics"` (in document order).
-    3. Check status (`draft status --json`). Confirm `state: "READY"`.
-    4. Run `draft comments <page_id> --json`.
+    3. Check status (`<CLI_CMD> status --json`). Confirm `state: "READY"`.
+    4. Run `<CLI_CMD> comments <page_id> --json`.
        Observe: 3 entries, all `anchor_text: "status"`, two with `note: "reword"`.
        Note: you **cannot** determine section from this output alone.
     5. For **each** of the 3 `comment_id` values, run:
        ```bash
-       draft comment <comment_id> <page_id> --json
+       <CLI_CMD> comment <comment_id> <page_id> --json
        ```
        Record `bounded_context.before` and `bounded_context.after` for each.
     6. Map each comment to its section using `bounded_context.before`.
     7. Strip markers and capture clean base:
        ```bash
-       draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
+       <CLI_CMD> cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
        ```
     8. Edit `/tmp/after.md` applying all 3 targeted changes (each "status" reworded or elaborated
        according to its specific comment note and section context).
     9. Generate and apply patch:
        ```bash
-       diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
+       diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | <CLI_CMD> patch <page_id> --json
        ```
-    10. Verify: `sleep 2 && draft cat <page_id>` — all 3 spans must be updated to their
+    10. Verify: `sleep 2 && <CLI_CMD> cat <page_id>` — all 3 spans must be updated to their
         **section-appropriate** replacement text (not uniform text across all three).
 - **Execution Result (# 2026-04-09 17:46)**: ❌ **FAIL**
     ```bash
@@ -397,9 +405,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ### TC17: Agent Annotation Creation
 - **Goal**: Verify that an agent can programmatically create a comment (annotation highlight) on a page.
 - **Scenario**:
-    1. Read the page content `draft cat <page_id>`.
+    1. Read the page content `<CLI_CMD> cat <page_id>`.
     2. Choose a unique phrase, e.g., `"sprint planning"`.
-    3. Run `draft annotate <page_id> --anchor "sprint planning" --note "Needs clarification" --json`.
+    3. Run `<CLI_CMD> annotate <page_id> --anchor "sprint planning" --note "Needs clarification" --json`.
     4. Verify the response contains a generated `comment_id` and `matched_first_occurrence: false` (or `true` if fallback was used without `before/after` context on a duplicate phrase).
 - **Execution Result (# 2026-04-09 17:36)**: ✅ **PASS**
     ```json
@@ -414,10 +422,10 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 ### TC18: CLI Open Workspace Mode
 - **Goal**: Verify that a local markdown file can be bound to Draft successfully via the `open` command in workspace mode.
 - **Scenario**:
-    1. Stop any running daemons (`draft stop-server --all`).
-    2. Start the server in workspace mode anchored to the current directory (`draft start-server --mode workspace --workspace .`).
-    3. Verify the daemon is running in workspace mode (`draft status`).
-    4. Open and bind a local file (for example `draft open products/notion-editor/README.md`).
+    1. Stop any running daemons (`<CLI_CMD> stop-server --all`).
+    2. Start the server in workspace mode anchored to the current directory using the workflow-selected app target and CLI entrypoint (`<CLI_CMD> start-server --mode workspace --workspace . [workflow app-target args]`).
+    3. Verify the daemon is running in workspace mode (`<CLI_CMD> status`).
+    4. Open and bind a local file (for example `<CLI_CMD> open products/notion-editor/README.md`).
 - **Execution Result (# 2026-04-11 12:47)**: ✅ **PASS**
     ```bash
     node products/notion-editor/cli/dist/index.js open products/notion-editor/README.md
@@ -426,24 +434,24 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     Document ID: a3f81050-1876-46a0-971a-4888043fef9d
     Binding Status: active
     ```
-- **Expected Outcome**: `draft open <path>` binds the workspace file and returns a stable workspace/document/page mapping.
+- **Expected Outcome**: `<CLI_CMD> open <path>` binds the workspace file and returns a stable workspace/document/page mapping.
 
 ---
 
 ### TC19: CLI Open/Create Workspace File In Paired Tab
-- **Goal**: Verify that `draft open <new-path> --create` creates and binds a missing workspace file, retargets the same paired workspace tab into a writable editor, and that the GUI sidebar can reopen that file.
+- **Goal**: Verify that `<CLI_CMD> open <new-path> --create` creates and binds a missing workspace file, retargets the same paired workspace tab into a writable editor, and that the GUI sidebar can reopen that file.
 - **Scenario**:
-    1. Stop any running daemons (`draft stop-server --all`).
-    2. Start the server in workspace mode against the local-source app (`draft start-server --mode workspace --workspace . --app http://localhost:3000`).
+    1. Stop any running daemons (`<CLI_CMD> stop-server --all`).
+    2. Start the server in workspace mode against the workflow-selected app target (`<CLI_CMD> start-server --mode workspace --workspace . [workflow app-target args]`).
     3. Pair exactly one Draft browser tab to the daemon and leave it on the workspace root route `/#/local`.
-    4. Run `draft status`.
+    4. Run `<CLI_CMD> status`.
        - Expect the initial paired root view to report `state: EDITOR_NOT_READY`, `browser_connected: true`, and a client route ending in `#/local`.
     5. Select a unique workspace-relative markdown path that does not already exist (for example `docs/sessions/<active-session>/tmp_tc19_<timestamp>.md`).
-    6. Run `draft open <new-path> --create`.
+    6. Run `<CLI_CMD> open <new-path> --create`.
     7. Verify the terminal reports `source_created: true`, `binding_status: active`, and returns the new `page_id` / `document_id`.
     8. Verify the same paired tab retargets to `/#/local?file=<source_path>`.
     9. Verify the browser session becomes writable:
-       - `draft status` must transition to `state: READY`.
+       - `<CLI_CMD> status` must transition to `state: READY`.
        - The connected client route must still point at `/#/local?file=<source_path>`.
        - The Draft tab title/editor heading must reflect the new file name and the seeded markdown heading.
     10. In the GUI sidebar, click the created file entry.
@@ -459,26 +467,26 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     node products/notion-editor/cli/dist/index.js status --port 1419 --json
     {"ok":true,"state":"READY","read_write_ready":true,"clients":[{"route":"/?draft_api=true&draft_token=c7920482-8072-4392-9119-2264bb12bf6b&draft_port=1419#/local?file=docs%2Fsessions%2F20260411_070529-evaluate-draft-cli-workspace-mode%2Ftmp_tc02_20260411-150611.md","editor_ready":true}]}
     ```
-- **Expected Outcome**: `draft open <new-path> --create` creates and binds the missing file, the already-paired workspace tab retargets from `/#/local` to `/#/local?file=<source_path>`, `draft status` transitions from `EDITOR_NOT_READY` to `READY`, and clicking the file in the GUI sidebar reopens that same writable editor successfully.
+- **Expected Outcome**: `<CLI_CMD> open <new-path> --create` creates and binds the missing file, the already-paired workspace tab retargets from `/#/local` to `/#/local?file=<source_path>`, `<CLI_CMD> status` transitions from `EDITOR_NOT_READY` to `READY`, and clicking the file in the GUI sidebar reopens that same writable editor successfully.
 - **Notes**:
     - `EDITOR_NOT_READY` is an expected precondition while the paired tab is still showing the workspace tree at `/#/local`. It is only a failure if the session does not become `READY` after retarget to `/#/local?file=<source_path>`.
-    - `draft open --create` creates the markdown file if missing. Without `--create`, missing files still fail with `SOURCE_PATH_NOT_FOUND`.
+    - `<CLI_CMD> open --create` creates the markdown file if missing. Without `--create`, missing files still fail with `SOURCE_PATH_NOT_FOUND`.
     - TC19 should be executed with a single known paired client. Stale or secondary tabs can produce misleading authorization or reconnect noise without changing the actual `open --create` contract.
 
 ---
 
 ### TC20: CLI Annotate Workspace Comment
-- **Goal**: Verify that `draft annotate <workspace-path>` creates a durable workspace comment artifact and renders the corresponding highlight in the paired workspace editor.
+- **Goal**: Verify that `<CLI_CMD> annotate <workspace-path>` creates a durable workspace comment artifact and renders the corresponding highlight in the paired workspace editor.
 - **Scenario**:
-    1. Stop any running daemons (`draft stop-server --all`).
-    2. Start the server in workspace mode against the local-source app (`draft start-server --mode workspace --workspace . --app http://localhost:3000`).
+    1. Stop any running daemons (`<CLI_CMD> stop-server --all`).
+    2. Start the server in workspace mode against the workflow-selected app target (`<CLI_CMD> start-server --mode workspace --workspace . [workflow app-target args]`).
     3. Pair exactly one Draft browser tab to the daemon.
-    4. Open a known workspace markdown file with stable anchor text (for example a TC19 file or `products/notion-editor/README.md`) using `draft open <path>`.
-    5. Confirm `draft status --json` reaches `state: READY` on the opened file route.
-    6. Run `draft annotate <path> --anchor "<exact text>" --note "<unique note>"`.
+    4. Open a known workspace markdown file with stable anchor text (for example a TC19 file or `products/notion-editor/README.md`) using `<CLI_CMD> open <path>`.
+    5. Confirm `<CLI_CMD> status --json` reaches `state: READY` on the opened file route.
+    6. Run `<CLI_CMD> annotate <path> --anchor "<exact text>" --note "<unique note>"`.
     7. Verify the terminal reports a successful annotation operation and returns the target `page_id` and `comment_id`.
     8. Verify the paired Draft tab shows the new highlight on the anchored text.
-    9. Run `draft comments list <path> --json`.
+    9. Run `<CLI_CMD> comments list <path> --json`.
     10. Verify the persisted workspace comment artifact includes the same CLI-created comment by matching the returned `comment_id` and note body from step 6.
     11. Verify the persisted artifact also includes the expected `source_path` / `page_id`.
 - **Execution Result (# 2026-04-11 15:58)**: ✅ **PASS**
@@ -494,9 +502,9 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     node products/notion-editor/cli/dist/index.js comments list products/notion-editor/README.md --json
     {"ok":true,"document_id":"a3f81050-1876-46a0-971a-4888043fef9d","page_id":"n3zbmahe1","source_path":"products/notion-editor/README.md","comments":[{"comment_id":"6f7bbed3-8110-4c5f-b57e-0396929375e4","source_path":"products/notion-editor/README.md","body":"TC03 workspace live note 2026-04-11T15:47:17","status":"open","created_at":"2026-04-11T07:47:23.344Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"},{"comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a","source_path":"products/notion-editor/README.md","body":"TC03 rerun note 2026-04-11T15:58:00","status":"open","created_at":"2026-04-11T07:54:29.642Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"}]}
     ```
-- **Expected Outcome**: The CLI annotation command succeeds against a workspace path, the paired editor shows the live highlight, and `draft comments list <path> --json` returns the same CLI-created comment artifact when matched by `comment_id` and note body, with the expected `source_path` / `page_id`.
+- **Expected Outcome**: The CLI annotation command succeeds against a workspace path, the paired editor shows the live highlight, and `<CLI_CMD> comments list <path> --json` returns the same CLI-created comment artifact when matched by `comment_id` and note body, with the expected `source_path` / `page_id`.
 - **Notes**:
-    - TC20 depends on a `READY` workspace editor session. If the tab is still on `/#/local` and `draft status` reports `EDITOR_NOT_READY`, the test is not ready to execute.
+    - TC20 depends on a `READY` workspace editor session. If the tab is still on `/#/local` and `<CLI_CMD> status` reports `EDITOR_NOT_READY`, the test is not ready to execute.
     - Use anchor text that appears exactly once in the target file to avoid ambiguous highlight matches.
     - Do not treat a generic non-empty `comments list` response as sufficient. TC20 only passes when the CLI can read back the exact comment it just created.
     - Prefer a workspace-relative path over a `document_id` for this case so the test validates the full workspace-path contract.
@@ -507,6 +515,7 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
 
 *Initial commit creating Layer 3 consolidated live E2E Test Suite.*
 *2026-04-08: Added TC16 — tricky multi-comment resolution with identical anchor text.*
-*2026-04-08: Added TC17 — draft annotate command verification.*
+*2026-04-08: Added TC17 — annotate command verification.*
 *2026-04-08: Full suite execution. Identified Patch and Annotate regressions in local environment.*
 *2026-04-11: Added workspace-mode live cases TC18-TC20 so this file is the single source of truth for both classic and workspace live verification.*
+*2026-04-11: Abstracted CLI/app target selection in test case instructions so workflows own environment choice.*
