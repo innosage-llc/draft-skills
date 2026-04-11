@@ -273,7 +273,8 @@
           "target": "skill",
           "sequence": [
             "draft stop-server",
-            "draft start-server https://markdown-editor-staging.web.app/",
+            "draft start-server",
+            "--app https://markdown-editor-staging.web.app/",
             "draft daemon https://markdown-editor-staging.web.app/"
           ]
         },
