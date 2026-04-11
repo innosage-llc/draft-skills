@@ -42,14 +42,28 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     1. Prepare a multiline Markdown string.
     2. Pipe it to `draft append <id>`.
     3. Verify the end of the file matches the appended content.
-- **Execution Result (# 2026-04-09 17:43)**: ✅ **PASS**
+- **Execution Result (# 2026-04-11 13:30)**: ✅ **PASS**
     ```bash
-    draft stop-server
-    draft start-server https://draft.innosage.co
-    draft daemon https://draft.innosage.co/#/page/eawkjhj9k
-    printf '## Section 1\n- Item 1\n- Item 2\n' | draft append eawkjhj9k --json
-    {"ok":true,"operation":"append","page_id":"eawkjhj9k"}
-    sleep 2 && draft cat eawkjhj9k
+    LOCAL_CLI="node products/notion-editor/cli/dist/index.js"
+    $LOCAL_CLI stop-server --all
+    $LOCAL_CLI start-server --mode local --app http://localhost:3000
+    $LOCAL_CLI status --json
+    {"ok":true,"state":"READY",...}
+    $LOCAL_CLI create "TC02 Browser Review 20260411-133020" --json
+    {"ok":true,"operation":"create","page_id":"jisavsvoe",...}
+    printf '## Section 1\n- Item 1\n- Item 2\n' | $LOCAL_CLI append jisavsvoe --json
+    {"ok":true,"operation":"append","page_id":"jisavsvoe"}
+    sleep 3
+    $LOCAL_CLI daemon http://localhost:3000/#/page/jisavsvoe
+    Retargeted the connected Draft browser tab to the requested URL.
+    $LOCAL_CLI cat jisavsvoe --format markdown
+    Title: TC02 Browser Review 20260411-133020
+    ID: jisavsvoe
+    ---
+    ## Section 1
+    - Item 1
+    - Item 2
+    ---
     ```
 - **Expected Outcome**: Content is appended exactly as provided.
 
