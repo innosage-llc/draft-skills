@@ -426,13 +426,15 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     2. Start the server in workspace mode anchored to the current directory using the workflow-selected app target and CLI entrypoint (`<CLI_CMD> start-server --mode workspace --workspace . [workflow app-target args]`).
     3. Verify the daemon is running in workspace mode (`<CLI_CMD> status`).
     4. Open and bind a local file (for example `<CLI_CMD> open products/notion-editor/README.md`).
-- **Execution Result (# 2026-04-11 12:47)**: ✅ **PASS**
+- **Execution Result (# 2026-04-11 16:56)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js open products/notion-editor/README.md
+    draft open products/notion-editor/README.md
     Bound products/notion-editor/README.md to Draft page n3zbmahe1.
     Workspace ID: ws_78292824153329c59279b0f4
     Document ID: a3f81050-1876-46a0-971a-4888043fef9d
     Binding Status: active
+    draft status --json
+    {"ok":true,"state":"READY","mode":"workspace","app_target":"https://draft.innosage.co/","workspace_root":"/Users/weijingliunyu/innosage-hub",...}
     ```
 - **Expected Outcome**: `<CLI_CMD> open <path>` binds the workspace file and returns a stable workspace/document/page mapping.
 
@@ -456,16 +458,16 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
        - The Draft tab title/editor heading must reflect the new file name and the seeded markdown heading.
     10. In the GUI sidebar, click the created file entry.
     11. Verify the sidebar click keeps the tab on the same file route and the writable editor remains mounted.
-- **Execution Result (# 2026-04-11 15:06)**: ✅ **PASS**
+- **Execution Result (# 2026-04-11 16:56)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js status --port 1419 --json
-    {"ok":true,"state":"EDITOR_NOT_READY","browser_connected":true,"clients":[{"route":"/?draft_api=true&draft_token=c7920482-8072-4392-9119-2264bb12bf6b&draft_port=1419#/local","editor_ready":false}]}
-
-    node products/notion-editor/cli/dist/index.js open docs/sessions/20260411_070529-evaluate-draft-cli-workspace-mode/tmp_tc02_20260411-150611.md --create --port 1419 --json
-    {"ok":true,"source_path":"docs/sessions/20260411_070529-evaluate-draft-cli-workspace-mode/tmp_tc02_20260411-150611.md","document_id":"024815af-4fb5-4245-b81c-9d03762e6233","page_id":"gcg7xu8en","binding_status":"active","source_created":true}
-
-    node products/notion-editor/cli/dist/index.js status --port 1419 --json
-    {"ok":true,"state":"READY","read_write_ready":true,"clients":[{"route":"/?draft_api=true&draft_token=c7920482-8072-4392-9119-2264bb12bf6b&draft_port=1419#/local?file=docs%2Fsessions%2F20260411_070529-evaluate-draft-cli-workspace-mode%2Ftmp_tc02_20260411-150611.md","editor_ready":true}]}
+    draft open docs/sessions/a053119a-8ae5-4b40-b703-0d971b66bb79-run-draft-cli-tests/tmp_tc19_20260411-165627.md --create
+    Created new markdown file at docs/sessions/a053119a-8ae5-4b40-b703-0d971b66bb79-run-draft-cli-tests/tmp_tc19_20260411-165627.md.
+    Bound docs/sessions/a053119a-8ae5-4b40-b703-0d971b66bb79-run-draft-cli-tests/tmp_tc19_20260411-165627.md to Draft page 1yba13ldj.
+    Workspace ID: ws_78292824153329c59279b0f4
+    Document ID: abeb1325-c705-4dc1-aaa4-dd4de7cfe9ee
+    Binding Status: active
+    draft status --json
+    {"ok":true,"state":"READY","mode":"workspace","workspace_root":"/Users/weijingliunyu/innosage-hub",...}
     ```
 - **Expected Outcome**: `<CLI_CMD> open <new-path> --create` creates and binds the missing file, the already-paired workspace tab retargets from `/#/local` to `/#/local?file=<source_path>`, `<CLI_CMD> status` transitions from `EDITOR_NOT_READY` to `READY`, and clicking the file in the GUI sidebar reopens that same writable editor successfully.
 - **Notes**:
@@ -489,18 +491,17 @@ This document serves as the canonical live E2E test suite (Layer 3 of the testin
     9. Run `<CLI_CMD> comments list <path> --json`.
     10. Verify the persisted workspace comment artifact includes the same CLI-created comment by matching the returned `comment_id` and note body from step 6.
     11. Verify the persisted artifact also includes the expected `source_path` / `page_id`.
-- **Execution Result (# 2026-04-11 15:58)**: ✅ **PASS**
+- **Execution Result (# 2026-04-11 16:56)**: ✅ **PASS**
     ```bash
-    node products/notion-editor/cli/dist/index.js status --json
-    {"ok":true,"state":"READY","browser_connected":true,"read_write_ready":true,"mode":"workspace","app_target":"http://localhost:3000","clients":[{"origin":"http://localhost:3000","route":"/?draft_api=true&draft_token=ef0d3181-aa3e-4e76-9124-bcda547cb61f#/local?file=products%2Fnotion-editor%2FREADME.md","editor_ready":true}]}
-
-    node products/notion-editor/cli/dist/index.js annotate products/notion-editor/README.md --anchor "Cloudflare Workers" --note "TC03 rerun note 2026-04-11T15:58:00" --json
-    {"ok":true,"operation":"annotate","page_id":"n3zbmahe1","comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a","anchor_text":"Cloudflare Workers","document_id":"a3f81050-1876-46a0-971a-4888043fef9d","source_path":"products/notion-editor/README.md"}
-
-    # Browser confirmation: the paired localhost workspace tab remained on the file route and showed the "Cloudflare Workers" highlight with the comment card visible in the review panel.
-
-    node products/notion-editor/cli/dist/index.js comments list products/notion-editor/README.md --json
-    {"ok":true,"document_id":"a3f81050-1876-46a0-971a-4888043fef9d","page_id":"n3zbmahe1","source_path":"products/notion-editor/README.md","comments":[{"comment_id":"6f7bbed3-8110-4c5f-b57e-0396929375e4","source_path":"products/notion-editor/README.md","body":"TC03 workspace live note 2026-04-11T15:47:17","status":"open","created_at":"2026-04-11T07:47:23.344Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"},{"comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a","source_path":"products/notion-editor/README.md","body":"TC03 rerun note 2026-04-11T15:58:00","status":"open","created_at":"2026-04-11T07:54:29.642Z","anchor":{"quote":"Cloudflare Workers"},"anchor_status":"anchored"}]}
+    draft open products/notion-editor/README.md
+    Bound products/notion-editor/README.md to Draft page n3zbmahe1.
+    Workspace ID: ws_78292824153329c59279b0f4
+    Document ID: a3f81050-1876-46a0-971a-4888043fef9d
+    Binding Status: active
+    draft annotate products/notion-editor/README.md --anchor "Cloudflare Workers" --note "TC20 workspace note 20260411-165627" --json
+    {"ok":true,"operation":"annotate","page_id":"n3zbmahe1","comment_id":"7d56391b-610e-43ec-8bca-1b3032d2c1ca","anchor_text":"Cloudflare Workers","matched_first_occurrence":false,"document_id":"a3f81050-1876-46a0-971a-4888043fef9d","source_path":"products/notion-editor/README.md"}
+    draft comments list products/notion-editor/README.md --json
+    {"ok":true,"document_id":"a3f81050-1876-46a0-971a-4888043fef9d","page_id":"n3zbmahe1","source_path":"products/notion-editor/README.md","comments":[{"comment_id":"6f7bbed3-8110-4c5f-b57e-0396929375e4",...},{"comment_id":"f2db69de-d207-4a25-a06f-aafe7b44520a",...},{"comment_id":"7d56391b-610e-43ec-8bca-1b3032d2c1ca",...}]}
     ```
 - **Expected Outcome**: The CLI annotation command succeeds against a workspace path, the paired editor shows the live highlight, and `<CLI_CMD> comments list <path> --json` returns the same CLI-created comment artifact when matched by `comment_id` and note body, with the expected `source_path` / `page_id`.
 - **Notes**:

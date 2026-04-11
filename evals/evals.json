@@ -126,6 +126,45 @@
                 "Agent treats the local markdown file as the source of truth in workspace mode",
                 "Agent does not default to draft patch for the file-backed edit path"
             ]
+        },
+        {
+            "id": 10,
+            "name": "workspace-open-mode-bind-path",
+            "prompt": "In workspace mode, open products/notion-editor/README.md in Draft and confirm the file binding is stable.",
+            "expected_output": "Agent runs draft status --json, runs draft open products/notion-editor/README.md --json, and verifies the open response returns active binding metadata (workspace_id, document_id, page_id, binding_status).",
+            "files": [],
+            "expectations": [
+                "Agent starts by running draft status --json",
+                "Agent runs draft open <path> --json for a workspace-backed local file",
+                "Agent verifies the open response includes binding_status active and stable mapping fields"
+            ]
+        },
+        {
+            "id": 11,
+            "name": "workspace-open-create-retarget-ready",
+            "prompt": "The paired workspace tab is still at /#/local and status reports EDITOR_NOT_READY. Open a missing file with --create and recover to READY on the file route.",
+            "expected_output": "Agent treats EDITOR_NOT_READY on /#/local as a precondition, runs draft open <new-path> --create --json, checks for source_created true and binding_status active, then verifies draft status --json transitions to READY on /#/local?file=<source_path>.",
+            "files": [],
+            "expectations": [
+                "Agent recognizes EDITOR_NOT_READY at /#/local as expected precondition in workspace mode",
+                "Agent runs draft open <new-path> --create --json",
+                "Agent verifies source_created true and binding_status active",
+                "Agent verifies status transitions from EDITOR_NOT_READY to READY on the retargeted file route"
+            ]
+        },
+        {
+            "id": 12,
+            "name": "workspace-annotate-and-verify-persisted-comment",
+            "prompt": "Create a workspace comment with annotate on products/notion-editor/README.md, then verify the exact comment is persisted via comments list.",
+            "expected_output": "Agent runs draft annotate <path> --anchor <text> --note <unique note> --json and then draft comments list <path> --json, matching the same comment_id and note body with expected source_path/page_id metadata.",
+            "files": [],
+            "expectations": [
+                "Agent runs draft annotate <path> --anchor <text> --note <unique note> --json",
+                "Agent captures the returned comment_id from annotate",
+                "Agent runs draft comments list <path> --json",
+                "Agent verifies comments list includes the same comment_id and note body from annotate",
+                "Agent verifies source_path and page_id metadata are present"
+            ]
         }
     ]
 }

@@ -740,6 +740,113 @@
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "tags": ["workspace", "failures"],
       "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-tc18-workspace-open-path-contract",
+      "title": "TC18 contract: workspace open path guidance enforces --json + stable binding semantics",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Open products/notion-editor/README.md in Draft workspace mode and keep the workspace mapping stable.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "command_sequence",
+          "target": "skill",
+          "sequence": [
+            "draft status --json",
+            "draft open <path> --json"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "Workspace-Backed Open",
+            "binds or reuses a durable document/page mapping"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workspace-open-mode-bind-path"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["workspace", "tc18", "open"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-tc19-open-create-retarget-ready-contract",
+      "title": "TC19 contract: open --create retargets from /#/local and recovers EDITOR_NOT_READY to READY",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My paired workspace tab is on /#/local with EDITOR_NOT_READY. Create and open a missing file, retarget the same tab, and recover to READY.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "EDITOR_NOT_READY",
+            "draft open <path> --json",
+            "clients[].route",
+            "/#/local?file="
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:workspace-open-create-retarget-ready:expected_output",
+          "tokens": [
+            "draft open <new-path> --create --json",
+            "source_created true",
+            "binding_status active",
+            "transitions to READY"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workspace-open-create-retarget-ready"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["workspace", "tc19", "open-create", "editor-not-ready", "retarget"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-tc20-annotate-persisted-comment-contract",
+      "title": "TC20 contract: path-based annotate is verified via comments list persisted artifact",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Annotate products/notion-editor/README.md by path, then verify the exact created comment via draft comments list.",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "skill",
+          "tokens": [
+            "draft annotate path/to/file.md --anchor",
+            "--note",
+            "draft comments list <path|document_id> --json"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:workspace-annotate-and-verify-persisted-comment:expected_output",
+          "tokens": [
+            "same comment_id",
+            "note body",
+            "source_path",
+            "page_id"
+          ]
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workspace-annotate-and-verify-persisted-comment"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["workspace", "tc20", "annotate", "comments", "persisted-artifact"],
+      "source": "phase3-regression-corpus"
     }
   ]
 }
