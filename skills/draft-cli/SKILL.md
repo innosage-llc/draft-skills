@@ -31,18 +31,18 @@ npm install -g @innosage/draft-cli
 To ensure a stable session, you MUST follow this sequence before executing any functional Draft command (like `ls`, `cat`, `create`, etc.):
 
 1.  **Check Status**: Start with `draft status --json` unless the user explicitly wants human-readable output.
-2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server [url]`.
+2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server --mode workspace --workspace <root>` (or `--mode local` for generic pages).
 3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` (the currently implemented pairing/retarget command) to re-open or re-pair the browser tab.
 4.  **Verify**: Run `draft status --json` again and only proceed once the state is `READY`.
-5.  **Respect Environment URLs**: The optional `[url]` positional defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
+5.  **Respect Environment URLs**: The `--app <url>` argument defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
 6.  **Reject the Wrong Origin**: If the user explicitly asks for staging or another environment, inspect `clients[].origin` from `draft status --json`. A `READY` session connected to the wrong origin is not good enough. Run `draft stop-server`, reconnect with the requested URL, then verify that `clients[].origin` matches before you continue.
 
 ```bash
 # 1. Start with machine-readable status
 draft status --json
 
-# 2a. If the daemon is offline, start it
-draft start-server
+# 2a. If the daemon is offline, start it (use workspace mode for repo files)
+draft start-server --mode workspace --workspace $(pwd)
 
 # 2b. If the daemon is running but the browser is missing, pair a tab
 draft daemon
@@ -97,7 +97,7 @@ In workspace mode, the local markdown file is the source of truth. The Draft pag
 Treat `draft status` as the authoritative diagnosis step before retrying a failed command.
 
 - `DAEMON_OFFLINE`: the local daemon is not running.
-  Run `draft start-server`, then re-run `draft status`.
+  Run `draft start-server --mode workspace --workspace <root>`, then re-run `draft status`.
 - `BROWSER_NOT_CONNECTED`: the daemon is running, but no Draft browser tab is paired.
   Run `draft daemon` (pairing/retarget), then re-run `draft status`.
 - `REQUEST_TIMEOUT`: the connected browser session did not respond in time.
@@ -116,7 +116,7 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 
 Preferred recovery sequence:
 
-- If `draft status` says `DAEMON_OFFLINE`, run `draft start-server`, then re-check `draft status`.
+- If `draft status` says `DAEMON_OFFLINE`, run `draft start-server --mode workspace --workspace <root>`, then re-check `draft status`.
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
 - If `draft status` or a mutation error indicates `EDITOR_NOT_READY` for a local file workflow, run `draft open <path> --json`, then re-run `draft status --json` before retrying reads or writes.
@@ -125,8 +125,8 @@ Preferred recovery sequence:
 - Do not treat `draft create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
 - If `draft comments list <path|document_id> --json` returns `UNBOUND_DOCUMENT`, bind the file first with `draft open <path> --json`.
 - If a workspace command fails because the path is outside the active workspace root, correct the working directory or path before retrying.
-- If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server`.
-- If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server [url]` and `draft daemon [url]`.
+- If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server --mode workspace --workspace <root>`.
+- If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server --app [url]` and `draft daemon [url]`.
 - If `draft status --json` shows `READY` but the connected `clients[].origin` does not match the requested environment, stop the server and reconnect to the requested URL before making changes.
 - In CI or headless sessions, browser auto-launch may be skipped. Treat that as a diagnosis cue, then pair from a desktop session and verify with `draft status --json`.
 
@@ -196,10 +196,13 @@ Output includes `note`, `anchor_text`, and a `bounded_context` object with `befo
 
 ### Creating Annotations (Comments)
 
-Use `draft annotate` to create a new comment on a selected text span.
+Use `draft annotate` to create a new comment on a selected text span. In workspace mode, you can pass the workspace file path instead of the page ID.
 
 ```bash
-# Basic annotation
+# Basic annotation (Workspace mode - preferred)
+draft annotate path/to/file.md --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
+
+# Basic annotation (Legacy local mode)
 draft annotate <page_id> --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
 ```
 
@@ -207,8 +210,8 @@ When the anchor text appears more than once, disambiguate with surrounding conte
 
 ```bash
 # Disambiguate repeated anchors with nearby prefix/suffix context
-draft annotate <page_id> --anchor "status" --before "The current " --note "Needs update" --json
-draft annotate <page_id> --anchor "status" --after " is blocked" --note "Needs update" --json
+draft annotate path/to/file.md --anchor "status" --before "The current " --note "Needs update" --json
+draft annotate path/to/file.md --anchor "status" --after " is blocked" --note "Needs update" --json
 ```
 
 Use `--before` and/or `--after` whenever the anchor is ambiguous or repeated in the same page.
@@ -399,7 +402,7 @@ Only do this when the user explicitly asks for a non-production Draft environmen
 ```bash
 draft status --json
 draft stop-server
-draft start-server https://markdown-editor-staging.web.app/
+draft start-server --mode workspace --workspace $(pwd) --app https://markdown-editor-staging.web.app/
 draft status --json
 draft daemon https://markdown-editor-staging.web.app/
 draft status --json
