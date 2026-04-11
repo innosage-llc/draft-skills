@@ -104,6 +104,8 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
   Run `draft status` to confirm the session is still connected before retrying.
 - `EDITOR_NOT_READY`: a browser tab is connected, but no writable editor is mounted.
   If the task starts from a local file path, run `draft open <path> --json`, then re-run `draft status --json`.
+  If `draft open <path> --json` succeeds and `draft status --json` shows the connected `clients[].route` correctly retargeted to `/#/local?file=...` but the state is still `EDITOR_NOT_READY`, treat that as an app-side editor mount failure rather than a daemon pairing failure.
+  In that case, inspect the browser UI for workspace render errors such as `Page Not Found`, confirm the app actually mounted a writable editor, and avoid looping `draft start-server` or `draft daemon` blindly.
   If you are in a legacy page-centric flow and already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
   If you do not have a page ID yet in a legacy flow, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
@@ -120,6 +122,9 @@ Preferred recovery sequence:
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
 - If `draft status` or a mutation error indicates `EDITOR_NOT_READY` for a local file workflow, run `draft open <path> --json`, then re-run `draft status --json` before retrying reads or writes.
+- If `draft open <path> --json` succeeded and `draft status --json` shows the expected `clients[].route` for that file but still reports `EDITOR_NOT_READY`, stop treating this as a daemon reconnection problem.
+  Diagnose the app surface instead:
+  confirm the GUI is on `/#/local?file=...`, check whether the page shows `Page Not Found` or another workspace load error, and restart the local app if the running build may be stale.
 - If `draft status` or a mutation error indicates `EDITOR_NOT_READY` in a legacy page-centric flow, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
   If needed, use `draft ls --json` to discover the page ID before route-mounting.
 - Do not treat `draft create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
