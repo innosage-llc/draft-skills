@@ -16,7 +16,7 @@ metadata:
 
 # Draft CLI Skill
 
-Use the `draft` CLI to manage Draft pages directly from the command line. This allows you to work with Draft documents seamlessly without leaving your terminal workflow.
+Use the `draft` CLI to run Draft transport and operational commands from the terminal.
 
 ## Setup and Connection
 
@@ -356,26 +356,7 @@ sleep 2 && draft cat <id>
 # If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
 ```
 
-**3. The Workspace Review Cycle (Open → Review → Edit Local Markdown)**
-Use this as the default review loop for repo-backed markdown files.
-
-```bash
-# 1. Check connection
-draft status --json
-
-# 2. Bind or reopen the workspace-backed file in Draft
-draft open path/to/file.md --json
-
-# 3. Read persisted review comments
-draft comments list path/to/file.md --json
-
-# 4. Edit the local markdown file with your normal repo tools
-# 5. Re-run `draft comments list path/to/file.md --json` if you need to inspect drift or comment state after edits
-```
-
-Read `comments[]` for human feedback, edit the local markdown file in the repo, then optionally re-read persisted comments to inspect drift-aware state. In workspace mode, do not treat `draft patch` as the default write path unless the user explicitly wants to mutate the Draft page itself.
-
-**4. The Comment Discovery Cycle (Review → Locate → Patch)**
+**3. The Comment Discovery Cycle (Review → Locate → Patch)**
 Use `draft comments` and `draft comment` to efficiently action user annotations without rereading
 entire pages.
 
@@ -396,12 +377,12 @@ draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]/
 diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
 ```
 
-**5. Switching Tabs/Context**
+**4. Switching Tabs/Context**
 The Draft daemon is intentionally single-session. If you need to connect to a different browser tab or recover from a stale pairing:
   1. Stop the running server with `draft stop-server`.
   2. Run `draft start-server` again to generate a new token and open a new locked tab.
 
-**6. Using Staging or Another Environment**
+**5. Using Staging or Another Environment**
 Only do this when the user explicitly asks for a non-production Draft environment.
 
 ```bash

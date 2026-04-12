@@ -20,7 +20,10 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-SKILL_PATH = REPO_ROOT / "skills" / "draft-cli" / "SKILL.md"
+SKILL_PATHS = {
+    "draft-cli": REPO_ROOT / "skills" / "draft-cli" / "SKILL.md",
+    "draft-review-loop": REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md",
+}
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 REGRESSION_FIXTURES_PATH = REPO_ROOT / "evals" / "regression_phase3.json"
 ALLOWED_SCENARIO_CLASSES = {"hard-pass", "scored", "informational"}
@@ -42,7 +45,7 @@ def load_json(path: Path) -> dict[str, Any]:
         return json.load(handle)
 
 
-def classify_prompt(prompt: str) -> str:
+def classify_draft_cli_prompt(prompt: str) -> str:
     text = prompt.lower()
 
     non_trigger_patterns = [
@@ -89,10 +92,89 @@ def classify_prompt(prompt: str) -> str:
     return "defer"
 
 
+def classify_draft_review_loop_prompt(prompt: str) -> str:
+    text = prompt.lower()
+
+    non_trigger_patterns = [
+        r"\bdraft an email\b",
+        r"\bdraft a response\b",
+        r"\bdraft\.md\b",
+        r"\binvestor_update_draft\.md\b",
+    ]
+    if any(re.search(pattern, text) for pattern in non_trigger_patterns):
+        return "decline"
+
+    if "draft" not in text:
+        return "defer"
+
+    pure_command_intent = any(
+        token in text
+        for token in (
+            "how do i run",
+            "what command",
+            "command syntax",
+            "usage of",
+            "just the command",
+        )
+    ) and "review" not in text
+    if pure_command_intent:
+        return "decline"
+
+    workflow_tokens = (
+        "review in draft",
+        "review surface",
+        "open it in draft",
+        "open in draft",
+        "comments on",
+        "review comments",
+        "apply comments",
+        "handoff",
+    )
+    local_first_tokens = (
+        "local",
+        "workspace",
+        "repo",
+        "markdown file",
+        "source of truth",
+        "design doc",
+        "release notes",
+        "proposal",
+        "spec",
+        "revise",
+        "update the file",
+    )
+    has_workflow_token = any(token in text for token in workflow_tokens)
+    has_local_first_token = any(token in text for token in local_first_tokens)
+    if has_workflow_token and has_local_first_token:
+        return "activate"
+    if "review" in text and has_local_first_token:
+        return "activate"
+
+    return "defer"
+
+
+def classify_prompt_for_skill(skill_name: str, prompt: str) -> str:
+    if skill_name == "draft-cli":
+        return classify_draft_cli_prompt(prompt)
+    if skill_name == "draft-review-loop":
+        return classify_draft_review_loop_prompt(prompt)
+    raise ValueError(f"Unsupported skill classifier '{skill_name}'")
+
+
+def load_skill_texts() -> dict[str, str]:
+    return {name: path.read_text(encoding="utf-8") for name, path in SKILL_PATHS.items()}
+
+
 def resolve_target(
-    target: str, skill_text: str, eval_by_name: dict[str, dict[str, Any]], evals: list[dict[str, Any]]
+    target: str, skill_texts: dict[str, str], eval_by_name: dict[str, dict[str, Any]], evals: list[dict[str, Any]]
 ) -> str:
     if target == "skill":
+        return skill_texts["draft-cli"]
+    if target.startswith("skill:"):
+        skill_name = target.split(":", 1)[1]
+        skill_text = skill_texts.get(skill_name)
+        if skill_text is None:
+            raise ValueError(f"Unsupported skill target: {target}")
         return skill_text
     if target == "evals":
         return str(len(evals))
@@ -114,9 +196,9 @@ def resolve_target(
 
 
 def read_numeric_target(
-    target: str, skill_text: str, eval_by_name: dict[str, dict[str, Any]], evals: list[dict[str, Any]]
+    target: str, skill_texts: dict[str, str], eval_by_name: dict[str, dict[str, Any]], evals: list[dict[str, Any]]
 ) -> float:
-    text = resolve_target(target, skill_text, eval_by_name, evals).strip()
+    text = resolve_target(target, skill_texts, eval_by_name, evals).strip()
     try:
         return float(text)
     except ValueError as exc:
@@ -191,7 +273,7 @@ def count_regression_fixtures(fixtures: list[dict[str, Any]], *, tag: str | None
 
 def run_fixture_once(
     fixture: dict[str, Any],
-    skill_text: str,
+    skill_texts: dict[str, str],
     eval_by_name: dict[str, dict[str, Any]],
     evals: list[dict[str, Any]],
     scoped_fixtures: list[dict[str, Any]],
@@ -205,10 +287,27 @@ def run_fixture_once(
 
         if assertion_type == "trigger_decision":
             expected = str(assertion.get("expected", ""))
-            actual = classify_prompt(prompt)
+            actual = classify_prompt_for_skill("draft-cli", prompt)
             if actual != expected:
                 failures.append(
                     f"{fixture_id}: trigger_decision expected '{expected}', got '{actual}'"
+                )
+            continue
+
+        if assertion_type == "trigger_decision_for_skill":
+            skill_name = str(assertion.get("skill", ""))
+            expected = str(assertion.get("expected", ""))
+            if not skill_name:
+                failures.append(f"{fixture_id}: trigger_decision_for_skill missing 'skill'")
+                continue
+            try:
+                actual = classify_prompt_for_skill(skill_name, prompt)
+            except ValueError as exc:
+                failures.append(f"{fixture_id}: {exc}")
+                continue
+            if actual != expected:
+                failures.append(
+                    f"{fixture_id}: trigger_decision_for_skill '{skill_name}' expected '{expected}', got '{actual}'"
                 )
             continue
 
@@ -234,7 +333,7 @@ def run_fixture_once(
             target = str(assertion.get("target", ""))
             sequence = [str(item) for item in assertion.get("sequence", [])]
             try:
-                text = resolve_target(target, skill_text, eval_by_name, evals)
+                text = resolve_target(target, skill_texts, eval_by_name, evals)
             except (KeyError, ValueError) as exc:
                 failures.append(f"{fixture_id}: {exc}")
                 continue
@@ -248,7 +347,7 @@ def run_fixture_once(
             target = str(assertion.get("target", ""))
             tokens = [str(item) for item in assertion.get("tokens", [])]
             try:
-                text = resolve_target(target, skill_text, eval_by_name, evals)
+                text = resolve_target(target, skill_texts, eval_by_name, evals)
             except (KeyError, ValueError) as exc:
                 failures.append(f"{fixture_id}: {exc}")
                 continue
@@ -280,7 +379,7 @@ def run_fixture_once(
         if assertion_type == "score_within":
             target = str(assertion.get("target", ""))
             try:
-                current = read_numeric_target(target, skill_text, eval_by_name, evals)
+                current = read_numeric_target(target, skill_texts, eval_by_name, evals)
             except ValueError as exc:
                 failures.append(f"{fixture_id}: {exc}")
                 continue
@@ -316,7 +415,7 @@ def run_fixture_once(
 
 def run_fixture_with_policy(
     fixture: dict[str, Any],
-    skill_text: str,
+    skill_texts: dict[str, str],
     eval_by_name: dict[str, dict[str, Any]],
     evals: list[dict[str, Any]],
     scoped_fixtures: list[dict[str, Any]],
@@ -337,7 +436,7 @@ def run_fixture_with_policy(
     for _ in range(reruns):
         failures = run_fixture_once(
             fixture=fixture,
-            skill_text=skill_text,
+            skill_texts=skill_texts,
             eval_by_name=eval_by_name,
             evals=evals,
             scoped_fixtures=scoped_fixtures,
@@ -396,7 +495,7 @@ def main() -> int:
         print("ERROR: --scopes must include at least one scope.")
         return 1
 
-    skill_text = SKILL_PATH.read_text(encoding="utf-8")
+    skill_texts = load_skill_texts()
     evals = load_json(EVALS_PATH).get("evals", [])
     fixtures = load_json(REGRESSION_FIXTURES_PATH).get("fixtures", [])
     eval_by_name = {entry["name"]: entry for entry in evals}
@@ -419,7 +518,7 @@ def main() -> int:
             continue
         result = run_fixture_with_policy(
             fixture=fixture,
-            skill_text=skill_text,
+            skill_texts=skill_texts,
             eval_by_name=eval_by_name,
             evals=evals,
             scoped_fixtures=scoped_fixtures,

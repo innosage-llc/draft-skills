@@ -45,6 +45,7 @@ The gate order is mandatory:
 2. `draft-cli` review-loop regression guard
 3. Phase 2 deterministic smoke checks
 4. Phase 3 regression corpus checks
+5. Phase 4 workflow regression checks (`draft-review-loop`)
 
 Focused commands:
 

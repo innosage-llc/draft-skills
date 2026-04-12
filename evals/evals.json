@@ -165,6 +165,60 @@
                 "Agent verifies comments list includes the same comment_id and note body from annotate",
                 "Agent verifies source_path and page_id metadata are present"
             ]
+        },
+        {
+            "id": 13,
+            "name": "workflow-write-design-doc-open-handoff",
+            "prompt": "Write a design doc in my repo, then open it in Draft so I can review it.",
+            "expected_output": "Agent creates or updates a local markdown file before any Draft handoff command, runs draft status --json, opens the file with draft open <path> --json, and explicitly invites the human to review in Draft while keeping the local file as source of truth.",
+            "files": [],
+            "expectations": [
+                "Agent creates or updates a local markdown file before invoking Draft handoff commands",
+                "Agent runs draft status --json before Draft operations",
+                "Agent runs draft open <path> --json for review handoff",
+                "Agent explicitly invites the human to review in Draft",
+                "Agent keeps the local markdown file as source of truth"
+            ]
+        },
+        {
+            "id": 14,
+            "name": "workflow-release-notes-local-review-handoff",
+            "prompt": "Prepare release notes locally and ask me to review them in Draft.",
+            "expected_output": "Agent writes release notes to a local markdown file first, runs draft status --json, opens the file with draft open <path> --json, and asks the human to review in Draft instead of treating Draft as the authoring source.",
+            "files": [],
+            "expectations": [
+                "Agent writes release notes to a local markdown file first",
+                "Agent runs draft status --json before Draft review handoff",
+                "Agent runs draft open <path> --json to hand off review in Draft",
+                "Agent explicitly asks the human to review in Draft",
+                "Agent keeps authorship in the workspace file"
+            ]
+        },
+        {
+            "id": 15,
+            "name": "workflow-apply-comments-back-to-local-file",
+            "prompt": "Review Draft comments on docs/spec.md and update the local markdown file in the repo.",
+            "expected_output": "Agent ensures docs/spec.md is opened through draft open <path> --json, reads persisted feedback with draft comments list <path|document_id> --json, and applies accepted changes to the local file with normal file tools instead of defaulting to draft patch.",
+            "files": [],
+            "expectations": [
+                "Agent runs draft open <path> --json for a file-backed review loop",
+                "Agent runs draft comments list <path|document_id> --json to read persisted feedback",
+                "Agent applies accepted revisions to the local markdown file",
+                "Agent does not default to draft patch for the local-file revision path"
+            ]
+        },
+        {
+            "id": 16,
+            "name": "workflow-source-of-truth-local-markdown",
+            "prompt": "Keep the markdown file as source of truth while using Draft for review.",
+            "expected_output": "Agent states and follows the local-first model: the local markdown file remains the source of truth, author in workspace markdown, use draft open <path> --json for review surface handoff, collect review artifacts with draft comments list <path> --json when needed, and avoid implying fully headless live collaboration.",
+            "files": [],
+            "expectations": [
+                "Agent treats local markdown as source of truth",
+                "Agent uses Draft GUI as the review surface",
+                "Agent uses draft open <path> --json for handoff into Draft",
+                "Agent avoids implying fully headless live collaboration"
+            ]
         }
     ]
 }
