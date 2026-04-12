@@ -43,11 +43,11 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | [draft-cli](skills/draft-cli) | Operational skill for Draft transport and commands. Manage workspace/page operations, open local files in Draft for review, and run comment/publish flows safely through the CLI. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
-| `draft-review-loop` (coming soon) | Workflow skill for local-first authoring with Draft review handoff. Guides agents to write/update workspace markdown first, then ask humans to review in Draft and apply accepted feedback back to the local file. |
+| [draft-review-loop](skills/draft-review-loop) | Workflow skill for local-first authoring with Draft review handoff. Guides agents to write/update workspace markdown first, then ask humans to review in Draft and apply accepted feedback back to the local file. |
 
 Boundary model:
 - `draft-cli`: how to operate Draft safely and correctly.
-- `draft-review-loop` (planned): how to run the local-first authoring and Draft review collaboration loop.
+- `draft-review-loop`: how to run the local-first authoring and Draft review collaboration loop.
 - Source of truth: local workspace markdown.
 - Review surface: Draft GUI.
 
