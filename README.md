@@ -101,4 +101,9 @@ Validator location (repo-local default):
 Merge rule (local-only workflow):
 - If `scripts/gate` fails, do not merge.
 - If `scripts/gate` passes, PR is eligible to merge.
-- Gate order is structural (`quick_validate.py`) first, then behavioral smoke checks, then regression corpus checks.
+- Gate order is:
+  1. structural validation (`quick_validate.py`)
+  2. `draft-cli` review-loop regression guard
+  3. Phase 2 deterministic smoke checks
+  4. Phase 3 regression corpus checks
+  5. Phase 4 workflow regression checks (`draft-review-loop`)
