@@ -11,6 +11,7 @@ from typing import Any
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 REVIEW_SKILL_PATH = REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md"
+README_PATH = REPO_ROOT / "README.md"
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 REGRESSION_FIXTURES_PATH = REPO_ROOT / "evals" / "regression_phase3.json"
 
@@ -37,6 +38,7 @@ def main() -> int:
     failures: list[str] = []
 
     skill_text = REVIEW_SKILL_PATH.read_text(encoding="utf-8")
+    readme_text = README_PATH.read_text(encoding="utf-8")
     evals = load_json(EVALS_PATH).get("evals", [])
     eval_by_name = {entry["name"]: entry for entry in evals}
     fixtures = load_json(REGRESSION_FIXTURES_PATH).get("fixtures", [])
@@ -54,6 +56,37 @@ def main() -> int:
     for token in required_skill_tokens:
         if token not in skill_text:
             failures.append(f"draft-review-loop skill is missing required guidance token: {token}")
+
+    required_phase5_skill_tokens = [
+        "## Reusable Handoff Templates",
+        "## Example Patterns",
+        "### Proposal Review (Trigger: yes)",
+        "### Spec Review (Trigger: yes)",
+        "### Release Notes Review (Trigger: yes)",
+        "### Non-Trigger Contrast (Trigger: no)",
+        "## Full Loop Example (Draft To Comment Resolution)",
+        "I wrote `<path>` locally (source of truth) and opened it in Draft for your review.",
+        "Please review in Draft and leave comments there; I will update the local markdown file from accepted feedback.",
+        "I read the Draft comments for `<path>` and applied the accepted changes to the workspace file.",
+    ]
+    for token in required_phase5_skill_tokens:
+        if token not in skill_text:
+            failures.append(
+                f"draft-review-loop skill is missing required Phase 5 examples/templates token: {token}"
+            )
+
+    required_phase5_readme_tokens = [
+        "## Review Handoff Examples",
+        "Proposal review:",
+        "Spec review:",
+        "Release-note review:",
+        "Always keep local markdown as the source of truth.",
+    ]
+    for token in required_phase5_readme_tokens:
+        if token not in readme_text:
+            failures.append(
+                f"README is missing required Phase 5 handoff-example token: {token}"
+            )
 
     required_evals = {
         "workflow-write-design-doc-open-handoff": [

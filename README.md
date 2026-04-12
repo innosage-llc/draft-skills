@@ -51,6 +51,24 @@ Boundary model:
 - Source of truth: local workspace markdown.
 - Review surface: Draft GUI.
 
+## Review Handoff Examples
+
+Compact examples agents can imitate:
+
+- Proposal review:
+  - Local first: write `docs/proposals/q2-plan.md`
+  - Open review surface: `draft open docs/proposals/q2-plan.md --json`
+  - Handoff phrase: "I wrote `docs/proposals/q2-plan.md` locally and opened it in Draft for your review."
+- Spec review:
+  - Open and read comments: `draft open docs/spec.md --json` then `draft comments list docs/spec.md --json`
+  - Handoff phrase: "Please leave comments in Draft; I will apply accepted feedback to `docs/spec.md` locally."
+- Release-note review:
+  - Local first: write `docs/releases/2026-04-12.md`
+  - Open review surface: `draft open docs/releases/2026-04-12.md --json`
+  - Handoff phrase: "Release notes are authored locally and ready for your Draft review."
+
+Always keep local markdown as the source of truth. Use Draft as the review surface, not the default authoring surface.
+
 ## Local Merge Gate
 
 Run this before merging any PR to `main`:

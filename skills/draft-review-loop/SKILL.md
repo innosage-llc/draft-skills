@@ -67,6 +67,88 @@ Use direct handoff language after `draft open <path> --json`, for example:
 - "I updated `<path>` locally and opened it in Draft for your review."
 - "Please leave comments in Draft; I will apply accepted feedback back to the local file."
 
+## Reusable Handoff Templates
+
+Copy and adapt these phrases when handing off review:
+
+- "I wrote `<path>` locally (source of truth) and opened it in Draft for your review."
+- "Please review in Draft and leave comments there; I will update the local markdown file from accepted feedback."
+- "I read the Draft comments for `<path>` and applied the accepted changes to the workspace file."
+
+## Example Patterns
+
+Use these compact patterns to keep trigger intent and workflow behavior aligned.
+
+### Proposal Review (Trigger: yes)
+
+Prompt shape:
+- "Prepare a proposal in my repo and let me review it in Draft."
+
+Execution pattern:
+
+```bash
+# 1) Write local source artifact first
+$EDITOR docs/proposals/q2-partner-plan.md
+
+# 2) Ensure Draft connection
+draft status --json
+
+# 3) Open local file in Draft as review surface
+draft open docs/proposals/q2-partner-plan.md --json
+```
+
+Handoff phrase:
+- "I wrote `docs/proposals/q2-partner-plan.md` locally and opened it in Draft for your review."
+
+### Spec Review (Trigger: yes)
+
+Prompt shape:
+- "Revise docs/spec.md and use Draft for my review comments."
+
+Execution pattern:
+
+```bash
+draft status --json
+draft open docs/spec.md --json
+draft comments list docs/spec.md --json
+```
+
+Handoff phrase:
+- "Please comment in Draft on `docs/spec.md`; I will apply accepted feedback to the local file."
+
+### Release Notes Review (Trigger: yes)
+
+Prompt shape:
+- "Prepare release notes locally and ask me to review them in Draft."
+
+Execution pattern:
+
+```bash
+$EDITOR docs/releases/2026-04-12.md
+draft status --json
+draft open docs/releases/2026-04-12.md --json
+```
+
+Handoff phrase:
+- "Release notes are authored locally in `docs/releases/2026-04-12.md` and ready for your Draft review."
+
+### Non-Trigger Contrast (Trigger: no)
+
+Prompt shape:
+- "How do I run `draft status --json`?" -> `draft-review-loop` should decline; use `draft-cli`.
+- "Please draft an email update." -> decline; generic writing intent.
+
+## Full Loop Example (Draft To Comment Resolution)
+
+1. Agent writes `docs/spec.md` locally.
+2. Agent runs `draft status --json`.
+3. Agent runs `draft open docs/spec.md --json`.
+4. Agent handoff: "I wrote `docs/spec.md` locally and opened it in Draft for your review."
+5. Human leaves Draft comments.
+6. Agent runs `draft comments list docs/spec.md --json`.
+7. Agent applies accepted changes to `docs/spec.md` with normal file-edit tools.
+8. Agent reports resolution: "I applied accepted Draft feedback to `docs/spec.md`; local markdown remains the source of truth."
+
 ## Revision Application Rule
 
 When comments arrive, edit the local file by default. Do not default to mutating Draft page content directly unless the user explicitly requests page-first mutation.
