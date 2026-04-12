@@ -20,8 +20,8 @@
           "target": "eval:list-and-cat-with-connection-check:expectations",
           "sequence": [
             "draft status --json",
-            "draft ls --json",
-            "draft cat <id>"
+            "draft page ls --json",
+            "draft page cat <id>"
           ]
         },
         {
@@ -30,8 +30,8 @@
           "tokens": [
             "draft status --json",
             "draft start-server",
-            "draft ls --json",
-            "draft cat <id>"
+            "draft page ls --json",
+            "draft page cat <id>"
           ]
         }
       ],
@@ -95,7 +95,7 @@
           "tokens": [
             "draft status --json",
             "draft open docs/spec.md --json",
-            "draft comments list docs/spec.md --json"
+            "draft workspace comments docs/spec.md --json"
           ]
         },
         {
@@ -103,7 +103,7 @@
           "target": "eval:workspace-open-and-comment-review-cycle:expectations",
           "tokens": [
             "Agent treats the local markdown file as the source of truth in workspace mode",
-            "Agent does not default to draft patch for the file-backed edit path"
+            "Agent does not default to draft page patch for the file-backed edit path"
           ]
         }
       ],

@@ -60,7 +60,7 @@ Compact examples agents can imitate:
   - Open review surface: `draft open docs/proposals/q2-plan.md --json`
   - Handoff phrase: "I wrote `docs/proposals/q2-plan.md` locally and opened it in Draft for your review."
 - Spec review:
-  - Open and read comments: `draft open docs/spec.md --json` then `draft comments list docs/spec.md --json`
+  - Open and read comments: `draft open docs/spec.md --json` then `draft workspace comments docs/spec.md --json`
   - Handoff phrase: "Please leave comments in Draft; I will apply accepted feedback to `docs/spec.md` locally."
 - Release-note review:
   - Local first: write `docs/releases/2026-04-12.md`

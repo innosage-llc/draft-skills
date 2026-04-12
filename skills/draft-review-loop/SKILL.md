@@ -28,7 +28,7 @@ Trigger this skill when the user intent matches collaboration workflow requests 
 
 Do not trigger this skill when:
 
-- the user only asks how to run Draft commands (`draft status`, `draft ls`, `draft patch`, etc.)
+- the user only asks how to run Draft commands (`draft status`, `draft page ls`, `draft page patch`, etc.)
 - the user uses "draft" only as a verb for generic writing (for example, "draft an email")
 - the user requests direct Draft-page mutation as the primary authoring surface
 
@@ -55,7 +55,7 @@ draft open <path> --json
 5. Read review artifacts from Draft comments:
 
 ```bash
-draft comments list <path> --json
+draft workspace comments <path> --json
 ```
 
 6. Apply accepted feedback back to the local markdown file with normal file-editing tools.
@@ -110,7 +110,7 @@ Execution pattern:
 ```bash
 draft status --json
 draft open docs/spec.md --json
-draft comments list docs/spec.md --json
+draft workspace comments docs/spec.md --json
 ```
 
 Handoff phrase:
@@ -145,7 +145,7 @@ Prompt shape:
 3. Agent runs `draft open docs/spec.md --json`.
 4. Agent handoff: "I wrote `docs/spec.md` locally and opened it in Draft for your review."
 5. Human leaves Draft comments.
-6. Agent runs `draft comments list docs/spec.md --json`.
+6. Agent runs `draft workspace comments docs/spec.md --json`.
 7. Agent applies accepted changes to `docs/spec.md` with normal file-edit tools.
 8. Agent reports resolution: "I applied accepted Draft feedback to `docs/spec.md`; local markdown remains the source of truth."
 

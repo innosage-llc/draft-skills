@@ -61,17 +61,17 @@ When the task is being executed by an agent or automation, prefer machine-readab
 
 ```bash
 draft status --json
-draft ls --json
+draft page ls --json
 draft open path/to/file.md --json
-draft create "My New Page Title" --json
-draft comments list path/to/file.md --json
-draft append <id> "More content" --json
-draft replace <id> --heading "Status" --json
-draft patch <id> --json
-draft publish <id> --json
+draft page create "My New Page Title" --json
+draft workspace comments path/to/file.md --json
+draft page append <id> "More content" --json
+draft page replace <id> --heading "Status" --json
+draft page patch <id> --json
+draft page publish <id> --json
 ```
 
-Use `draft cat <id>` when you want the page content in plain markdown for human review. Use `draft cat <id> --format json` only when you need the raw structured document data for parsing or automation. Use `draft cat <id> --json` when you want a small structured envelope with page metadata plus content.
+Use `draft page cat <id>` when you want the page content in plain markdown for human review. Use `draft page cat <id> --format json` only when you need the raw structured document data for parsing or automation. Use `draft page cat <id> --json` when you want a small structured envelope with page metadata plus content.
 
 Prefer the JSON workflow for branching and retries:
 
@@ -107,12 +107,12 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
   If `draft open <path> --json` succeeds and `draft status --json` shows the connected `clients[].route` correctly retargeted to `/#/local?file=...` but the state is still `EDITOR_NOT_READY`, treat that as an app-side editor mount failure rather than a daemon pairing failure.
   In that case, inspect the browser UI for workspace render errors such as `Page Not Found`, confirm the app actually mounted a writable editor, and avoid looping `draft start-server` or `draft daemon` blindly.
   If you are in a legacy page-centric flow and already have a target page ID, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`) and re-run `draft status --json`.
-  If you do not have a page ID yet in a legacy flow, run `draft ls --json` first, then mount the page route and re-run `draft status --json`.
+  If you do not have a page ID yet in a legacy flow, run `draft page ls --json` first, then mount the page route and re-run `draft status --json`.
 - `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
-  For example, running `draft comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found** in the workspace.
-  Run `draft ls --json` to confirm the correct page ID.
+  For example, running `draft page comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found** in the workspace.
+  Run `draft page ls --json` to confirm the correct page ID.
 - `UNBOUND_DOCUMENT`: the requested path or `document_id` is not currently bound in the active workspace.
-  Run `draft open <path> --json`, then retry `draft comments list <path> --json`.
+  Run `draft open <path> --json`, then retry `draft workspace comments <path> --json`.
 - Workspace-scope/input rejection: the requested path resolves outside the daemon's active workspace root.
   Re-run the command from the correct workspace root and use a path under that root. Do not assume `/tmp` or another directory is valid unless the daemon was started there.
 
@@ -126,9 +126,9 @@ Preferred recovery sequence:
   Diagnose the app surface instead:
   confirm the GUI is on `/#/local?file=...`, check whether the page shows `Page Not Found` or another workspace load error, and restart the local app if the running build may be stale.
 - If `draft status` or a mutation error indicates `EDITOR_NOT_READY` in a legacy page-centric flow, mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json` before retrying writes.
-  If needed, use `draft ls --json` to discover the page ID before route-mounting.
-- Do not treat `draft create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
-- If `draft comments list <path|document_id> --json` returns `UNBOUND_DOCUMENT`, bind the file first with `draft open <path> --json`.
+  If needed, use `draft page ls --json` to discover the page ID before route-mounting.
+- Do not treat `draft page create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
+- If `draft workspace comments <path|document_id|page_id> --json` returns `UNBOUND_DOCUMENT`, bind the file first with `draft open <path> --json`.
 - If a workspace command fails because the path is outside the active workspace root, correct the working directory or path before retrying.
 - If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server --mode workspace --workspace <root>`.
 - If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server --app [url]` and `draft daemon [url]`.
@@ -149,7 +149,7 @@ To see all available pages in the user's Draft workspace:
 
 ```bash
 # Requires active connection
-draft ls
+draft page ls
 ```
 Output includes the page `id`, `title`, and `parentId`. You need the `id` to read or modify a page.
 
@@ -157,11 +157,11 @@ To read the content of a specific page:
 
 ```bash
 # Returns the page in rich Markdown format (default)
-draft cat <id>
+draft page cat <id>
 
 # Other available formats if you need raw data:
-draft cat <id>
-draft cat <id> --format raw
+draft page cat <id>
+draft page cat <id> --format raw
 ```
 
 ### Persisted Comment Artifacts
@@ -169,7 +169,7 @@ draft cat <id> --format raw
 For workspace-backed files, prefer the persisted artifact read path:
 
 ```bash
-draft comments list <path|document_id> --json
+draft workspace comments <path|document_id|page_id> --json
 ```
 
 This is the preferred machine-readable read path for human comments on workspace-bound files. The JSON payload includes top-level metadata like `document_id`, `page_id`, `source_path`, and `comments[]`. Each comment record can include fields like `comment_id`, `body`, `status`, `author`, `created_at`, `anchor`, and `anchor_status`.
@@ -186,7 +186,7 @@ Use this flow when the user starts from a repo file path or a workspace-bound do
 To list all comments (annotations) on a page in compact discovery mode:
 
 ```bash
-draft comments <page_id> --json
+draft page comments <page_id> --json
 ```
 
 Output includes `comment_id`, `anchor_text` (the highlighted span), `note` (the comment body), and `position_hint` (character offset). Use this for quick triage — identify which comment IDs need deeper inspection.
@@ -194,29 +194,29 @@ Output includes `comment_id`, `anchor_text` (the highlighted span), `note` (the 
 To inspect a single comment with bounded context (±100 chars before/after the anchor):
 
 ```bash
-draft comment <comment_id> <page_id> --json
+draft page comment <comment_id> <page_id> --json
 ```
 
 Output includes `note`, `anchor_text`, and a `bounded_context` object with `before` and `after` fields. Use `bounded_context.before + anchor_text + bounded_context.after` to locate the exact edit site before patching.
 
 ### Creating Annotations (Comments)
 
-Use `draft annotate` to create a new comment on a selected text span. In workspace mode, you can pass the workspace file path instead of the page ID.
+Use `draft workspace annotate` to create a new comment on a selected text span. In workspace mode, you can pass the workspace file path instead of the page ID.
 
 ```bash
 # Basic annotation (Workspace mode - preferred)
-draft annotate path/to/file.md --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
+draft workspace annotate path/to/file.md --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
 
 # Basic annotation (Legacy local mode)
-draft annotate <page_id> --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
+draft page annotate <page_id> --anchor "scalable infrastructure" --note "Specify AWS or GCP" --json
 ```
 
 When the anchor text appears more than once, disambiguate with surrounding context so the CLI can target the correct occurrence.
 
 ```bash
 # Disambiguate repeated anchors with nearby prefix/suffix context
-draft annotate path/to/file.md --anchor "status" --before "The current " --note "Needs update" --json
-draft annotate path/to/file.md --anchor "status" --after " is blocked" --note "Needs update" --json
+draft workspace annotate path/to/file.md --anchor "status" --before "The current " --note "Needs update" --json
+draft workspace annotate path/to/file.md --anchor "status" --after " is blocked" --note "Needs update" --json
 ```
 
 Use `--before` and/or `--after` whenever the anchor is ambiguous or repeated in the same page.
@@ -226,7 +226,7 @@ Use `--before` and/or `--after` whenever the anchor is ambiguous or repeated in 
 To create a brand new page:
 
 ```bash
-draft create "My New Page Title"
+draft page create "My New Page Title"
 ```
 
 To publish a page to the web:
@@ -236,17 +236,17 @@ To publish a page to the web:
 # NOTE: For free beta testing, you MUST set the environment variable
 # GLOBAL_PUBLISH_PASSWORD=innosage before running this command.
 # This requirement is subject to change in the future.
-GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id>
+GLOBAL_PUBLISH_PASSWORD=innosage draft page publish <id>
 ```
 
 To append content to the END of a page. You can pass the content as a string, but for multiline Markdown, it is usually safer and much more robust to pipe it via `stdin`:
 
 ```bash
 # Simple append
-draft append <id> "This is a new line at the bottom."
+draft page append <id> "This is a new line at the bottom."
 
 # Multiline append via stdin (RECOMMENDED)
-cat << 'EOF' | draft append <id>
+cat << 'EOF' | draft page append <id>
 ## New Section
 - Item 1
 - Item 2
@@ -256,7 +256,7 @@ EOF
 To replace the content underneath a specific heading (up until the next heading of the same or higher level). The matched heading itself is preserved, and only that section body is replaced. This is useful for updating specific sections like "Status" or "Action Items" without overwriting the whole document.
 
 ```bash
-cat << 'EOF' | draft replace <id> --heading "Status"
+cat << 'EOF' | draft page replace <id> --heading "Status"
 This is the new status content. The 'Status' heading is preserved, and everything previously under it is replaced by this text.
 EOF
 ```
@@ -264,20 +264,20 @@ EOF
 To apply a precise unified diff to a page. This is best for surgical edits to existing paragraphs.
 
 ```bash
-cat patch.diff | draft patch <id>
+cat patch.diff | draft page patch <id>
 ```
 
 > [!CAUTION]
-> **Always generate the diff from `draft cat <id>` output — never from a locally authored file.**
+> **Always generate the diff from `draft page cat <id>` output — never from a locally authored file.**
 >
-> Draft's tiptap editor stores multi-line text blocks as a **single paragraph node**. When serialized by `draft cat`, this appears as one continuous space-joined line, not multiple lines. If you generate a diff against a multi-line file you wrote yourself, the patch engine will return `PATCH_MISMATCH` even though `ok:true` was returned by a previous write.
+> Draft's tiptap editor stores multi-line text blocks as a **single paragraph node**. When serialized by `draft page cat`, this appears as one continuous space-joined line, not multiple lines. If you generate a diff against a multi-line file you wrote yourself, the patch engine will return `PATCH_MISMATCH` even though `ok:true` was returned by a previous write.
 >
 > **Safe patch workflow:**
 > ```bash
 > # 1. Capture live content and strip the 4-line metadata envelope (Title:, ID:, ---, blank line)
-> #    and the trailing --- delimiter. draft cat wraps body content in this envelope.
+> #    and the trailing --- delimiter. draft page cat wraps body content in this envelope.
 > #    The patch engine operates on body-only content; including any envelope line causes PATCH_MISMATCH.
-> draft cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
+> draft page cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
 >
 > # 2. Copy and edit — do NOT reformat or reflow the body text.
 > #    The live serialization is the ground truth. Even a single trailing newline
@@ -288,20 +288,20 @@ cat patch.diff | draft patch <id>
 > # 3. Generate diff from live content.
 > #    IMPORTANT: `diff` exits with code 1 when files differ (not an error — that is expected).
 > #    Use `;` (not `&&`) so the patch command always runs regardless of diff's exit code.
-> diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
+> diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft page patch <id> --json
 >
 > # 4. Verify — wait 2-3 seconds after mutation before reading back.
 > #    Draft CLI relays mutations to a live TipTap editor asynchronously. A read immediately
 > #    after a write may return stale or empty content. Add a short sleep for reliable verification.
-> sleep 2 && draft cat <id>
+> sleep 2 && draft page cat <id>
 > ```
 >
-> If you receive `PATCH_MISMATCH`, re-run `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate the diff — do not retry with the same diff file.
+> If you receive `PATCH_MISMATCH`, re-run `draft page cat <id> | sed '1,4d' | sed '$d'` and regenerate the diff — do not retry with the same diff file.
 
 > [!NOTE]
-> **Annotated pages:** `draft cat` output for pages with comments includes inline markers like ` [:: User Note: A :] `. These markers cause `PATCH_MISMATCH` if left in your diff. Always add a marker-strip step when patching annotated pages:
+> **Annotated pages:** `draft page cat` output for pages with comments includes inline markers like ` [:: User Note: A :] `. These markers cause `PATCH_MISMATCH` if left in your diff. Always add a marker-strip step when patching annotated pages:
 > ```bash
-> draft cat <id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
+> draft page cat <id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
 > ```
 
 ## Common Workflows
@@ -315,28 +315,28 @@ draft status --json
 # (if browser missing: draft daemon && draft status --json)
 
 # 2. Read
-draft ls --json
-draft cat abc-123-def
+draft page ls --json
+draft page cat abc-123-def
 
 # 3. Modify
-cat << 'EOF' | draft append abc-123-def --json
+cat << 'EOF' | draft page append abc-123-def --json
 New content...
 EOF
 
 # 4. Verify
-draft cat abc-123-def
+draft page cat abc-123-def
 ```
 
 **2. The Safe Patch Cycle (Surgical Line Edit)**
-Use `draft patch` for precise edits to existing text. Always anchor the diff to the live markdown.
+Use `draft page patch` for precise edits to existing text. Always anchor the diff to the live markdown.
 ```bash
 # 1. Check/Start Connection
 draft status --json
 
 # 2. Capture live content and strip the 4-line metadata envelope + trailing delimiter.
-#    `draft cat` wraps body content in: Title: / ID: / --- / (blank) ... (body) ... ---
+#    `draft page cat` wraps body content in: Title: / ID: / --- / (blank) ... (body) ... ---
 #    The patch engine expects body-only content. Use sed '1,4d' | sed '$d' to strip.
-draft cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
+draft page cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md
 
 # 3. Edit a copy — do NOT reformat or reflow the body.
 #    The content from before.md is the only valid anchor.
@@ -346,18 +346,18 @@ cp /tmp/before.md /tmp/after.md
 # 4. Generate the diff from live content.
 #    Use `;` not `&&` — diff exits 1 when files differ, which would silently
 #    break `&&` chains before the patch command runs.
-diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json
+diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft page patch <id> --json
 
 # 5. Verify the change landed — wait 2-3 seconds first.
 #    Mutations are relayed asynchronously to the TipTap editor. Reading immediately
 #    after a write may return stale content. Always add a short sleep before verifying.
-sleep 2 && draft cat <id>
+sleep 2 && draft page cat <id>
 
-# If PATCH_MISMATCH: re-read with `draft cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
+# If PATCH_MISMATCH: re-read with `draft page cat <id> | sed '1,4d' | sed '$d'` and regenerate — do NOT retry with the same diff
 ```
 
 **3. The Comment Discovery Cycle (Review → Locate → Patch)**
-Use `draft comments` and `draft comment` to efficiently action user annotations without rereading
+Use `draft page comments` and `draft page comment` to efficiently action user annotations without rereading
 entire pages.
 
 ```bash
@@ -365,16 +365,16 @@ entire pages.
 draft status --json
 
 # 2. Discover all comments on a page (compact)
-draft comments <page_id> --json
+draft page comments <page_id> --json
 
 # 3. Inspect the specific comment you intend to address (bounded context)
-draft comment <comment_id> <page_id> --json
+draft page comment <comment_id> <page_id> --json
 
 # 4. Use anchor + bounded_context to generate a precise diff, then patch
 # Note: We strip comment markers [:: User Note: ... :] to prevent PATCH_MISMATCH
-draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
+draft page cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
 # (edit /tmp/after.md with the fix informed by the bounded_context)
-diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <page_id> --json
+diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft page patch <page_id> --json
 ```
 
 **4. Switching Tabs/Context**
