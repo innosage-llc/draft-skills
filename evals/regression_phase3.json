@@ -545,7 +545,7 @@
         {
           "type": "count_at_least",
           "target": "regression_fixtures",
-          "minimum": 22
+          "minimum": 26
         },
         {
           "type": "count_at_least",
@@ -624,6 +624,12 @@
           "target": "regression_fixtures",
           "tag": "publish",
           "minimum": 1
+        },
+        {
+          "type": "count_at_least",
+          "target": "regression_fixtures",
+          "tag": "workflow",
+          "minimum": 4
         }
       ],
       "nondeterminism": {
@@ -847,6 +853,172 @@
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "tags": ["workspace", "tc20", "annotate", "comments", "persisted-artifact"],
       "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-trigger-design-doc",
+      "title": "Workflow trigger: design doc + Draft review handoff activates draft-review-loop",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Write a design doc in my repo, then open it in Draft so I can review it.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workflow-write-design-doc-open-handoff"
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:workflow-write-design-doc-open-handoff:expectations",
+          "sequence": [
+            "local markdown file before",
+            "draft status --json",
+            "draft open <path> --json",
+            "invites the human to review in Draft"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "trigger", "e2e"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-trigger-release-notes",
+      "title": "Workflow trigger: release notes local-first + Draft review handoff activates draft-review-loop",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Prepare release notes locally and ask me to review them in Draft.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workflow-release-notes-local-review-handoff"
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:workflow-release-notes-local-review-handoff:expected_output",
+          "tokens": [
+            "local markdown file first",
+            "draft open <path> --json",
+            "asks the human to review in Draft"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "trigger", "e2e"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-trigger-apply-comments-local",
+      "title": "Workflow trigger: comment-read and local-apply path activates draft-review-loop",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Review Draft comments on docs/spec.md and update the local markdown file in the repo.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workflow-apply-comments-back-to-local-file"
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:workflow-apply-comments-back-to-local-file:expectations",
+          "sequence": [
+            "draft open <path> --json",
+            "draft comments list <path|document_id> --json",
+            "applies accepted revisions to the local markdown file"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:workflow-apply-comments-back-to-local-file:expectations",
+          "tokens": [
+            "does not default to draft patch"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "trigger", "comments", "e2e"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-source-of-truth-contract",
+      "title": "Workflow contract: local markdown source-of-truth remains explicit",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Keep the markdown file as source of truth while using Draft for review.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:workflow-source-of-truth-local-markdown"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill:draft-review-loop",
+          "tokens": [
+            "Source of truth: local workspace markdown file.",
+            "Review surface: Draft GUI page opened from that file.",
+            "Do not imply fully headless live collaboration."
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "source-of-truth"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-nontrigger-command-only",
+      "title": "Workflow non-trigger: pure command syntax question stays with draft-cli",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "How do I run draft status --json?",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "decline"
+        },
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "non-trigger"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-review-loop-nontrigger-generic-draft-verb",
+      "title": "Workflow non-trigger: generic writing request with draft verb declines",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Please draft an email to the team.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "decline"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "workflow", "non-trigger"],
+      "source": "phase4-regression-corpus"
     }
   ]
 }
