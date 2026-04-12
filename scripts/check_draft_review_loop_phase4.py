@@ -50,7 +50,7 @@ def main() -> int:
         "the user uses \"draft\" only as a verb for generic writing",
         "Source of truth: local workspace markdown file.",
         "draft open <path> --json",
-        "draft comments list <path> --json",
+        "draft workspace comments <path> --json",
         "Do not imply fully headless live collaboration.",
     ]
     for token in required_skill_tokens:
@@ -100,13 +100,14 @@ def main() -> int:
             "asks the human to review in Draft",
         ],
         "workflow-apply-comments-back-to-local-file": [
-            "draft comments list <path|document_id> --json",
+            "draft workspace comments <path|document_id|page_id> --json",
             "local file",
-            "instead of defaulting to draft patch",
+            "instead of defaulting to draft page patch",
         ],
         "workflow-source-of-truth-local-markdown": [
             "local-first model",
             "source of truth",
+            "draft workspace comments <path> --json",
             "avoid implying fully headless live collaboration",
         ],
     }

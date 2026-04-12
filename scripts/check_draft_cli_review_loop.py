@@ -24,13 +24,19 @@ def main() -> int:
     evals = load_json(EVALS_PATH).get("evals", [])
     eval_by_name = {entry["name"]: entry for entry in evals}
 
-    required_skill_phrases = [
-        "Use `draft cat <id>` when you want the page content in plain markdown for human review.",
-        "Use `draft cat <id> --format json` only when you need the raw structured document data for parsing or automation.",
+    required_skill_phrase_variants = [
+        (
+            "Use `draft page cat <id>` when you want the page content in plain markdown for human review.",
+            "Use `draft cat <id>` when you want the page content in plain markdown for human review.",
+        ),
+        (
+            "Use `draft page cat <id> --format json` only when you need the raw structured document data for parsing or automation.",
+            "Use `draft cat <id> --format json` only when you need the raw structured document data for parsing or automation.",
+        ),
     ]
-    for phrase in required_skill_phrases:
-        if phrase not in skill_text:
-            failures.append(f"Missing shared skill guidance: {phrase}")
+    for preferred_phrase, legacy_phrase in required_skill_phrase_variants:
+        if preferred_phrase not in skill_text and legacy_phrase not in skill_text:
+            failures.append(f"Missing shared skill guidance: {preferred_phrase}")
 
     review_eval = eval_by_name.get("list-and-cat-with-connection-check")
     if review_eval is None:
@@ -39,17 +45,27 @@ def main() -> int:
         expected_output = review_eval.get("expected_output", "")
         expectations = review_eval.get("expectations", [])
 
-        if "draft cat <id> to return the page in markdown for review" not in expected_output:
+        if (
+            "draft page cat <id> to return the page in markdown for review"
+            not in expected_output
+            and "draft cat <id> to return the page in markdown for review"
+            not in expected_output
+        ):
             failures.append(
-                "Review-loop eval expected_output must describe `draft cat <id>` returning markdown."
+                "Review-loop eval expected_output must describe page-cat markdown review behavior."
             )
         if "--format json" in expected_output:
             failures.append(
                 "Review-loop eval expected_output must not send human review back through `--format json`."
             )
-        if "Agent reads a specific page with draft cat <id> for markdown review" not in expectations:
+        if (
+            "Agent reads a specific page with draft page cat <id> for markdown review"
+            not in expectations
+            and "Agent reads a specific page with draft cat <id> for markdown review"
+            not in expectations
+        ):
             failures.append(
-                "Review-loop eval expectations must require `draft cat <id>` for markdown review."
+                "Review-loop eval expectations must require page-cat markdown review behavior."
             )
         if any("--format json" in item for item in expectations):
             failures.append(

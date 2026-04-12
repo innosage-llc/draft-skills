@@ -16,8 +16,8 @@
           "target": "eval:list-and-cat-with-connection-check:expectations",
           "sequence": [
             "draft status --json",
-            "draft ls --json",
-            "draft cat <id>"
+            "draft page ls --json",
+            "draft page cat <id>"
           ]
         }
       ],
@@ -126,7 +126,7 @@
           "type": "text_contains",
           "target": "eval:recover-editor-not-ready-before-write:expectations",
           "tokens": [
-            "Agent does not propose draft create as the primary first recovery action"
+            "Agent does not propose draft page create as the primary first recovery action"
           ]
         }
       ],
@@ -142,7 +142,7 @@
     },
     {
       "id": "phase3-bugfix-patch-mismatch-caution-block",
-      "title": "Bugfix regression guard: draft patch CAUTION block must exist in SKILL.md",
+      "title": "Bugfix regression guard: draft page patch CAUTION block must exist in SKILL.md",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Apply a precise unified diff to my Draft page to change the first sentence of a paragraph.",
@@ -154,7 +154,7 @@
             "PATCH_MISMATCH",
             "tiptap",
             "Always generate the diff from",
-            "draft cat",
+            "draft page cat",
             "never from a locally authored file"
           ]
         }
@@ -181,8 +181,8 @@
           "type": "command_sequence",
           "target": "skill",
           "sequence": [
-            "draft cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md",
-            "diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft patch <id> --json"
+            "draft page cat <id> | sed '1,4d' | sed '$d' > /tmp/before.md",
+            "diff -u /tmp/before.md /tmp/after.md > /tmp/patch.diff ; cat /tmp/patch.diff | draft page patch <id> --json"
           ]
         }
       ],
@@ -207,7 +207,7 @@
         {
           "type": "command_sequence",
           "target": "skill",
-          "sequence": ["cat << 'EOF' | draft append", "--json"]
+          "sequence": ["cat << 'EOF' | draft page append", "--json"]
         },
         {
           "type": "artifact_exists",
@@ -220,7 +220,7 @@
     },
     {
       "id": "phase3-replace-heading-command-shape",
-      "title": "SKILL.md documents draft replace --heading command shape",
+      "title": "SKILL.md documents draft page replace --heading command shape",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Replace the Status section of my Draft page with new content.",
@@ -228,7 +228,7 @@
         {
           "type": "command_sequence",
           "target": "skill",
-          "sequence": ["draft replace", "--heading", "--json"]
+          "sequence": ["draft page replace", "--heading", "--json"]
         },
         {
           "type": "artifact_exists",
@@ -298,7 +298,7 @@
         {
           "type": "text_contains",
           "target": "skill",
-          "tokens": ["GLOBAL_PUBLISH_PASSWORD=innosage", "draft publish"]
+          "tokens": ["GLOBAL_PUBLISH_PASSWORD=innosage", "draft page publish"]
         },
         {
           "type": "artifact_exists",
@@ -311,7 +311,7 @@
     },
     {
       "id": "phase3-comments-command-documented-in-skill",
-      "title": "SKILL.md documents draft comments <page_id> --json discovery command",
+      "title": "SKILL.md documents draft page comments <page_id> --json discovery command",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "List all reviewer comments on my Draft page so I can triage which to address first.",
@@ -324,7 +324,7 @@
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "draft comments",
+            "draft page comments",
             "comment_id",
             "anchor_text",
             "note",
@@ -342,7 +342,7 @@
     },
     {
       "id": "phase3-comment-inspect-bounded-context-documented",
-      "title": "SKILL.md documents draft comment <id> --json with bounded_context fields",
+      "title": "SKILL.md documents draft page comment <id> --json with bounded_context fields",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Inspect a specific comment on my Draft page and show me the text around it so I know where to patch.",
@@ -355,7 +355,7 @@
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "draft comment",
+            "draft page comment",
             "bounded_context",
             "before",
             "after",
@@ -383,9 +383,9 @@
           "target": "skill",
           "sequence": [
             "draft status --json",
-            "draft comments",
-            "draft comment",
-            "draft patch"
+            "draft page comments",
+            "draft page comment",
+            "draft page patch"
           ]
         }
       ],
@@ -435,7 +435,7 @@
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "draft comments"
+            "draft page comments"
           ]
         }
       ],
@@ -469,7 +469,7 @@
           "type": "command_sequence",
           "target": "skill",
           "sequence": [
-            "draft cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \\[:: User Note: [^:]* :\\]//g' > /tmp/before.md"
+            "draft page cat <page_id> | sed '1,4d' | sed '$d' | sed 's/ \\[:: User Note: [^:]* :\\]//g' > /tmp/before.md"
           ]
         }
       ],
@@ -486,7 +486,7 @@
     },
     {
       "id": "phase3-ambiguous-anchor-requires-per-comment-inspection",
-      "title": "Agent must call draft comment per-ID to resolve identical anchor text across multiple comments",
+      "title": "Agent must call draft page comment per-ID to resolve identical anchor text across multiple comments",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "My Draft page has 3 comments. The reviewer highlighted the word 'status' in three different places with notes 'reword', 'reword', and 'needs specifics'. Please address all of them with surgical patches.",
@@ -500,8 +500,8 @@
           "target": "skill",
           "sequence": [
             "draft status --json",
-            "draft comments",
-            "draft comment",
+            "draft page comments",
+            "draft page comment",
             "bounded_context"
           ]
         },
@@ -512,7 +512,7 @@
             "bounded_context",
             "before",
             "after",
-            "draft comment <comment_id> <page_id>"
+            "draft page comment <comment_id> <page_id>"
           ]
         },
         {
@@ -643,7 +643,7 @@
     },
     {
       "id": "phase3-validate-comment-existence-error",
-      "title": "Agent appropriately recognizes and handles PAGE_NOT_FOUND for invalid draft comments",
+      "title": "Agent appropriately recognizes and handles PAGE_NOT_FOUND for invalid draft page comments",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "List comments for the Draft page with ID 'does-not-exist-9999'.",
@@ -651,7 +651,7 @@
         {
           "type": "command_contains",
           "target": "skill",
-          "tokens": ["draft comments does-not-exist-9999 --json"]
+          "tokens": ["draft page comments does-not-exist-9999 --json"]
         },
         {
           "type": "text_contains",
@@ -673,7 +673,7 @@
         {
           "type": "command_contains",
           "target": "skill",
-          "tokens": ["draft annotate", "--anchor", "\"scalable infrastructure\"", "--note", "\"Specify AWS or GCP\""]
+          "tokens": ["draft workspace annotate", "--anchor", "\"scalable infrastructure\"", "--note", "\"Specify AWS or GCP\""]
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
@@ -690,7 +690,7 @@
         {
           "type": "command_contains",
           "target": "skill",
-          "tokens": ["draft annotate", "--anchor", "\"status\"", "--before", "\"The current \""]
+          "tokens": ["draft workspace annotate", "--anchor", "\"status\"", "--before", "\"The current \""]
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
@@ -712,7 +712,7 @@
             "draft open <path> --json",
             "the local markdown file is the source of truth",
             "### Persisted Comment Artifacts",
-            "draft comments list <path|document_id> --json",
+            "draft workspace comments <path|document_id|page_id> --json",
             "### Legacy Page Annotations"
           ]
         },
@@ -730,7 +730,7 @@
       "title": "Workspace-specific failure guidance is documented",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "draft comments list failed for my local file because it is not bound or outside the workspace root.",
+      "prompt": "draft workspace comments failed for my local file because it is not bound or outside the workspace root.",
       "assertions": [
         {
           "type": "text_contains",
@@ -824,15 +824,15 @@
       "title": "TC20 contract: path-based annotate is verified via comments list persisted artifact",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Annotate products/notion-editor/README.md by path, then verify the exact created comment via draft comments list.",
+      "prompt": "Annotate products/notion-editor/README.md by path, then verify the exact created comment via draft workspace comments.",
       "assertions": [
         {
           "type": "command_contains",
           "target": "skill",
           "tokens": [
-            "draft annotate path/to/file.md --anchor",
+            "draft workspace annotate path/to/file.md --anchor",
             "--note",
-            "draft comments list <path|document_id> --json"
+            "draft workspace comments <path|document_id|page_id> --json"
           ]
         },
         {
@@ -936,7 +936,7 @@
           "target": "eval:workflow-apply-comments-back-to-local-file:expectations",
           "sequence": [
             "draft open <path> --json",
-            "draft comments list <path|document_id> --json",
+            "draft workspace comments <path|document_id|page_id> --json",
             "applies accepted revisions to the local markdown file"
           ]
         },
@@ -944,7 +944,7 @@
           "type": "text_contains",
           "target": "eval:workflow-apply-comments-back-to-local-file:expectations",
           "tokens": [
-            "does not default to draft patch"
+            "does not default to draft page patch"
           ]
         }
       ],

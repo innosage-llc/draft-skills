@@ -5,7 +5,7 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent starts with draft status --json, uses draft start-server for daemon lifecycle recovery when offline, uses draft daemon only for browser pairing/retarget when needed, confirms READY via draft status --json, then uses draft ls --json and draft cat <id> to return the page in markdown for review.",
+            "expected_output": "Agent starts with draft status --json, uses draft start-server for daemon lifecycle recovery when offline, uses draft daemon only for browser pairing/retarget when needed, confirms READY via draft status --json, then uses draft page ls --json and draft page cat <id> to return the page in markdown for review.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
@@ -13,8 +13,8 @@
                 "Agent runs draft start-server only when status indicates the daemon is offline",
                 "Agent runs draft daemon when status indicates the browser is not connected",
                 "Agent uses draft stop-server plus draft start-server when a lifecycle reset is required",
-                "Agent lists pages with draft ls --json",
-                "Agent reads a specific page with draft cat <id> for markdown review",
+                "Agent lists pages with draft page ls --json",
+                "Agent reads a specific page with draft page cat <id> for markdown review",
                 "Agent verifies READY before reading content"
             ]
         },
@@ -35,13 +35,13 @@
             "id": 2,
             "name": "create-and-append-with-connection-check",
             "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points: what went well, what didn't, and action items. Make sure you check if you are connected first.",
-            "expected_output": "Agent runs draft status --json first, restores readiness if needed, creates the page with draft create --json, captures the page ID from JSON, then appends markdown bullets with draft append --json via stdin.",
+            "expected_output": "Agent runs draft status --json first, restores readiness if needed, creates the page with draft page create --json, captures the page ID from JSON, then appends markdown bullets with draft page append --json via stdin.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent verifies readiness before mutating",
-                "Agent creates page with draft create 'Sprint 42 Retro' --json",
-                "Agent appends content using draft append <id> --json via stdin",
+                "Agent creates page with draft page create 'Sprint 42 Retro' --json",
+                "Agent appends content using draft page append <id> --json via stdin",
                 "Content includes three bullet points"
             ]
         },
@@ -54,9 +54,9 @@
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent treats EDITOR_NOT_READY as an editor-mount problem, not a daemon lifecycle problem",
-                "Agent uses draft ls --json to discover a page ID when needed",
+                "Agent uses draft page ls --json to discover a page ID when needed",
                 "Agent mounts a real page route before retrying writes",
-                "Agent does not propose draft create as the primary first recovery action",
+                "Agent does not propose draft page create as the primary first recovery action",
                 "Agent verifies READY with draft status --json before retrying the failed write"
             ]
         },
@@ -64,14 +64,14 @@
             "id": 3,
             "name": "replace-section-on-recent-page",
             "prompt": "In my Draft page titled 'Eval Replace Status Seed', replace the Status section with 'Status: Complete - shipped to staging on March 12th'. Check connection first and make sure you're on staging (https://markdown-editor-staging.web.app/).",
-            "expected_output": "Agent verifies readiness with draft status --json, rejects a READY session on the wrong origin when staging is required, reconnects with the explicit staging URL if needed, finds the correct page with draft ls --json, then runs draft replace <id> --heading 'Status' --json.",
+            "expected_output": "Agent verifies readiness with draft status --json, rejects a READY session on the wrong origin when staging is required, reconnects with the explicit staging URL if needed, finds the correct page with draft page ls --json, then runs draft page replace <id> --heading 'Status' --json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent rejects a READY session on the wrong origin when the user explicitly asks for staging",
                 "Agent uses https://markdown-editor-staging.web.app/ when reconnecting to Draft",
-                "Agent lists pages with draft ls --json to find the ID for 'Eval Replace Status Seed'",
-                "Agent uses draft replace command with --json on the correct ID"
+                "Agent lists pages with draft page ls --json to find the ID for 'Eval Replace Status Seed'",
+                "Agent uses draft page replace command with --json on the correct ID"
             ]
         },
         {
@@ -84,19 +84,19 @@
                 "Agent starts by running draft status --json",
                 "Agent verifies readiness before create and publish",
                 "Agent creates the page and captures the ID from JSON output",
-                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft publish <id> --json command with the correct ID"
+                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft page publish <id> --json command with the correct ID"
             ]
         },
         {
             "id": 7,
             "name": "list-comments-on-page",
             "prompt": "My Draft page has several reviewer comments. Can you list all the comments on page abc-123 so I can decide which one to address first?",
-            "expected_output": "Agent runs draft status --json, confirms READY, then runs draft comments abc-123 --json to return all annotation records including comment_id, anchor_text, note, and position_hint.",
+            "expected_output": "Agent runs draft status --json, confirms READY, then runs draft page comments abc-123 --json to return all annotation records including comment_id, anchor_text, note, and position_hint.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent verifies readiness before reading",
-                "Agent runs draft comments <page_id> --json",
+                "Agent runs draft page comments <page_id> --json",
                 "Agent returns compact comment records including comment_id and note"
             ]
         },
@@ -104,12 +104,12 @@
             "id": 8,
             "name": "inspect-comment-with-context",
             "prompt": "Inspect comment xyz-456 on page abc-123 and show me the text around it so I know exactly where to make the edit.",
-            "expected_output": "Agent runs draft status --json, confirms READY, then runs draft comment xyz-456 abc-123 --json, returning the note, anchor_text, and bounded_context with before and after fields.",
+            "expected_output": "Agent runs draft status --json, confirms READY, then runs draft page comment xyz-456 abc-123 --json, returning the note, anchor_text, and bounded_context with before and after fields.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent verifies readiness before reading",
-                "Agent runs draft comment <comment_id> <page_id> --json",
+                "Agent runs draft page comment <comment_id> <page_id> --json",
                 "Agent extracts bounded_context.before, anchor_text, and bounded_context.after to locate the edit site"
             ]
         },
@@ -117,14 +117,14 @@
             "id": 9,
             "name": "workspace-open-and-comment-review-cycle",
             "prompt": "Review comments on my local file docs/spec.md in Draft, then update the markdown file in the repo instead of patching the Draft page directly.",
-            "expected_output": "Agent runs draft status --json, uses draft open docs/spec.md --json as the workspace-backed entrypoint, reads persisted comments with draft comments list docs/spec.md --json, treats the local markdown file as the source of truth, and edits the repo file with normal tools instead of defaulting to draft patch.",
+            "expected_output": "Agent runs draft status --json, uses draft open docs/spec.md --json as the workspace-backed entrypoint, reads persisted comments with draft workspace comments docs/spec.md --json, treats the local markdown file as the source of truth, and edits the repo file with normal tools instead of defaulting to draft page patch.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent runs draft open <path> --json for a repo-backed local markdown task",
-                "Agent runs draft comments list <path|document_id> --json to read persisted review artifacts",
+                "Agent runs draft workspace comments <path|document_id|page_id> --json to read persisted review artifacts",
                 "Agent treats the local markdown file as the source of truth in workspace mode",
-                "Agent does not default to draft patch for the file-backed edit path"
+                "Agent does not default to draft page patch for the file-backed edit path"
             ]
         },
         {
@@ -156,12 +156,12 @@
             "id": 12,
             "name": "workspace-annotate-and-verify-persisted-comment",
             "prompt": "Create a workspace comment with annotate on products/notion-editor/README.md, then verify the exact comment is persisted via comments list.",
-            "expected_output": "Agent runs draft annotate <path> --anchor <text> --note <unique note> --json and then draft comments list <path> --json, matching the same comment_id and note body with expected source_path/page_id metadata.",
+            "expected_output": "Agent runs draft workspace annotate <path> --anchor <text> --note <unique note> --json and then draft workspace comments <path> --json, matching the same comment_id and note body with expected source_path/page_id metadata.",
             "files": [],
             "expectations": [
-                "Agent runs draft annotate <path> --anchor <text> --note <unique note> --json",
+                "Agent runs draft workspace annotate <path> --anchor <text> --note <unique note> --json",
                 "Agent captures the returned comment_id from annotate",
-                "Agent runs draft comments list <path> --json",
+                "Agent runs draft workspace comments <path> --json",
                 "Agent verifies comments list includes the same comment_id and note body from annotate",
                 "Agent verifies source_path and page_id metadata are present"
             ]
@@ -198,20 +198,20 @@
             "id": 15,
             "name": "workflow-apply-comments-back-to-local-file",
             "prompt": "Review Draft comments on docs/spec.md and update the local markdown file in the repo.",
-            "expected_output": "Agent ensures docs/spec.md is opened through draft open <path> --json, reads persisted feedback with draft comments list <path|document_id> --json, and applies accepted changes to the local file with normal file tools instead of defaulting to draft patch.",
+            "expected_output": "Agent ensures docs/spec.md is opened through draft open <path> --json, reads persisted feedback with draft workspace comments <path|document_id|page_id> --json, and applies accepted changes to the local file with normal file tools instead of defaulting to draft page patch.",
             "files": [],
             "expectations": [
                 "Agent runs draft open <path> --json for a file-backed review loop",
-                "Agent runs draft comments list <path|document_id> --json to read persisted feedback",
+                "Agent runs draft workspace comments <path|document_id|page_id> --json to read persisted feedback",
                 "Agent applies accepted revisions to the local markdown file",
-                "Agent does not default to draft patch for the local-file revision path"
+                "Agent does not default to draft page patch for the local-file revision path"
             ]
         },
         {
             "id": 16,
             "name": "workflow-source-of-truth-local-markdown",
             "prompt": "Keep the markdown file as source of truth while using Draft for review.",
-            "expected_output": "Agent states and follows the local-first model: the local markdown file remains the source of truth, author in workspace markdown, use draft open <path> --json for review surface handoff, collect review artifacts with draft comments list <path> --json when needed, and avoid implying fully headless live collaboration.",
+            "expected_output": "Agent states and follows the local-first model: the local markdown file remains the source of truth, author in workspace markdown, use draft open <path> --json for review surface handoff, collect review artifacts with draft workspace comments <path> --json when needed, and avoid implying fully headless live collaboration.",
             "files": [],
             "expectations": [
                 "Agent treats local markdown as source of truth",
