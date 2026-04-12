@@ -1,6 +1,7 @@
 # Draft Skills
 
-Agent Skills for Draft — the performance-first markdown editor.
+Agent Skills for Draft's dual-surface collaboration model:
+local workspace markdown for authoring, plus Draft GUI/CLI for human review and coordination.
 
 These skills follow the [Agent Skills specification](https://agentskills.io/specification) so they can be used by any skills-compatible agent, including Claude Code, Codex CLI, and Cursor.
 
@@ -41,7 +42,14 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [draft-cli](skills/draft-cli) | Manage Draft pages using the Draft CLI. List, read, create, append, replace, and patch documents from the command line. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
+| [draft-cli](skills/draft-cli) | Operational skill for Draft transport and commands. Manage workspace/page operations, open local files in Draft for review, and run comment/publish flows safely through the CLI. Requires the [draft-cli binary](https://www.npmjs.com/package/@innosage/draft-cli). |
+| `draft-review-loop` (coming soon) | Workflow skill for local-first authoring with Draft review handoff. Guides agents to write/update workspace markdown first, then ask humans to review in Draft and apply accepted feedback back to the local file. |
+
+Boundary model:
+- `draft-cli`: how to operate Draft safely and correctly.
+- `draft-review-loop` (planned): how to run the local-first authoring and Draft review collaboration loop.
+- Source of truth: local workspace markdown.
+- Review surface: Draft GUI.
 
 ## Local Merge Gate
 
