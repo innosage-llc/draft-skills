@@ -78,13 +78,13 @@
             "id": 4,
             "name": "create-and-publish-roadmap",
             "prompt": "I want to share my project roadmap. Create a new Draft page titled 'Project Roadmap', and then publish it to the web. Remember to check your connection first.",
-            "expected_output": "Agent runs draft status --json, restores readiness if needed, creates 'Project Roadmap' with --json, captures the generated ID, and uses the legacy GLOBAL_PUBLISH_PASSWORD flow to publish with --json.",
+            "expected_output": "Agent runs draft status --json, restores readiness if needed, creates 'Project Roadmap' with --json, captures the generated ID, and uses the new --invite-code flag to publish with --json.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent verifies readiness before create and publish",
                 "Agent creates the page and captures the ID from JSON output",
-                "Agent uses the GLOBAL_PUBLISH_PASSWORD=innosage draft page publish <id> --json command with the correct ID"
+                "Agent uses the draft page publish <id> --invite-code innosage --json command with the correct ID"
             ]
         },
         {
