@@ -233,10 +233,14 @@ To publish a page to the web:
 
 ```bash
 # This will make the page publicly accessible via a unique URL.
-# NOTE: For free beta testing, you MUST set the environment variable
-# GLOBAL_PUBLISH_PASSWORD=innosage before running this command.
-# This requirement is subject to change in the future.
-GLOBAL_PUBLISH_PASSWORD=innosage draft page publish <id>
+# NOTE: For free beta testing, you MUST provide an invite code.
+# You can use the --invite-code flag (RECOMMENDED):
+draft page publish <id> --invite-code innosage
+
+# OR set the environment variable:
+# GLOBAL_INVITE_CODE=innosage draft page publish <id>
+
+# (The legacy GLOBAL_PUBLISH_PASSWORD variable is also supported for backward compatibility)
 ```
 
 To append content to the END of a page. You can pass the content as a string, but for multiline Markdown, it is usually safer and much more robust to pipe it via `stdin`:
