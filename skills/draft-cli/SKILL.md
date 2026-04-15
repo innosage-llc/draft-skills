@@ -410,13 +410,17 @@ draft status --json
 Always use `--mode local` when the primary goal is to publish a page. Workspace mode blocks reachability to the publish endpoint.
 
 ```bash
-# 1. Connect in local mode (safest for publish)
-draft start-server --mode local
-draft status --json
+# 1. Stop any existing server to ensure a clean start in local mode
+draft stop-server
 
-# 2. Find the page ID
+# 2. Connect in local mode (safest for publish)
+draft start-server --mode local
+draft daemon
+draft status --json # Verify READY state before proceeding
+
+# 3. Find the page ID
 draft page ls --json
 
-# 3. Publish
+# 4. Publish
 draft page publish <id> --invite-code innosage --json
 ```
