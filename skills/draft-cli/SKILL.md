@@ -6,25 +6,26 @@ description: >
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
-compatibility: >
-  Requires Node.js >= 18 and @innosage/draft-cli (npm install -g @innosage/draft-cli).
-  Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
-metadata:
-  author: innosage-llc
-  version: "1.5.1"
+metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]}}
 ---
 
 # Draft CLI Skill
 
 Use the `draft` CLI to run Draft transport and operational commands from the terminal.
 
+## Safety and Permissions
+
+This skill requires specific permissions to interact with the Draft PWA and your local filesystem.
+
+| Scope | Capability | Rationale |
+| :--- | :--- | :--- |
+| **Network** | `https://draft.innosage.co` | Required for the daemon to communicate with the Draft PWA. |
+| **Filesystem** | Local `.md` files | Only accessed in `workspace` mode for direct repo-backed editing. |
+| **Processes** | `draft` binary | Used to manage the local daemon and execute operational commands. |
+
 ## Setup and Connection
 
-Before running Draft CLI commands, you must ensure the Draft CLI package is globally installed:
-
-```bash
-npm install -g @innosage/draft-cli
-```
+Before running Draft CLI commands, ensure `draft` is available on your PATH (see Install panel).
 
 ### Operational Pattern: Always Check Connection First
 
