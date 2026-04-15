@@ -9,7 +9,7 @@ description: >
 compatibility: >
   Requires Node.js >= 18.
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
-metadata: {"clawdbot":{"emoji":"📋","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"npm","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"author":"innosage-llc","version":"1.5.1"}
+metadata: {"clawdbot":{"emoji":"📋","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"npm","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"author":"innosage-llc","version":"1.5.2"}
 ---
 
 # Draft CLI Skill
