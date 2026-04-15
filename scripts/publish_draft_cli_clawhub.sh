@@ -18,27 +18,21 @@ if ! "$GATE_SCRIPT"; then
 fi
 
 # 2. Version Management
-CURRENT_VERSION=$(grep "version:" "$SKILL_PATH" | awk -F'"' '{print $2}')
-echo "📦 Current version: $CURRENT_VERSION"
+NEW_VERSION=$(grep '"version":' "$REPO_ROOT/package.json" | head -1 | cut -d'"' -f4)
+echo "📦 Version to publish (from package.json): $NEW_VERSION"
 
-# Simple patch version bump (e.g., 1.4 -> 1.4.1 or 1.4.1 -> 1.4.2)
-if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)$ ]]; then
-    NEW_VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.1"
-elif [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-    NEW_VERSION="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
-else
-    echo "❌ Could not parse version '$CURRENT_VERSION'. Please update SKILL.md manually."
-    exit 1
+# Ensure SKILL.md is in sync
+CURRENT_SKILL_VERSION=$(grep -o '"version":"[^"]*"' "$SKILL_PATH" | head -1 | cut -d'"' -f4 || echo "")
+if [[ -n "$CURRENT_SKILL_VERSION" && "$CURRENT_SKILL_VERSION" != "$NEW_VERSION" ]]; then
+    echo "⬆️ Syncing version in $SKILL_PATH to $NEW_VERSION..."
+    sed -i '' "s/\"version\":\"$CURRENT_SKILL_VERSION\"/\"version\":\"$NEW_VERSION\"/" "$SKILL_PATH"
 fi
 
-echo "⬆️ Bumping version to $NEW_VERSION..."
-sed -i '' "s/version: \"$CURRENT_VERSION\"/version: \"$NEW_VERSION\"/" "$SKILL_PATH"
-
-# 3. Commit Changes (Submodule)
-echo "💾 Committing version bump to submodule..."
+# 3. Commit Changes
+echo "💾 Committing version updates..."
 cd "$REPO_ROOT"
-git add "$SKILL_PATH"
-git commit -m "chore(release): bump draft-cli to $NEW_VERSION for ClawHub publication"
+git add "$SKILL_PATH" "package.json"
+git commit -m "chore(release): bump draft-cli to $NEW_VERSION for ClawHub publication" || echo "No changes to commit"
 
 # 4. Publication
 echo "☁️ Publishing to ClawHub..."
