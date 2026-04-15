@@ -11,7 +11,7 @@ compatibility: >
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.4.1"
+  version: "1.5"
 ---
 
 # Draft CLI Skill
@@ -31,7 +31,7 @@ npm install -g @innosage/draft-cli
 To ensure a stable session, you MUST follow this sequence before executing any functional Draft command (like `ls`, `cat`, `create`, etc.):
 
 1.  **Check Status**: Start with `draft status --json` unless the user explicitly wants human-readable output.
-2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server --mode workspace --workspace <root>` (or `--mode local` for generic pages).
+2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server --mode local` (or `--mode workspace --workspace <root>` ONLY if you have a local file path and are co-located).
 3.  **Handle Browser Missing**: If status reports `BROWSER_NOT_CONNECTED`, run `draft daemon [url]` (the currently implemented pairing/retarget command) to re-open or re-pair the browser tab.
 4.  **Verify**: Run `draft status --json` again and only proceed once the state is `READY`.
 5.  **Respect Environment URLs**: The `--app <url>` argument defaults to production (`https://draft.innosage.co/`). Only pass a staging or development URL when the user explicitly asks for that environment.
@@ -41,8 +41,10 @@ To ensure a stable session, you MUST follow this sequence before executing any f
 # 1. Start with machine-readable status
 draft status --json
 
-# 2a. If the daemon is offline, start it (use workspace mode for repo files)
-draft start-server --mode workspace --workspace $(pwd)
+# 2a. If the daemon is offline, start it. Choose mode based on environment:
+# - REMOTE/OPENCLAW: always use --mode local
+# - LOCAL/REPO: use --mode workspace --workspace $(pwd)
+draft start-server --mode local
 
 # 2b. If the daemon is running but the browser is missing, pair a tab
 draft daemon
@@ -81,7 +83,7 @@ Prefer the JSON workflow for branching and retries:
 
 ### Workspace-Backed Open
 
-For repo-backed local markdown work, prefer the workspace-backed flow over manual page-ID discovery:
+For **local co-located agents** working on repo-backed markdown, prefer the workspace-backed flow over manual page-ID discovery:
 
 ```bash
 draft status --json
@@ -90,6 +92,12 @@ draft open path/to/file.md --json
 
 Use `draft open <path> --json` as the canonical entrypoint for file-backed review work. It binds or reuses a durable document/page mapping, opens the Draft review surface for that file, and is the preferred `EDITOR_NOT_READY` recovery when the task starts from a local file path.
 
+> [!TIP]
+> **When to use workspace mode**: Only when the agent is co-located on the same machine as the user AND the task starts from a local `.md` file path. This unlocks `draft open <path>` for file-bound review tasks.
+
+> [!CAUTION]
+> **Remote/OpenClaw agents**: Do NOT use workspace mode. It requires a shared filesystem. In remote environments, workspace mode blocks `draft page publish` and may require user intervention to recover. Use `--mode local` instead.
+
 In workspace mode, the local markdown file is the source of truth. The Draft page is the review surface, and persisted comment artifacts are the durable review/control layer.
 
 ### Troubleshooting
@@ -97,7 +105,7 @@ In workspace mode, the local markdown file is the source of truth. The Draft pag
 Treat `draft status` as the authoritative diagnosis step before retrying a failed command.
 
 - `DAEMON_OFFLINE`: the local daemon is not running.
-  Run `draft start-server --mode workspace --workspace <root>`, then re-run `draft status`.
+  Run `draft start-server --mode local`, then re-run `draft status`.
 - `BROWSER_NOT_CONNECTED`: the daemon is running, but no Draft browser tab is paired.
   Run `draft daemon` (pairing/retarget), then re-run `draft status`.
 - `REQUEST_TIMEOUT`: the connected browser session did not respond in time.
@@ -118,7 +126,8 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 
 Preferred recovery sequence:
 
-- If `draft status` says `DAEMON_OFFLINE`, run `draft start-server --mode workspace --workspace <root>`, then re-check `draft status`.
+- If `draft status` says `DAEMON_OFFLINE`, run `draft start-server --mode local`, then re-check `draft status`.
+  (Use `--mode workspace --workspace <root>` only for co-located file-bound review tasks)
 - If `draft status` says `BROWSER_NOT_CONNECTED`, run `draft daemon` to re-open or re-pair the browser tab, then re-check `draft status`.
 - If a live command returns `REQUEST_TIMEOUT`, do not retry blindly. Run `draft status` first.
 - If `draft status` or a mutation error indicates `EDITOR_NOT_READY` for a local file workflow, run `draft open <path> --json`, then re-run `draft status --json` before retrying reads or writes.
@@ -130,7 +139,7 @@ Preferred recovery sequence:
 - Do not treat `draft page create` as the primary `EDITOR_NOT_READY` fix. Recover editor readiness first, then run the intended command.
 - If `draft workspace comments <path|document_id|page_id> --json` returns `UNBOUND_DOCUMENT`, bind the file first with `draft open <path> --json`.
 - If a workspace command fails because the path is outside the active workspace root, correct the working directory or path before retrying.
-- If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server --mode workspace --workspace <root>`.
+- If the daemon looks stuck or the wrong tab is attached, run `draft stop-server`, then restart with `draft start-server --mode local`.
 - If the user explicitly wants staging or another environment, reuse the same URL consistently for both `draft start-server --app [url]` and `draft daemon [url]`.
 - If `draft status --json` shows `READY` but the connected `clients[].origin` does not match the requested environment, stop the server and reconnect to the requested URL before making changes.
 - In CI or headless sessions, browser auto-launch may be skipped. Treat that as a diagnosis cue, then pair from a desktop session and verify with `draft status --json`.
@@ -390,8 +399,24 @@ Only do this when the user explicitly asks for a non-production Draft environmen
 ```bash
 draft status --json
 draft stop-server
-draft start-server --mode workspace --workspace $(pwd) --app https://markdown-editor-staging.web.app/
+draft start-server --mode local --app https://markdown-editor-staging.web.app/
 draft status --json
 draft daemon https://markdown-editor-staging.web.app/
 draft status --json
+```
+
+**6. Publishing a Page**
+
+Always use `--mode local` when the primary goal is to publish a page. Workspace mode blocks reachability to the publish endpoint.
+
+```bash
+# 1. Connect in local mode (safest for publish)
+draft start-server --mode local
+draft status --json
+
+# 2. Find the page ID
+draft page ls --json
+
+# 3. Publish
+draft page publish <id> --invite-code innosage --json
 ```
