@@ -11,7 +11,7 @@ compatibility: >
   Running `draft start-server` starts the local daemon in the background and can request a browser pairing tab, but agents must still verify readiness with `draft status`.
 metadata:
   author: innosage-llc
-  version: "1.5"
+  version: "1.5.1"
 ---
 
 # Draft CLI Skill
