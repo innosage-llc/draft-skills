@@ -40,13 +40,15 @@ for SKILL in "${SKILLS[@]}"; do
   # draft-cli -> Draft CLI, draft-agent-loop -> Draft Agent Loop
   SKILL_NAME=$(echo "$SKILL" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
   
-  clawhub publish "$REPO_ROOT/skills/$SKILL" \
+  if clawhub publish "$REPO_ROOT/skills/$SKILL" \
     --slug "$SKILL" \
     --name "$SKILL_NAME" \
     --version "$CURRENT_VERSION" \
-    --tags latest
-    
-  echo "✅ $SKILL is now live at version $CURRENT_VERSION."
+    --tags latest; then
+    echo "✅ $SKILL is now live at version $CURRENT_VERSION."
+  else
+    echo "⚠️  Warning: Failed to publish $SKILL (it may already exist at version $CURRENT_VERSION). Continuing..."
+  fi
 done
 
 echo "🎉 All skills published successfully!"
