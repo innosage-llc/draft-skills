@@ -6,7 +6,7 @@ description: >
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
-metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]}}
+metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"version":"1.5.4"}
 ---
 
 # Draft CLI Skill
