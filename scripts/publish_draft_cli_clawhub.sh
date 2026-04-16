@@ -23,18 +23,16 @@ if ! "$GATE_SCRIPT"; then
     exit 1
 fi
 
-# 2. Version Management (SSOT: package.json)
-CURRENT_VERSION=$(node -p "require('./package.json').version")
-echo "📦 Current version from package.json: $CURRENT_VERSION"
-
-# 3. Commit Changes (if needed)
+# 2. Commit Changes (if needed)
+# SSOT: the version inside each skill's metadata json block in SKILL.md
 if [[ -n "$(git status --porcelain package.json)" ]]; then
-    echo "💾 Committing version updates..."
+    CURRENT_VERSION=$(node -p "require('./package.json').version")
+    echo "💾 Committing package.json version updates..."
     git add package.json
-    git commit -m "chore(release): bump version to $CURRENT_VERSION"
+    git commit -m "chore(release): bump package version to $CURRENT_VERSION"
 fi
 
-# 4. Publication
+# 3. Publication
 SKILLS=(
   "draft-cli"
   "draft-agent-loop"
@@ -44,23 +42,39 @@ FAILED_SKILLS=()
 WARNED_SKILLS=()
 
 for SKILL in "${SKILLS[@]}"; do
-  echo "☁️ Publishing $SKILL to ClawHub..."
+  SKILL_FILE="$REPO_ROOT/skills/$SKILL/SKILL.md"
+  
+  if [[ ! -f "$SKILL_FILE" ]]; then
+    echo "❌ Error: $SKILL_FILE not found. Skipping $SKILL."
+    FAILED_SKILLS+=("$SKILL")
+    continue
+  fi
+
+  # Extract version from metadata json block: "version":"x.y.z"
+  SKILL_VERSION=$(grep "^metadata:" "$SKILL_FILE" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+
+  if [[ -z "$SKILL_VERSION" ]]; then
+    echo "❌ Error: Could not extract version from $SKILL/SKILL.md. Skipping."
+    FAILED_SKILLS+=("$SKILL")
+    continue
+  fi
+
+  echo "☁️ Publishing $SKILL@$SKILL_VERSION to ClawHub..."
 
   # Determine name from slug (kebab-case to Title Case)
-  # draft-cli -> Draft CLI, draft-agent-loop -> Draft Agent Loop
   SKILL_NAME=$(echo "$SKILL" | sed 's/-/ /g' | awk '{for(i=1;i<=NF;i++)sub(/./,toupper(substr($i,1,1)),$i)}1')
 
   PUBLISH_OUTPUT=$(clawhub publish "$REPO_ROOT/skills/$SKILL" \
     --slug "$SKILL" \
     --name "$SKILL_NAME" \
-    --version "$CURRENT_VERSION" \
+    --version "$SKILL_VERSION" \
     --tags latest 2>&1)
   PUBLISH_EXIT=$?
 
   if [[ $PUBLISH_EXIT -eq 0 ]]; then
-    echo "✅ $SKILL is now live at version $CURRENT_VERSION."
+    echo "✅ $SKILL is now live at version $SKILL_VERSION."
   elif echo "$PUBLISH_OUTPUT" | grep -qi "already exist\|version conflict\|duplicate"; then
-    echo "⚠️  Warning: $SKILL@$CURRENT_VERSION already published. Skipping."
+    echo "⚠️  Warning: $SKILL@$SKILL_VERSION already published. Skipping."
     WARNED_SKILLS+=("$SKILL")
   else
     echo "❌ Error: Failed to publish $SKILL. Details:"
