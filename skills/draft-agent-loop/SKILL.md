@@ -4,11 +4,9 @@ description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
-  DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands, draft-review-loop for local-file review workflows.
+  DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
   This skill depends on the draft-cli skill and enforces --mode local (remote-only, no shared filesystem).
-compatibility: >
-  Requires the draft-cli skill and @innosage/draft-cli (Node.js >= 18).
-metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}},"author":"innosage-llc","version":"1.0"}
+metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}}}
 ---
 
 # Draft Agent Loop Skill (HITRL)
@@ -30,7 +28,7 @@ Do NOT trigger this skill when:
 
 - The user asks to do a task directly with no mention of approval or review gates.
 - The user only asks about Draft CLI commands (use `draft-cli`).
-- The user wants a local-file review surface (use `draft-review-loop`).
+- The user wants a local-file authoring workflow (authorship in local markdown).
 
 ## Core Rules
 
