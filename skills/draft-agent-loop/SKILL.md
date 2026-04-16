@@ -5,13 +5,15 @@ description: >
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
-  This skill depends on the draft-cli skill and enforces --mode local (remote-only, no shared filesystem).
+  This skill depends on the draft-cli skill. It runs draft-cli in local mode (indexDB-backed, no shared filesystem required), which enables page publishing without a workspace mount.
 metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}},"version":"1.5.5"}
 ---
 
 # Draft Agent Loop Skill (HITRL)
 
 Use this skill to implement a rigorous human-agent collaboration loop. This is the "Human-in-the-Right-Loop" (HITRL) method, designed to eliminate "blind box" agent outcomes by forcing plan approval and result verification.
+
+> **Scope**: This is an instruction-only skill. It has no install scripts, code files, or declared filesystem paths. All persistence is through Draft pages (via the `draft-cli` dependency). It does not write to local disk or agent memory.
 
 ## Trigger Guidance
 
@@ -32,16 +34,18 @@ Do NOT trigger this skill when:
 
 ## Core Rules
 
-- **Source of Truth**: The "Task Journal" Draft page.
-- **Environment**: Always use `draft-cli` in `--mode local`. Never use `--mode workspace`.
+- **Source of Truth**: The "Task Journal" Draft page. All plans, logs, and results live there.
+- **Environment**: Always use `draft-cli` in local mode (`draft start-server --mode local`). Never use `--mode workspace`.
+- **Local mode** means Draft stores page data in indexDB (browser local storage) — it does not mount or access any shared filesystem.
 - **Handoff Mode**: **Blocking**. STOP and wait for human approval/sign-off in the chat before proceeding to the next phase.
+- **No Sensitive Data in Logs**: Do NOT include credentials, secrets, tokens, or PII in execution log entries or plan documents. Limit evidence to status indicators and non-sensitive file names.
 
 ## Phase 0: Setup & Connection
 
 Before doing anything, establish a stable Draft connection:
 
 ```bash
-# 1. Start the daemon in local mode (required for remote agents)
+# 1. Start the daemon in local mode (indexDB-backed, no filesystem required)
 draft start-server --mode local
 
 # 2. Confirm the session is READY before proceeding
@@ -61,7 +65,7 @@ Before executing any code or changes:
     ```bash
     draft page create "<Task Name> - Task Journal" --json
     ```
-2.  **Submit Plan**: Authors a detailed Task Journal using the mandatory template. Appends it to the Journal.
+2.  **Submit Plan**: Author a detailed Task Journal using the mandatory template. Append it to the Journal.
     ```bash
     cat << 'EOF' | draft page append <id> --json
     # 📋 Task: [Title]
@@ -83,13 +87,14 @@ Before executing any code or changes:
     [Test strategy, scenarios to test, existing tests to reference]
     EOF
     ```
-3.  **Handoff**: Publish the page and ask for approval.
+3.  **Confirm Before Publishing**: Before publishing, explicitly confirm with the user: "I am about to publish the Task Journal for external review. Please confirm."
+4.  **Handoff**: On confirmation, publish the page and ask for approval.
     ```bash
     draft page publish <id> --invite-code innosage --json
     ```
     **Handoff Phrase**: "I have initialized the Task Journal with the plan and requirements: [URL]. Please review the context and acceptance criteria. Once you are ready for me to proceed, please reply with **APPROVED** or **LGTM** here in the chat."
 
-4.  **Wait**: STOP. Do not proceed until the user explicitly tells you to continue in the chat. Note: Do not rely on Draft page comments for approval on remote/public pages.
+5.  **Wait**: STOP. Do not proceed until the user explicitly tells you to continue in the chat. Note: Do not rely on Draft page comments for approval on remote/public pages.
 
 ## Phase 2: Execute (Action & Logging)
 
@@ -97,12 +102,12 @@ Once approved:
 
 1.  **Verify Approval**: Confirm the user has provided approval in the chat.
 2.  **Execute**: Perform the tasks outlined in the plan.
-3.  **Log Evidence**: For every significant action, append a log entry to the Journal under a `# 📜 Execution Log` section.
+3.  **Log Evidence**: For every significant action, append a concise, non-sensitive log entry to the Journal under a `# 📜 Execution Log` section. Do NOT include raw command output, file contents, or credentials.
     ```bash
     cat << 'EOF' | draft page append <id> --json
     ### [Timestamp] Action: [Description]
     - **Status**: Success/Failure
-    - **Evidence**: [e.g., Command output snippet or file path]
+    - **Evidence**: [e.g., "Modified src/components/Button.tsx — added reveal prop"]
     EOF
     ```
 
@@ -110,23 +115,30 @@ Once approved:
 
 Once the execution is complete:
 
-1.  **Submit Results**: Append a `# ✅ Final Results` summary to the Journal. Include links to artifacts or evidence of completion.
-2.  **Handoff**: Re-publish the page.
+1.  **Submit Results**: Append a `# ✅ Final Results` summary to the Journal. Include links to artifacts (e.g., PR URL, Draft page URL). Do not include raw file dumps.
+2.  **Confirm Before Publishing**: Explicitly confirm with the user before re-publishing.
+3.  **Handoff**: On confirmation, re-publish the page.
     ```bash
     draft page publish <id> --invite-code innosage --json
     ```
     **Handoff Phrase**: "I have completed the task. Please verify the results in the Task Journal: [URL]. If satisfied, reply with **DONE** or **✅** here in the chat."
 
-3.  **Wait**: STOP. If the user provides sign-off (**DONE** / **✅**), proceed to Phase 4. If feedback is received, enter the Iteration Loop.
+4.  **Wait**: STOP. If the user provides sign-off (**DONE** / **✅**), proceed to Phase 4. If feedback is received, enter the Iteration Loop.
 
-## Phase 4: Archive & Memory
+## Phase 4: Archive (Draft Page Only)
 
-After sign-off, ensure the task is durable in your long-term memory:
+After sign-off, append a final summary to the existing Task Journal page. This keeps all persistence within Draft — no local filesystem writes.
 
-1.  **Summarize**: Write a concise summary of the task, the solution, and the location of the evidence.
-2.  **Persist**: Save this summary to your **system-level memory** (e.g., a `knowledge/` archive or a persistent `TASK_LOG.md`).
-3.  **Cross-Reference**: Ensure the entry includes the Draft Page ID and published URL.
-    *   *Example Entry*: `[2026-04-16] Implemented Reveal Button. Page ID: abc-123. URL: https://draft.innosage.co/p/abc-123. Summary: Added target icon to sidebar header; implemented revealPath in useFileSystemTree.`
+```bash
+cat << 'EOF' | draft page append <id> --json
+# 🗂 Task Complete — Summary
+- **Outcome**: [Brief description of what was achieved]
+- **Key Decisions**: [Any notable trade-offs or design choices]
+- **Artifacts**: [Links to PR, relevant files, or external references]
+EOF
+```
+
+> The Draft page itself (with its page ID and URL) is the durable record. No additional writes to `TASK_LOG.md`, `knowledge/`, or other filesystem locations are required or expected.
 
 ## Iteration Loop
 
@@ -141,3 +153,5 @@ If the user provides feedback or requests changes after Phase 3:
 - Do NOT use `--mode workspace`.
 - Do NOT skip the plan approval gate.
 - Do NOT execute multiple un-logged steps.
+- Do NOT write to local agent filesystem (no `TASK_LOG.md`, no `knowledge/` writes).
+- Do NOT include credentials, PII, or sensitive command outputs in Draft page content.
