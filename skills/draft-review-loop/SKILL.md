@@ -1,16 +1,23 @@
 ---
 name: draft-review-loop
+version: "1.0"
 description: >
   Run the local-first authoring plus Draft review handoff loop for workspace markdown files.
   Use this skill when the user asks to write or revise a document and explicitly wants human review in Draft,
   or when the task is to apply Draft comments back to a local file.
   DO NOT use this skill for pure Draft command questions (use draft-cli) or generic writing tasks with no Draft review intent.
   Keep local workspace markdown as source of truth and use Draft GUI as the human review surface.
-compatibility: >
   Requires the draft-cli skill and @innosage/draft-cli (Node.js >= 18).
 metadata:
-  author: innosage-llc
-  version: "1.0"
+  clawdis:
+    author: innosage-llc
+    dependencies:
+      - name: "toliuweijing/draft-cli"
+        type: "other"
+        url: "https://clawhub.ai/toliuweijing/draft-cli"
+    requires:
+      bins:
+        - "draft"
 ---
 
 # Draft Review Loop Skill

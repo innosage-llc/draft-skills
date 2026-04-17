@@ -52,8 +52,8 @@ for SKILL in "${SKILLS[@]}"; do
     continue
   fi
 
-  # Extract version from metadata json block: "version":"x.y.z"
-  SKILL_VERSION=$(grep "^metadata:" "$SKILL_FILE" | sed -n 's/.*"version":"\([^"]*\)".*/\1/p')
+  # Extract version from YAML frontmatter: version: "x.y.z"
+  SKILL_VERSION=$(grep "^version:" "$SKILL_FILE" | sed -n 's/version: "\(.*\)"/\1/p' | head -n 1)
 
   if [[ -z "$SKILL_VERSION" ]]; then
     echo "❌ Error: Could not extract version from $SKILL/SKILL.md. Skipping."

@@ -1,12 +1,25 @@
 ---
 name: draft-cli
+version: "1.5.6"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
   Use this skill whenever the user explicitly asks to read, create, list, patch, or append content to a "Draft page", "Draft doc", or their "Draft workspace" (e.g., "my draft page named 'Founder Sync'", "all the pages I have in my draft workspace", "Draft CLI").
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
-metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"version":"1.5.6"}
+metadata:
+  clawdis:
+    emoji: "📝"
+    requires:
+      bins:
+        - "draft"
+    install:
+      - id: "npm"
+        kind: "node"
+        package: "@innosage/draft-cli"
+        bins:
+          - "draft"
+        label: "Install draft-cli (npm)"
 ---
 
 # Draft CLI Skill
