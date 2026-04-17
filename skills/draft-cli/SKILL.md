@@ -6,7 +6,7 @@ description: >
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
-metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"version":"1.5.4"}
+metadata: {"clawdbot":{"emoji":"📝","requires":{"bins":["draft"]},"install":[{"id":"npm","kind":"node","package":"@innosage/draft-cli","bins":["draft"],"label":"Install draft-cli (npm)"}]},"version":"1.5.5"}
 ---
 
 # Draft CLI Skill
@@ -315,6 +315,36 @@ cat patch.diff | draft page patch <id>
 > ```bash
 > draft page cat <id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
 > ```
+
+### Inserting and Managing Images
+
+You can use the CLI to insert images from local files, update their alignment or width, and delete them.
+> [!CAUTION]
+> **Image Operations in Workspace Mode**: Image mutations (`insert-image`, `update-image`, `delete-image`) are currently **NOT** supported when running in `--mode workspace`. The CLI will block these commands if used in workspace mode. Use `--mode local` for image manipulation.
+
+To insert an image into a page:
+
+```bash
+# Insert an image with default alignment (left) and default width
+draft page insert-image <id> /path/to/local/image.png --json
+
+# Insert an image with specific alignment and width
+draft page insert-image <id> /path/to/local/image.jpg --align center --width 500 --json
+```
+
+The output JSON will include a `local_id` (e.g., `local_id: "img-abc1234"`). **Save this `local_id`**, as it is required to update or delete the image.
+
+To update the alignment or width of an existing image block:
+
+```bash
+draft page update-image <id> <local_id> --align right --json
+```
+
+To delete an existing image block:
+
+```bash
+draft page delete-image <id> <local_id> --json
+```
 
 ## Common Workflows
 
