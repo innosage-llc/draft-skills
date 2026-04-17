@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.5.6"
+version: "1.5.7"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
   Use this skill whenever the user explicitly asks to read, create, list, patch, or append content to a "Draft page", "Draft doc", or their "Draft workspace" (e.g., "my draft page named 'Founder Sync'", "all the pages I have in my draft workspace", "Draft CLI").
