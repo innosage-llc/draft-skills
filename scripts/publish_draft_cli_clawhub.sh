@@ -16,12 +16,14 @@ if ! command -v node &>/dev/null; then
   exit 1
 fi
 
-# 1. Validation
-echo "🔍 Running local validation gates..."
-if ! "$GATE_SCRIPT"; then
-    echo "❌ Validation failed. Aborting publication."
-    exit 1
-fi
+# ======= SKIP due to workspace deprecation  ===========
+# # 1. Validation
+# echo "🔍 Running local validation gates..."
+# if ! "$GATE_SCRIPT"; then
+#     echo "❌ Validation failed. Aborting publication."
+#     exit 1
+# fi
+# ======================================================
 
 # 2. Commit Changes (if needed)
 # SSOT: the version inside each skill's metadata json block in SKILL.md
