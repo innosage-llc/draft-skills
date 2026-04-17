@@ -15,9 +15,6 @@ metadata:
       - name: "toliuweijing/draft-cli"
         type: "other"
         url: "https://clawhub.ai/toliuweijing/draft-cli"
-    requires:
-      bins:
-        - "draft"
 ---
 
 # Draft Review Loop Skill
