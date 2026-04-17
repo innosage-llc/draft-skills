@@ -6,7 +6,7 @@ description: >
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
   This skill depends on the draft-cli skill. It runs draft-cli in local mode (indexDB-backed, no shared filesystem required), which enables page publishing without a workspace mount.
-metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}},"version":"1.5.5"}
+metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}},"version":"1.5.8"}
 ---
 
 # Draft Agent Loop Skill (HITRL)
