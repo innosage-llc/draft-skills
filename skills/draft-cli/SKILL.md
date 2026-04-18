@@ -3,7 +3,7 @@ name: draft-cli
 version: "1.5.8"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
-  Use this skill whenever the user explicitly asks to read, create, list, patch, or append content to a "Draft page", "Draft doc", or their "Draft workspace" (e.g., "my draft page named 'Founder Sync'", "all the pages I have in my draft workspace", "Draft CLI").
+  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, or review comments on a "Draft page", "Draft doc", or via the "Draft CLI" (e.g., "my draft page named 'Founder Sync'", "publish this Draft page", "read public comments on this Draft preview URL", "Draft CLI").
   This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
   DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
@@ -45,9 +45,13 @@ This skill requires specific permissions to interact with the Draft PWA and your
 
 Before running Draft CLI commands, ensure `draft` is available on your PATH (see Install panel).
 
-### Operational Pattern: Always Check Connection First
+### Operational Pattern: Check Connection First for Live Page Commands
 
-To ensure a stable session, you MUST follow this sequence before executing any functional Draft command (like `ls`, `cat`, `create`, etc.):
+Exception:
+- `draft public-comments ...` is a hosted read path and does **not** require the local daemon, browser pairing, or a `draft status` handshake.
+- Use the daemon-first pattern for `draft page ...` and other live Draft page transport commands.
+
+To ensure a stable session, you MUST follow this sequence before executing any live Draft page command (like `page ls`, `page cat`, `page create`, `page append`, `page patch`, etc.):
 
 1.  **Check Status**: Start with `draft status --json` unless the user explicitly wants human-readable output.
 2.  **Handle Daemon Offline**: If status reports `DAEMON_OFFLINE`, run `draft start-server`.
@@ -73,6 +77,37 @@ draft status --json
 > [!IMPORTANT]
 > The Draft CLI uses one daemon and one active browser-backed session at a time. `draft start-server` starts the daemon, but it does not by itself prove that the browser paired successfully. Always trust `draft status` over startup copy before issuing read/write commands.
 > For agent lifecycle control, prefer `draft start-server` and `draft stop-server`. Keep `draft daemon` as the active pairing/retarget command when status shows no browser or when you need to retarget the connected tab.
+
+### Hosted Read Pattern for Public Page Comments
+
+Public comments are stored in a hosted sidecar store and read directly from the hosted API.
+For these commands:
+
+- Do **not** start with `draft status`.
+- Do **not** require `draft start-server`.
+- Do **not** require a paired browser tab.
+
+Preferred commands:
+
+```bash
+# URL-first path
+draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+
+# Page-ID path
+draft public-comments list --page-id <page_id>
+
+# Explicit snapshot pin only when needed
+draft public-comments list --page-id <page_id> --publish-version <published_at_iso>
+
+# Inspect one comment in detail
+draft public-comments get <comment_id> --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+```
+
+Resolution behavior:
+
+- `list --url` accepts published URLs and preview URLs.
+- `list --page-id <page_id>` auto-resolves the publish version.
+- Use `--publish-version` only when you must pin an exact snapshot.
 
 ### Agent-Friendly Structured Output
 
@@ -109,8 +144,8 @@ Treat `draft status` as the authoritative diagnosis step before retrying a faile
 - `EDITOR_NOT_READY`: a browser tab is connected, but no writable editor is mounted.
   Mount a real page route in the connected tab (`https://draft.innosage.co/#/page/<id>`), then re-run `draft status --json`.
   If you do not have a page ID yet, run `draft page ls --json` first to discover the page ID before route-mounting.
-- `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected workspace.
-  For example, running `draft page comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found** in the workspace.
+- `PAGE_NOT_FOUND`: the provided page ID does not exist in the connected page set.
+  For example, running `draft page comments does-not-exist-9999 --json` will return a `PAGE_NOT_FOUND` error because the ID `does-not-exist-9999` was **not found**.
   Run `draft page ls --json` to confirm the correct page ID.
 
 Preferred recovery sequence:
@@ -136,7 +171,7 @@ The Draft CLI uses conventional command structures.
 
 ### Listing and Reading
 
-To see all available pages in the user's Draft workspace:
+To see all available Draft pages:
 
 ```bash
 # Requires active connection
@@ -177,6 +212,44 @@ draft page comment <comment_id> <page_id> --json
 ```
 
 Output includes `note`, `anchor_text`, and a `bounded_context` object with `before` and `after` fields. Use `bounded_context.before + anchor_text + bounded_context.after` to locate the exact edit site before patching.
+
+### Reading Public Page Comments
+
+> [!NOTE]
+> This is the hosted public-review path, not the live page-annotation path above.
+> Use `draft public-comments ...` when comments were created on a public or preview page.
+> These comments are bound to a published snapshot and stored outside the live page transport.
+
+To list public comments for a public or preview URL:
+
+```bash
+draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+```
+
+To list public comments when only the page ID is known:
+
+```bash
+draft public-comments list --page-id <page_id>
+```
+
+To inspect a single public comment with bounded context:
+
+```bash
+draft public-comments get <comment_id> --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+```
+
+Machine-readable forms:
+
+```bash
+draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static' --json
+draft public-comments list --page-id <page_id> --json
+draft public-comments get <comment_id> --json
+```
+
+What the agent should expect:
+
+- `list` output includes comment ID, thread state, author, quote, and body preview.
+- `get` output includes page ID, publish version, offsets, body, and bounded context.
 
 ### Creating Annotations (Comments)
 
