@@ -19,6 +19,13 @@ metadata:
         - "draft"
       env:
         - "GLOBAL_INVITE_CODE"
+    install:
+      - id: "npm"
+        kind: "node"
+        package: "@innosage/draft-cli"
+        bins:
+          - "draft"
+        label: "Install draft-cli (npm)"
     envVars:
       - name: "GLOBAL_INVITE_CODE"
         required: true
