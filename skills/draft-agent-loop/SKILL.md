@@ -1,12 +1,35 @@
 ---
 name: draft-agent-loop
+version: "1.5.11"
 description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
   This skill depends on the draft-cli skill. It runs draft-cli in local mode (indexDB-backed, no shared filesystem required), which enables page publishing without a workspace mount.
-metadata: {"clawdbot":{"emoji":"🔄","requires":{"skills":["draft-cli"]}},"version":"1.5.8"}
+metadata:
+  clawdis:
+    emoji: "🔄"
+    dependencies:
+      - name: "toliuweijing/draft-cli"
+        type: "other"
+        url: "https://clawhub.ai/toliuweijing/draft-cli"
+    requires:
+      bins:
+        - "draft"
+      env:
+        - "GLOBAL_INVITE_CODE"
+    install:
+      - id: "npm"
+        kind: "node"
+        package: "@innosage/draft-cli"
+        bins:
+          - "draft"
+        label: "Install draft-cli (npm)"
+    envVars:
+      - name: "GLOBAL_INVITE_CODE"
+        required: true
+        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
 ---
 
 # Draft Agent Loop Skill (HITRL)
