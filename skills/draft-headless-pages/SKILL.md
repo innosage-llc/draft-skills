@@ -2,12 +2,12 @@
 name: draft-headless-pages
 description: >
   Operate Draft page-domain content through the headless CLI v2 runtime.
-  Use this skill when the user wants remote, Linux, Docker, CI, or unattended automation against Draft pages without assuming a browser-backed live session.
-  Keep this skill scoped to page-domain workflows under `draft ... --runtime v2`; do not use it for workspace/file-backed markdown loops or browser-paired collaboration.
+  Use this skill when the user wants remote, Linux, Docker, CI, or unattended automation against Draft pages.
+  Keep this skill scoped to page-domain workflows under `draft ... --runtime v2`; do not use it for workspace/file-backed markdown loops.
   Prefer publish-for-review when a human needs to inspect or comment on headless output.
 metadata:
   clawdis:
-    emoji: "headless"
+    emoji: "📝"
     requires:
       bins:
         - "draft"
@@ -23,7 +23,7 @@ metadata:
     envVars:
       - name: "GLOBAL_INVITE_CODE"
         required: true
-        description: "Invite code used when publishing a Draft page for review."
+        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
 ---
 
 # Draft Headless Pages Skill
@@ -42,7 +42,6 @@ Trigger this skill when the request is about:
 Do not trigger this skill when:
 
 - the task is workspace/file-backed markdown authoring or review
-- the user wants live browser collaboration or a browser-paired session
 - the request is a generic Draft CLI question that is not specifically about headless page-domain usage
 
 ## Boundaries
@@ -50,7 +49,7 @@ Do not trigger this skill when:
 - Runtime plane: CLI `v2` only.
 - Storage plane: page-domain content only.
 - Human review surface: published or preview page URL.
-- Not in scope: `workspace` mode, local file bindings, or browser-paired `v1` collaboration.
+- Not in scope: `workspace` mode or local file bindings.
 
 If the user needs repo-backed markdown review with durable comments, use `draft-review-loop` and workspace commands instead.
 
@@ -70,7 +69,7 @@ Operational rules:
 1. Start the daemon with `--runtime v2` before page commands.
 2. Check `draft status --json` before mutating content.
 3. Treat status JSON as the source of truth for daemon health and selected runtime.
-4. Do not describe this flow as browser-paired or live collaborative.
+4. Treat publish-and-review as the standard human feedback path.
 
 ## Safe Command Set
 
@@ -122,10 +121,46 @@ Use handoff language like:
 Feedback model:
 
 - Human reviews the published or preview URL.
-- Human sends revision instructions back through chat or tasking.
+- Human leaves comments on the public page or sends revision instructions back through chat or tasking.
 - Agent applies a new headless page pass and republishes if needed.
 
-Do not claim that `v2` is a live shared browser editing session.
+## Public Comment Retrieval
+
+Public-page comments are part of the standard publish-and-review loop for this skill.
+
+For these commands:
+
+- Do not start with `draft status`.
+- Do not require `draft start-server`.
+- Do not add extra runtime setup.
+
+Preferred procedure:
+
+1. Capture the publish or preview URL from `draft page publish <page_id> --json`.
+2. List public comments for the review artifact:
+
+```bash
+draft public-comments list --url '<published_or_preview_url>' --json
+```
+
+3. If only the page ID is known, resolve comments by page ID instead:
+
+```bash
+draft public-comments list --page-id <page_id> --json
+```
+
+4. For any comment that needs exact context, fetch the single comment record:
+
+```bash
+draft public-comments get <comment_id> --json
+```
+
+Agent rules:
+
+- Use `list` for discovery and triage.
+- Use `get` when you need the full body, quote, offsets, or bounded context before editing.
+- Re-check comments after republishing if the review loop spans multiple iterations.
+- Use public comments as the default review signal after `draft page publish`.
 
 ## Failure Handling
 
@@ -134,11 +169,10 @@ Use these guardrails before retrying:
 - If the daemon is offline, rerun `draft start-server --runtime v2`, then `draft status --json`.
 - If status does not report `v2`, stop and fix runtime selection before writing.
 - If a command fails with a missing page ID or lookup error, rediscover the target page before mutating it.
+- If public comment retrieval fails, verify that you are using the published or preview URL path, or retry with `--page-id <page_id>` when only page identity is known.
 - If review requires file-path identity, Git diffs, or durable workspace comments, stop using this skill and switch to workspace mode.
-- If a requested action depends on browser-only behavior, do not improvise; state that the task belongs to `v1` or GUI workflows instead.
 
 ## Non-Goals
 
 - Do not mix `v2` page mode with `workspace` mode.
-- Do not position `v2` as browser-backed live collaboration.
 - Do not assume a desktop browser is available.
