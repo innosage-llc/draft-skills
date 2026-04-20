@@ -664,8 +664,8 @@
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-annotate-creation-basic",
-      "title": "Agent successfully creates a new annotation with annotate command",
+      "id": "phase3-page-annotate-creation-basic",
+      "title": "Agent successfully creates a page annotation with annotate command",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Create an annotation on my Draft page highlighting the text 'scalable infrastructure' with the note 'Specify AWS or GCP'.",
@@ -673,7 +673,7 @@
         {
           "type": "command_contains",
           "target": "skill",
-          "tokens": ["draft workspace annotate", "--anchor", "\"scalable infrastructure\"", "--note", "\"Specify AWS or GCP\""]
+          "tokens": ["draft page annotate <page_id>", "--anchor", "\"scalable infrastructure\"", "--note", "\"Specify AWS or GCP\""]
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
@@ -681,8 +681,8 @@
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-annotate-disambiguation-context",
-      "title": "Agent uses before/after context to disambiguate anchor text for annotation",
+      "id": "phase3-page-annotate-disambiguation-context",
+      "title": "Agent uses before or after context to disambiguate page annotation anchors",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Add a comment on the word 'status' that appears after 'The current ', and set the note to 'Needs update'.",
@@ -690,7 +690,7 @@
         {
           "type": "command_contains",
           "target": "skill",
-          "tokens": ["draft workspace annotate", "--anchor", "\"status\"", "--before", "\"The current \""]
+          "tokens": ["draft page annotate <page_id>", "--anchor", "\"status\"", "--before", "\"The current \""]
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
@@ -698,160 +698,124 @@
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-workspace-open-guidance-present",
-      "title": "Workspace-backed open and persisted comment guidance is present",
+      "id": "phase3-public-comments-guidance-present",
+      "title": "Hosted public-comment guidance is present for published pages",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Review comments on my local markdown file in Draft and update the file in my repo.",
+      "prompt": "Read public comments from a published Draft page without using the live browser-backed transport.",
       "assertions": [
         {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "### Workspace-Backed Open",
-            "draft open <path> --json",
-            "the local markdown file is the source of truth",
-            "### Persisted Comment Artifacts",
-            "draft workspace comments <path|document_id|page_id> --json",
-            "### Legacy Page Annotations"
+            "### Hosted Read Pattern for Public Page Comments",
+            "`draft public-comments ...` is a hosted read path",
+            "Do **not** require `draft start-server`.",
+            "draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'",
+            "draft public-comments list --page-id <page_id>"
           ]
-        },
-        {
-          "type": "artifact_exists",
-          "path": "eval:workspace-open-and-comment-review-cycle"
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "tags": ["workspace", "comments", "structure"],
+      "tags": ["comments", "structure", "publish"],
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-workspace-failure-guidance-present",
-      "title": "Workspace-specific failure guidance is documented",
+      "id": "phase3-page-mode-failure-guidance-present",
+      "title": "Page-mode failure guidance is documented",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "draft workspace comments failed for my local file because it is not bound or outside the workspace root.",
+      "prompt": "A live page command failed in the browser-backed Draft CLI session. Show the documented recovery paths.",
       "assertions": [
         {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "UNBOUND_DOCUMENT",
-            "draft open <path> --json",
-            "Workspace-scope/input rejection",
-            "outside the daemon's active workspace root"
+            "REQUEST_TIMEOUT",
+            "EDITOR_NOT_READY",
+            "PAGE_NOT_FOUND",
+            "draft page ls --json"
           ]
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "tags": ["workspace", "failures"],
+      "tags": ["failures", "recovery", "bugfix"],
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-tc18-workspace-open-path-contract",
-      "title": "TC18 contract: workspace open path guidance enforces --json + stable binding semantics",
+      "id": "phase3-tc18-public-comments-hosted-read-contract",
+      "title": "TC18 contract: public-comment hosted read path skips daemon handshake",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Open products/notion-editor/README.md in Draft workspace mode and keep the workspace mapping stable.",
+      "prompt": "Read public comments from a Draft preview URL without starting Draft locally first.",
       "assertions": [
         {
           "type": "trigger_decision",
           "expected": "activate"
         },
         {
-          "type": "command_sequence",
-          "target": "skill",
-          "sequence": [
-            "draft status --json",
-            "draft open <path> --json"
-          ]
-        },
-        {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "Workspace-Backed Open",
-            "binds or reuses a durable document/page mapping"
+            "Do **not** start with `draft status`.",
+            "Do **not** require `draft start-server`.",
+            "draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'"
           ]
-        },
-        {
-          "type": "artifact_exists",
-          "path": "eval:workspace-open-mode-bind-path"
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "tags": ["workspace", "tc18", "open"],
+      "tags": ["tc18", "comments", "publish"],
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-tc19-open-create-retarget-ready-contract",
-      "title": "TC19 contract: open --create retargets from /#/local and recovers EDITOR_NOT_READY to READY",
+      "id": "phase3-tc19-public-comments-page-id-contract",
+      "title": "TC19 contract: page-id public-comment reads auto-resolve publish version",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "My paired workspace tab is on /#/local with EDITOR_NOT_READY. Create and open a missing file, retarget the same tab, and recover to READY.",
+      "prompt": "I only know the page ID for a published Draft page. Read its public comments using the documented page-id path.",
       "assertions": [
         {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "EDITOR_NOT_READY",
-            "draft open <path> --json",
-            "clients[].route",
-            "/#/local?file="
+            "draft public-comments list --page-id <page_id>",
+            "`list --page-id <page_id>` auto-resolves the publish version.",
+            "Use `--publish-version` only when you must pin an exact snapshot."
           ]
-        },
-        {
-          "type": "text_contains",
-          "target": "eval:workspace-open-create-retarget-ready:expected_output",
-          "tokens": [
-            "draft open <new-path> --create --json",
-            "source_created true",
-            "binding_status active",
-            "transitions to READY"
-          ]
-        },
-        {
-          "type": "artifact_exists",
-          "path": "eval:workspace-open-create-retarget-ready"
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "tags": ["workspace", "tc19", "open-create", "editor-not-ready", "retarget"],
+      "tags": ["tc19", "comments", "publish"],
       "source": "phase3-regression-corpus"
     },
     {
-      "id": "phase3-tc20-annotate-persisted-comment-contract",
-      "title": "TC20 contract: path-based annotate is verified via comments list persisted artifact",
+      "id": "phase3-tc20-page-annotate-verify-contract",
+      "title": "TC20 contract: page annotation is verified through page comment discovery commands",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Annotate products/notion-editor/README.md by path, then verify the exact created comment via draft workspace comments.",
+      "prompt": "Annotate a Draft page by page ID, then verify the created annotation via the documented page comment commands.",
       "assertions": [
         {
           "type": "command_contains",
           "target": "skill",
           "tokens": [
-            "draft workspace annotate path/to/file.md --anchor",
+            "draft page annotate <page_id> --anchor",
             "--note",
-            "draft workspace comments <path|document_id|page_id> --json"
+            "draft page comments <page_id> --json"
           ]
         },
         {
           "type": "text_contains",
-          "target": "eval:workspace-annotate-and-verify-persisted-comment:expected_output",
+          "target": "skill",
           "tokens": [
-            "same comment_id",
-            "note body",
-            "source_path",
-            "page_id"
+            "To list all comments (annotations) on a page in compact discovery mode:",
+            "draft page comments <page_id> --json",
+            "To inspect a single comment with bounded context"
           ]
-        },
-        {
-          "type": "artifact_exists",
-          "path": "eval:workspace-annotate-and-verify-persisted-comment"
         }
       ],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "tags": ["workspace", "tc20", "annotate", "comments", "persisted-artifact"],
+      "tags": ["tc20", "annotate", "comments", "e2e"],
       "source": "phase3-regression-corpus"
     },
     {
