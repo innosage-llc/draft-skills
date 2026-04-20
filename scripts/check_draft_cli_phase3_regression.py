@@ -22,6 +22,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATHS = {
     "draft-cli": REPO_ROOT / "skills" / "draft-cli" / "SKILL.md",
+    "draft-headless-pages": REPO_ROOT / "skills" / "draft-headless-pages" / "SKILL.md",
     "draft-review-loop": REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md",
 }
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
@@ -153,9 +154,86 @@ def classify_draft_review_loop_prompt(prompt: str) -> str:
     return "defer"
 
 
+def classify_draft_headless_pages_prompt(prompt: str) -> str:
+    text = prompt.lower()
+
+    non_trigger_patterns = [
+        r"\bdraft an email\b",
+        r"\bdraft a response\b",
+        r"\bdraft\.md\b",
+        r"\binvestor_update_draft\.md\b",
+    ]
+    if any(re.search(pattern, text) for pattern in non_trigger_patterns):
+        return "decline"
+
+    if any(
+        token in text
+        for token in (
+            "local file",
+            "local markdown",
+            "workspace comments",
+            "review in draft",
+            "source of truth",
+            "repo file",
+        )
+    ):
+        return "decline"
+
+    if any(
+        token in text
+        for token in (
+            "with my oversight",
+            "review your plan first",
+            "approval gate",
+            "hitrl",
+            "draft-agent-loop",
+        )
+    ):
+        return "decline"
+
+    headless_environment = any(
+        token in text
+        for token in (
+            "openclaw",
+            "docker",
+            "ci",
+            "linux worker",
+            "remote agent",
+            "headless",
+            "runtime v2",
+            "--runtime v2",
+        )
+    )
+    headless_operations = any(
+        token in text
+        for token in (
+            "publish",
+            "public comments",
+            "preview url",
+            "page id",
+            "draft page",
+            "annotate",
+            "append",
+            "replace",
+            "patch",
+            "create",
+            "published page",
+        )
+    )
+    if headless_environment and headless_operations:
+        return "activate"
+
+    if "public comments" in text and any(token in text for token in ("preview url", "published", "page id")):
+        return "activate"
+
+    return "defer"
+
+
 def classify_prompt_for_skill(skill_name: str, prompt: str) -> str:
     if skill_name == "draft-cli":
         return classify_draft_cli_prompt(prompt)
+    if skill_name == "draft-headless-pages":
+        return classify_draft_headless_pages_prompt(prompt)
     if skill_name == "draft-review-loop":
         return classify_draft_review_loop_prompt(prompt)
     raise ValueError(f"Unsupported skill classifier '{skill_name}'")

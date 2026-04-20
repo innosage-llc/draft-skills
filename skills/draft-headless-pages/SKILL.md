@@ -59,6 +59,16 @@ Do not trigger this skill when:
 - the request is a generic Draft CLI question that is not specifically about headless page-domain usage
 - the primary need is gated human oversight; use `draft-agent-loop` on top of this runtime instead
 
+## Trigger Prompt Examples
+
+Prompts that should accurately trigger this skill:
+
+- "My OpenClaw agent is running in Docker. Create a Draft page called `Release Plan`, append the milestones, and publish it for review."
+- "In CI, use headless Draft `v2` to patch the `Status` section on page `<page_id>` and then republish it."
+- "Read public comments from this published Draft preview URL and summarize the revision requests."
+- "On a remote Linux worker, create a Draft page for incident notes, annotate the root cause paragraph, and publish the page."
+- "Use `draft start-server --runtime v2` and update this Draft page without relying on a paired browser tab."
+
 ## Boundaries
 
 - Runtime plane: CLI `v2` only.

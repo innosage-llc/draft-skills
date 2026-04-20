@@ -1,0 +1,115 @@
+{
+  "fixtures": [
+    {
+      "id": "headless-phase2-trigger-create-publish",
+      "title": "Trigger draft-headless-pages for remote create-and-publish flow",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "My OpenClaw agent is running in Docker. Create a Draft page called 'Release Plan', append the milestones, and publish it for review.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-create-publish-review"
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:headless-create-publish-review:expected_output",
+          "tokens": [
+            "draft start-server --runtime v2",
+            "draft status --json",
+            "draft page create 'Release Plan' --json",
+            "draft page append <page_id> --json",
+            "draft page publish <page_id> --json"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "trigger",
+        "headless",
+        "publish"
+      ],
+      "source": "headless-phase2-smoke-gate"
+    },
+    {
+      "id": "headless-phase2-trigger-public-comments-url",
+      "title": "Trigger draft-headless-pages for hosted public comments read path",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "Read public comments from this published Draft preview URL and summarize the revision requests.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-public-comments-url-read"
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:headless-public-comments-url-read:expected_output",
+          "tokens": [
+            "does not begin with draft status",
+            "does not require draft start-server",
+            "draft public-comments list --url '<published_or_preview_url>' --json"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "trigger",
+        "headless",
+        "comments"
+      ],
+      "source": "headless-phase2-smoke-gate"
+    },
+    {
+      "id": "headless-phase2-nontrigger-local-review-loop",
+      "title": "Do not trigger draft-headless-pages for local markdown review loop",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "Review comments on my local file docs/spec.md in Draft, then update the markdown file in the repo.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "decline"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "## Do Not Use This Skill When",
+            "the workflow depends on local workspace markdown files as source of truth",
+            "use `draft-review-loop` and workspace commands instead"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "non-trigger",
+        "headless"
+      ],
+      "source": "headless-phase2-smoke-gate"
+    }
+  ]
+}
