@@ -41,8 +41,14 @@ python3 "$REPO_ROOT/scripts/check_draft_cli_review_loop.py"
 echo "Running draft-cli Phase 2 deterministic smoke gate..."
 python3 "$REPO_ROOT/scripts/check_draft_cli_phase2_smoke.py"
 
+echo "Running draft-headless-pages Phase 2 deterministic smoke gate..."
+python3 "$REPO_ROOT/scripts/check_draft_headless_phase2_smoke.py"
+
 echo "Running draft-cli Phase 3 regression corpus gate..."
 python3 "$REPO_ROOT/scripts/check_draft_cli_phase3_regression.py"
+
+echo "Running draft-headless-pages Phase 4 contract gate..."
+python3 "$REPO_ROOT/scripts/check_draft_headless_phase4.py"
 
 echo "Running draft-review-loop Phase 4 workflow regression gate..."
 python3 "$REPO_ROOT/scripts/check_draft_review_loop_phase4.py"

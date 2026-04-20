@@ -42,9 +42,14 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 
 Use this decision model first:
 
+Precedence rule:
+- If `draft-headless-pages` is installed, use it as the default runtime for generic Draft page / Draft CLI intents that would otherwise fall to `draft-cli`.
+- Keep `draft-cli` for explicit browser-backed local desktop workflows.
+
 | If your environment looks like this | Use this skill | Why |
 | ----------------------------------- | -------------- | --- |
 | Remote OpenClaw agent, Docker, CI, Linux worker, isolated runtime | [draft-headless-pages](skills/draft-headless-pages) | Headless `v2` page automation is the correct default for agents that do not share a browser session with the user. |
+| Generic Draft page / Draft CLI request and `draft-headless-pages` is installed | [draft-headless-pages](skills/draft-headless-pages) | `draft-headless-pages` supersedes `draft-cli` for the same page-operation trigger surface by selecting `draft ... --runtime v2`. |
 | Remote agent with required human approval gates before and after execution | [draft-agent-loop](skills/draft-agent-loop) | Adds plan approval, execution logging, and sign-off on top of headless Draft pages. |
 | Local desktop session with browser-backed Draft CLI behavior | [draft-cli](skills/draft-cli) | Supports the browser-backed runtime path. Keep this for local/manual operation, not as the default remote-agent choice. |
 | Local repo markdown file is the source of truth and Draft is only the review surface | [draft-review-loop](skills/draft-review-loop) | Keeps authorship in local files and uses Draft for comments and review handoff. |
@@ -53,15 +58,15 @@ Use this decision model first:
 
 | Skill                         | Description                                                                                                             |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| [draft-headless-pages](skills/draft-headless-pages) | Headless Draft page automation for remote agents, Docker, CI, and Linux environments. This is the default Draft runtime skill for OpenClaw-style isolated environments. |
+| [draft-headless-pages](skills/draft-headless-pages) | Headless Draft page automation for remote agents, Docker, CI, and Linux environments. This is the default Draft runtime skill for OpenClaw-style isolated environments and should supersede generic `draft-cli` page intents when installed. |
 | [draft-agent-loop](skills/draft-agent-loop) | Approval-gated human-in-the-loop workflow built on top of headless Draft pages for remote agents. |
-| [draft-cli](skills/draft-cli) | Operational skill for browser-backed or legacy Draft CLI commands. Useful for local desktop sessions, but not the default choice for remote OpenClaw agents. |
+| [draft-cli](skills/draft-cli) | Operational skill for browser-backed or legacy Draft CLI commands. Use it for explicit local desktop workflows, not as the default when `draft-headless-pages` is available. |
 | [draft-review-loop](skills/draft-review-loop) | Workflow skill for local-first authoring with Draft review handoff. Guides agents to write/update workspace markdown first, then ask humans to review in Draft and apply accepted feedback back to the local file. |
 
 Boundary model:
-- `draft-headless-pages`: headless `v2` page automation for remote agents
+- `draft-headless-pages`: headless `v2` page automation for remote agents and the default handler for generic Draft page intents when installed
 - `draft-agent-loop`: approval workflow layered on top of `draft-headless-pages`
-- `draft-cli`: browser-backed or legacy operational path
+- `draft-cli`: browser-backed or legacy operational path for explicit local desktop usage
 - `draft-review-loop`: local-file review collaboration loop
 - Source of truth in `draft-review-loop`: local workspace markdown
 - Review surface in headless flows: published or preview Draft page URL
@@ -125,4 +130,5 @@ Merge rule (local-only workflow):
   2. `draft-cli` review-loop regression guard
   3. Phase 2 deterministic smoke checks
   4. Phase 3 regression corpus checks
-  5. Phase 4 workflow regression checks (`draft-review-loop`)
+  5. Phase 4 contract checks (`draft-headless-pages`)
+  6. Phase 4 workflow regression checks (`draft-review-loop`)

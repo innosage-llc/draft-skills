@@ -219,6 +219,61 @@
                 "Agent uses draft open <path> --json for handoff into Draft",
                 "Agent avoids implying fully headless live collaboration"
             ]
+        },
+        {
+            "id": 17,
+            "name": "headless-create-publish-review",
+            "prompt": "My OpenClaw agent is running in Docker. Create a Draft page called 'Release Plan', append the milestones, and publish it for review.",
+            "expected_output": "Agent starts headless mode with draft start-server --runtime v2, verifies health with draft status --json, creates the page with draft page create 'Release Plan' --json, appends content with draft page append <page_id> --json, then publishes with draft page publish <page_id> --json and returns the review URL.",
+            "files": [],
+            "expectations": [
+                "Agent starts with draft start-server --runtime v2",
+                "Agent verifies health with draft status --json",
+                "Agent creates the page with draft page create 'Release Plan' --json",
+                "Agent appends content with draft page append <page_id> --json",
+                "Agent publishes with draft page publish <page_id> --json",
+                "Agent treats the published URL as the review surface"
+            ]
+        },
+        {
+            "id": 18,
+            "name": "headless-public-comments-url-read",
+            "prompt": "Read public comments from this published Draft preview URL and summarize the revision requests.",
+            "expected_output": "Agent treats public comments as a hosted read path, does not begin with draft status, does not require draft start-server, and runs draft public-comments list --url '<published_or_preview_url>' --json before summarizing the review requests.",
+            "files": [],
+            "expectations": [
+                "Agent does not start with draft status for hosted public comments",
+                "Agent does not require draft start-server for hosted public comments",
+                "Agent runs draft public-comments list --url '<published_or_preview_url>' --json",
+                "Agent summarizes the returned public review comments"
+            ]
+        },
+        {
+            "id": 19,
+            "name": "headless-page-annotate-and-comments",
+            "prompt": "On a remote Linux worker, annotate a Draft page section and then inspect the resulting page comments by page ID.",
+            "expected_output": "Agent starts headless runtime v2, verifies health with draft status --json, runs draft page annotate <page_id> --anchor '<text>' --note '<note>' --json, then uses draft page comments <page_id> --json or draft page comment <comment_id> <page_id> --json to inspect the resulting annotation records.",
+            "files": [],
+            "expectations": [
+                "Agent starts with draft start-server --runtime v2",
+                "Agent verifies health with draft status --json",
+                "Agent runs draft page annotate <page_id> --anchor '<text>' --note '<note>' --json",
+                "Agent inspects annotation results with draft page comments <page_id> --json or draft page comment <comment_id> <page_id> --json"
+            ]
+        },
+        {
+            "id": 20,
+            "name": "headless-supersedes-cli-list-and-cat",
+            "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+            "expected_output": "When draft-headless-pages is installed, Agent prefers headless runtime v2 for the same Draft page / Draft CLI intent, starts with draft start-server --runtime v2, verifies health with draft status --json, then uses draft page ls --json and draft page cat <id>.",
+            "files": [],
+            "expectations": [
+                "Agent prefers draft-headless-pages over draft-cli for generic Draft page intents when installed",
+                "Agent starts with draft start-server --runtime v2",
+                "Agent verifies health with draft status --json",
+                "Agent runs draft page ls --json",
+                "Agent runs draft page cat <id>"
+            ]
         }
     ]
 }

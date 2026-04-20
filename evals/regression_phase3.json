@@ -819,6 +819,135 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase4-headless-trigger-cli-surface-list-and-cat",
+      "title": "Headless trigger: generic draft-cli list-and-cat intent activates draft-headless-pages when installed",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-supersedes-cli-list-and-cat"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "supersede `draft-cli`",
+            "generic Draft page / Draft CLI requests that would otherwise trigger `draft-cli`",
+            "draft start-server --runtime v2"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "headless", "trigger", "supersedes-cli"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-headless-trigger-remote-create-publish",
+      "title": "Headless trigger: remote create-and-publish flow activates draft-headless-pages",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My OpenClaw agent is running in Docker. Create a Draft page called 'Release Plan', append the milestones, and publish it for review.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-create-publish-review"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "For OpenClaw and other remote-agent environments",
+            "draft start-server --runtime v2",
+            "draft page publish <page_id> --json"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "headless", "trigger", "publish", "e2e"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-headless-trigger-public-comments-url",
+      "title": "Headless trigger: hosted public comment reads activate draft-headless-pages",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read public comments from this published Draft preview URL and summarize the revision requests.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-public-comments-url-read"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "Do not start with `draft status`.",
+            "Do not require `draft start-server`.",
+            "draft public-comments list --url '<published_or_preview_url>' --json"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "headless", "trigger", "comments"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-headless-nontrigger-local-review-loop",
+      "title": "Headless non-trigger: local markdown review loop declines draft-headless-pages",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Review comments on my local file docs/spec.md in Draft, then update the markdown file in the repo.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "decline"
+        },
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-review-loop",
+          "expected": "activate"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "headless", "non-trigger", "workflow"],
+      "source": "phase4-regression-corpus"
+    },
+    {
+      "id": "phase4-headless-nontrigger-hitrl-workflow",
+      "title": "Headless non-trigger: HITRL oversight requests decline draft-headless-pages",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Use HITRL for this remote task and check with me before you start.",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "decline"
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["phase4", "headless", "non-trigger"],
+      "source": "phase4-regression-corpus"
+    },
+    {
       "id": "phase4-review-loop-trigger-design-doc",
       "title": "Workflow trigger: design doc + Draft review handoff activates draft-review-loop",
       "scenario_class": "hard-pass",
