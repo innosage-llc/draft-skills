@@ -1,9 +1,9 @@
 ---
 name: draft-headless-pages
 description: >
-  Operate Draft page-domain content through the headless CLI v2 runtime.
-  Use this skill when the user wants remote, Linux, Docker, CI, or unattended automation against Draft pages.
-  Keep this skill scoped to page-domain workflows under `draft ... --runtime v2`; do not use it for workspace/file-backed markdown loops.
+  Headless Draft page automation for remote agents, Docker, CI, and Linux environments.
+  Use this as the default Draft skill for OpenClaw-style isolated runtimes where the agent does not share a browser session with the user.
+  Keep this skill scoped to page-domain workflows under `draft ... --runtime v2`; do not use it for workspace/file-backed markdown loops or browser-backed v1 flows.
   Prefer publish-for-review when a human needs to inspect or comment on headless output.
 metadata:
   clawdis:
@@ -30,6 +30,20 @@ metadata:
 
 Use this skill for isolated Draft page automation in CLI `v2`.
 
+For OpenClaw and other remote-agent environments, this should be the default Draft runtime skill.
+
+## Use This Skill When
+
+- the agent is running remotely, in Docker, in CI, or on a Linux worker
+- the agent should create, edit, publish, or review Draft pages without a paired browser tab
+- the user wants a published page URL as the review surface
+
+## Do Not Use This Skill When
+
+- the workflow depends on local workspace markdown files as source of truth
+- the agent is expected to operate through a browser-backed v1 Draft session
+- the user is asking for a human approval workflow rather than raw page automation
+
 ## Trigger Guidance
 
 Trigger this skill when the request is about:
@@ -43,6 +57,7 @@ Do not trigger this skill when:
 
 - the task is workspace/file-backed markdown authoring or review
 - the request is a generic Draft CLI question that is not specifically about headless page-domain usage
+- the primary need is gated human oversight; use `draft-agent-loop` on top of this runtime instead
 
 ## Boundaries
 
@@ -50,8 +65,10 @@ Do not trigger this skill when:
 - Storage plane: page-domain content only.
 - Human review surface: published or preview page URL.
 - Not in scope: `workspace` mode or local file bindings.
+- Not in scope: browser-backed v1 session management.
 
 If the user needs repo-backed markdown review with durable comments, use `draft-review-loop` and workspace commands instead.
+If the user needs approval checkpoints and execution sign-off, use `draft-agent-loop`, which should depend on this skill.
 
 ## Startup and Verification
 
