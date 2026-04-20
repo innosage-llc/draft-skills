@@ -111,7 +111,11 @@ npm run regression
 ```
 
 Validator location (repo-local default):
-- `./.agents/skills/skill-creator/scripts/quick_validate.py`
+- `./scripts/quick_validate_draft_skills.py`
+
+Product note:
+- `draft-skills` intentionally permits a top-level `version` field in skill frontmatter.
+- The local gate enforces the product contract through the repo-local validator above.
 
 Merge rule (local-only workflow):
 - If `scripts/gate` fails, do not merge.

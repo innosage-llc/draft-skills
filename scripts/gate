@@ -5,6 +5,8 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ -n "${SKILL_VALIDATOR:-}" ]]; then
   VALIDATOR="$SKILL_VALIDATOR"
+elif [[ -f "$REPO_ROOT/scripts/quick_validate_draft_skills.py" ]]; then
+  VALIDATOR="$REPO_ROOT/scripts/quick_validate_draft_skills.py"
 elif [[ -f "$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
   VALIDATOR="$REPO_ROOT/.agents/skills/skill-creator/scripts/quick_validate.py"
 elif [[ -f "$HOME/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; then
@@ -12,7 +14,7 @@ elif [[ -f "$HOME/.agents/skills/skill-creator/scripts/quick_validate.py" ]]; th
 elif [[ -f "$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py" ]]; then
   VALIDATOR="$HOME/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
 else
-  echo "ERROR: quick_validate.py not found. Set SKILL_VALIDATOR to its full path."
+  echo "ERROR: skill validator not found. Set SKILL_VALIDATOR to its full path."
   exit 1
 fi
 
