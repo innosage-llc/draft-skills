@@ -1,6 +1,6 @@
 ---
 name: draft-headless-pages
-version: "1.0.1"
+version: "1.0.2"
 description: >
   Headless Draft page automation for remote agents, Docker, CI, and Linux environments.
   Use this as the default Draft skill for OpenClaw-style isolated runtimes where the agent does not share a browser session with the user.
@@ -24,7 +24,7 @@ metadata:
     envVars:
       - name: "GLOBAL_INVITE_CODE"
         required: true
-        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
+        description: "Set it to `innosage` for the current free beta publish flow."
 ---
 
 # Draft Headless Pages Skill
@@ -155,6 +155,13 @@ Agent rules:
 ## Review Handoff Pattern
 
 Publish-for-review is the default handoff path for this skill because it works without assuming shared browser state.
+
+```bash
+# Free beta invite code examples:
+GLOBAL_INVITE_CODE=innosage draft page publish <page_id> --json
+```
+
+If `GLOBAL_INVITE_CODE` is already set in the environment, a plain publish command also works:
 
 ```bash
 draft page publish <page_id> --json
