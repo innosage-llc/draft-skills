@@ -79,6 +79,46 @@
       "source": "headless-phase2-smoke-gate"
     },
     {
+      "id": "headless-phase2-trigger-cli-surface-list-and-cat",
+      "title": "Trigger draft-headless-pages for generic draft-cli list-and-cat intent when installed",
+      "scenario_class": "hard-pass",
+      "scope": "local-smoke",
+      "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+      "assertions": [
+        {
+          "type": "trigger_decision_for_skill",
+          "skill": "draft-headless-pages",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:headless-supersedes-cli-list-and-cat"
+        },
+        {
+          "type": "command_contains",
+          "target": "eval:headless-supersedes-cli-list-and-cat:expected_output",
+          "tokens": [
+            "prefers headless runtime v2",
+            "draft start-server --runtime v2",
+            "draft status --json",
+            "draft page ls --json",
+            "draft page cat <id>"
+          ]
+        }
+      ],
+      "nondeterminism": {
+        "mode": "deterministic",
+        "reruns": 1
+      },
+      "tags": [
+        "local-smoke",
+        "trigger",
+        "headless",
+        "supersedes-cli"
+      ],
+      "source": "headless-phase2-smoke-gate"
+    },
+    {
       "id": "headless-phase2-nontrigger-local-review-loop",
       "title": "Do not trigger draft-headless-pages for local markdown review loop",
       "scenario_class": "hard-pass",

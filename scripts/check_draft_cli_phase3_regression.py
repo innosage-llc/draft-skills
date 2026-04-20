@@ -191,39 +191,9 @@ def classify_draft_headless_pages_prompt(prompt: str) -> str:
     ):
         return "decline"
 
-    headless_environment = any(
-        token in text
-        for token in (
-            "openclaw",
-            "docker",
-            "ci",
-            "linux worker",
-            "remote agent",
-            "headless",
-            "runtime v2",
-            "--runtime v2",
-        )
-    )
-    headless_operations = any(
-        token in text
-        for token in (
-            "publish",
-            "public comments",
-            "preview url",
-            "page id",
-            "draft page",
-            "annotate",
-            "append",
-            "replace",
-            "patch",
-            "create",
-            "published page",
-        )
-    )
-    if headless_environment and headless_operations:
-        return "activate"
-
-    if "public comments" in text and any(token in text for token in ("preview url", "published", "page id")):
+    # Headless pages now supersedes the generic draft-cli trigger surface when installed.
+    # Keep only local-file review loops and HITRL oversight as explicit declines above.
+    if classify_draft_cli_prompt(prompt) == "activate":
         return "activate"
 
     return "defer"

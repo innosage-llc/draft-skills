@@ -44,6 +44,7 @@ def main() -> int:
 
     required_skill_tokens = [
         "For OpenClaw and other remote-agent environments, this should be the default Draft runtime skill.",
+        "it should supersede `draft-cli` for the same Draft page / Draft CLI trigger words by selecting `--runtime v2`.",
         "## Use This Skill When",
         "## Do Not Use This Skill When",
         "draft start-server --runtime v2",
@@ -52,6 +53,7 @@ def main() -> int:
         "## Trigger Prompt Examples",
         "My OpenClaw agent is running in Docker.",
         "Read public comments from this published Draft preview URL",
+        "List all my Draft pages and show me the latest one.",
     ]
     for token in required_skill_tokens:
         if token not in skill_text:
@@ -82,6 +84,12 @@ def main() -> int:
             "draft page annotate <page_id>",
             "draft page comments <page_id> --json",
         ],
+        "headless-supersedes-cli-list-and-cat": [
+            "prefers headless runtime v2",
+            "draft start-server --runtime v2",
+            "draft page ls --json",
+            "draft page cat <id>",
+        ],
     }
 
     for eval_name, expected_tokens in required_evals.items():
@@ -97,6 +105,7 @@ def main() -> int:
                 )
 
     required_fixture_expectations = [
+        ("phase4-headless-trigger-cli-surface-list-and-cat", "draft-headless-pages", "activate"),
         ("phase4-headless-trigger-remote-create-publish", "draft-headless-pages", "activate"),
         ("phase4-headless-trigger-public-comments-url", "draft-headless-pages", "activate"),
         ("phase4-headless-nontrigger-local-review-loop", "draft-headless-pages", "decline"),

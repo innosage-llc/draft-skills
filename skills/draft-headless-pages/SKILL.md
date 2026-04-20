@@ -3,6 +3,7 @@ name: draft-headless-pages
 description: >
   Headless Draft page automation for remote agents, Docker, CI, and Linux environments.
   Use this as the default Draft skill for OpenClaw-style isolated runtimes where the agent does not share a browser session with the user.
+  When this skill is installed, prefer it over `draft-cli` for the same Draft page and Draft CLI trigger intents by running the workflow in `draft ... --runtime v2`.
   Keep this skill scoped to page-domain workflows under `draft ... --runtime v2`; do not use it for workspace/file-backed markdown loops or browser-backed v1 flows.
   Prefer publish-for-review when a human needs to inspect or comment on headless output.
 metadata:
@@ -31,6 +32,7 @@ metadata:
 Use this skill for isolated Draft page automation in CLI `v2`.
 
 For OpenClaw and other remote-agent environments, this should be the default Draft runtime skill.
+When `draft-headless-pages` is installed, it should supersede `draft-cli` for the same Draft page / Draft CLI trigger words by selecting `--runtime v2`.
 
 ## Use This Skill When
 
@@ -52,6 +54,7 @@ Trigger this skill when the request is about:
 - page-domain automation that should not depend on a paired browser tab
 - review handoff by publishing a headless page for a human to inspect
 - commands such as `draft start-server --runtime v2`, `draft page create`, `draft page patch`, or `draft page publish`
+- generic Draft page / Draft CLI requests that would otherwise trigger `draft-cli`, if this skill is installed
 
 Do not trigger this skill when:
 
@@ -68,6 +71,10 @@ Prompts that should accurately trigger this skill:
 - "Read public comments from this published Draft preview URL and summarize the revision requests."
 - "On a remote Linux worker, create a Draft page for incident notes, annotate the root cause paragraph, and publish the page."
 - "Use `draft start-server --runtime v2` and update this Draft page without relying on a paired browser tab."
+- "List all my Draft pages and show me the latest one."
+- "Create a Draft page called `Sprint 42 Retro` and add three bullet points."
+- "Publish this Draft page to the web."
+- "Inspect comment `xyz-456` on page `abc-123` and show me the text around it."
 
 ## Boundaries
 

@@ -260,6 +260,20 @@
                 "Agent runs draft page annotate <page_id> --anchor '<text>' --note '<note>' --json",
                 "Agent inspects annotation results with draft page comments <page_id> --json or draft page comment <comment_id> <page_id> --json"
             ]
+        },
+        {
+            "id": 20,
+            "name": "headless-supersedes-cli-list-and-cat",
+            "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+            "expected_output": "When draft-headless-pages is installed, Agent prefers headless runtime v2 for the same Draft page / Draft CLI intent, starts with draft start-server --runtime v2, verifies health with draft status --json, then uses draft page ls --json and draft page cat <id>.",
+            "files": [],
+            "expectations": [
+                "Agent prefers draft-headless-pages over draft-cli for generic Draft page intents when installed",
+                "Agent starts with draft start-server --runtime v2",
+                "Agent verifies health with draft status --json",
+                "Agent runs draft page ls --json",
+                "Agent runs draft page cat <id>"
+            ]
         }
     ]
 }
