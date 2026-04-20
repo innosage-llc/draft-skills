@@ -698,6 +698,53 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-headless-image-guidance-present",
+      "title": "Headless pages skill documents image insertion and follow-up commands",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Insert an image into a Draft page from a local file in a headless v2 session, then update or delete it later.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "## Image Insertion and Management",
+            "draft page insert-image <page_id> /path/to/local/image.png --json",
+            "draft page update-image <page_id> <local_id> --align right --json",
+            "draft page delete-image <page_id> <local_id> --json",
+            "Save the returned `local_id`"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["images", "structure", "headless"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-headless-public-comments-guidance-present",
+      "title": "Headless pages skill documents hosted public-comment retrieval",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read public comments from a published Draft page in a headless v2 workflow without starting the local runtime for that hosted read.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill:draft-headless-pages",
+          "tokens": [
+            "## Public Comment Retrieval",
+            "Do not start with `draft status`.",
+            "Do not require `draft start-server`.",
+            "draft public-comments list --url '<published_or_preview_url>' --json",
+            "draft public-comments list --page-id <page_id> --json",
+            "draft public-comments get <comment_id> --json"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["comments", "structure", "headless", "publish"],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-public-comments-guidance-present",
       "title": "Hosted public-comment guidance is present for published pages",
       "scenario_class": "hard-pass",

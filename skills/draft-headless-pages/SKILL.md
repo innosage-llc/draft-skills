@@ -1,6 +1,6 @@
 ---
 name: draft-headless-pages
-version: "1.0.0"
+version: "1.0.1"
 description: >
   Headless Draft page automation for remote agents, Docker, CI, and Linux environments.
   Use this as the default Draft skill for OpenClaw-style isolated runtimes where the agent does not share a browser session with the user.
@@ -99,6 +99,9 @@ draft page cat <page_id>
 draft page append <page_id> "content" --json
 draft page replace <page_id> --heading "Section" --content "replacement" --json
 draft page patch <page_id> --json
+draft page insert-image <page_id> /path/to/local/image.png --json
+draft page update-image <page_id> <local_id> --align center --width 500 --json
+draft page delete-image <page_id> <local_id> --json
 draft page annotate <page_id> --anchor "text" --note "feedback" --json
 draft page comments <page_id> --json
 draft page publish <page_id> --json
@@ -108,6 +111,7 @@ Usage guidance:
 
 - Use `--json` for control flow, IDs, URLs, and retry logic.
 - Use `draft page cat <page_id>` when the goal is human-readable markdown inspection.
+- Save the `local_id` returned by `draft page insert-image`; it is required for later `update-image` or `delete-image` calls.
 - Use `draft page comments <page_id> --json` to read page annotations without scraping full page content again.
 - Use `draft page annotate` only when the workflow explicitly needs page-bound feedback markers.
 
@@ -121,6 +125,32 @@ Use this compact sequence unless the user asks for a different handoff:
 4. Apply page mutations with `append`, `replace`, or `patch`.
 5. Read back with `draft page cat <page_id>` or comments commands as needed.
 6. Publish for human review when feedback is needed.
+
+## Image Insertion and Management
+
+Image commands are regular page mutations in headless `v2`, so they follow the normal startup contract for this skill:
+
+1. Run `draft start-server --runtime v2`
+2. Confirm `draft status --json`
+3. Use local file paths for image uploads
+4. Save the returned `local_id` for follow-up operations
+
+Preferred commands:
+
+```bash
+draft page insert-image <page_id> /path/to/local/image.png --json
+draft page insert-image <page_id> /path/to/local/image.jpg --align center --width 500 --json
+draft page update-image <page_id> <local_id> --align right --json
+draft page update-image <page_id> <local_id> --width 500 --json
+draft page delete-image <page_id> <local_id> --json
+```
+
+Agent rules:
+
+- Use `insert-image` only after the page exists and the headless runtime is healthy.
+- Treat the returned `local_id` as required state for later image updates or deletion.
+- Re-read the page with `draft page cat <page_id>` after image mutations when the user needs markdown-visible confirmation of surrounding content.
+- Keep image handling in page mode; do not switch to workspace mode just to upload media.
 
 ## Review Handoff Pattern
 

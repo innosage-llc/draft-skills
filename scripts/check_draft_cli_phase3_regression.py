@@ -22,6 +22,7 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATHS = {
     "draft-cli": REPO_ROOT / "skills" / "draft-cli" / "SKILL.md",
+    "draft-headless-pages": REPO_ROOT / "skills" / "draft-headless-pages" / "SKILL.md",
     "draft-review-loop": REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md",
 }
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
