@@ -1,19 +1,18 @@
 ---
 name: draft-agent-loop
-version: "1.5.11"
 description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
-  This skill depends on the draft-cli skill. It runs draft-cli in local mode (indexDB-backed, no shared filesystem required), which enables page publishing without a workspace mount.
+  This skill depends on the draft-headless-pages skill. It assumes headless page workflows under `draft ... --runtime v2`, which fit remote OpenClaw-style isolated environments.
 metadata:
   clawdis:
     emoji: "🔄"
     dependencies:
-      - name: "toliuweijing/draft-cli"
+      - name: "toliuweijing/draft-headless-pages"
         type: "other"
-        url: "https://clawhub.ai/toliuweijing/draft-cli"
+        url: "https://clawhub.ai/toliuweijing/draft-headless-pages"
     requires:
       bins:
         - "draft"
@@ -36,7 +35,7 @@ metadata:
 
 Use this skill to implement a rigorous human-agent collaboration loop. This is the "Human-in-the-Right-Loop" (HITRL) method, designed to eliminate "blind box" agent outcomes by forcing plan approval and result verification.
 
-> **Scope**: This is an instruction-only skill. It has no install scripts, code files, or declared filesystem paths. All persistence is through Draft pages (via the `draft-cli` dependency). It does not write to local disk or agent memory.
+> **Scope**: This is an instruction-only skill. It has no install scripts, code files, or declared filesystem paths. All persistence is through Draft pages (via the `draft-headless-pages` dependency). It does not write to local disk or agent memory.
 
 ## Trigger Guidance
 
@@ -52,14 +51,14 @@ Trigger this skill when:
 Do NOT trigger this skill when:
 
 - The user asks to do a task directly with no mention of approval or review gates.
-- The user only asks about Draft CLI commands (use `draft-cli`).
+- The user only asks about raw Draft commands or page automation without approval gates (use `draft-headless-pages`).
 - The user wants a local-file authoring workflow (authorship in local markdown).
 
 ## Core Rules
 
 - **Source of Truth**: The "Task Journal" Draft page. All plans, logs, and results live there.
-- **Environment**: Always use `draft-cli` in local mode (`draft start-server --mode local`). Never use `--mode workspace`.
-- **Local mode** means Draft stores page data in indexDB (browser local storage) — it does not mount or access any shared filesystem.
+- **Environment**: Always use headless page mode through `draft ... --runtime v2`.
+- **Runtime dependency**: Follow the startup and page-operation rules from `draft-headless-pages`.
 - **Handoff Mode**: **Blocking**. STOP and wait for human approval/sign-off in the chat before proceeding to the next phase.
 - **No Sensitive Data in Logs**: Do NOT include credentials, secrets, tokens, or PII in execution log entries or plan documents. Limit evidence to status indicators and non-sensitive file names.
 
@@ -68,17 +67,17 @@ Do NOT trigger this skill when:
 Before doing anything, establish a stable Draft connection:
 
 ```bash
-# 1. Start the daemon in local mode (indexDB-backed, no filesystem required)
-draft start-server --mode local
+# 1. Start the daemon in headless runtime v2
+draft start-server --runtime v2
 
 # 2. Confirm the session is READY before proceeding
 draft status --json
 ```
 
-If `draft status` does not show `READY`, follow the `draft-cli` connection-first recovery pattern:
-- `DAEMON_OFFLINE` → re-run `draft start-server --mode local`
-- `BROWSER_NOT_CONNECTED` → run `draft daemon` to pair a browser tab
-- Only proceed once `draft status --json` shows `"state": "READY"`
+If `draft status` does not show a healthy `v2` headless session, follow the `draft-headless-pages` recovery pattern:
+- `DAEMON_OFFLINE` → re-run `draft start-server --runtime v2`
+- wrong runtime selected → stop and correct runtime before writing
+- Only proceed once `draft status --json` shows a healthy headless `v2` session
 
 ## Phase 1: Plan (Proposal & Approval)
 
@@ -173,7 +172,7 @@ If the user provides feedback or requests changes after Phase 3:
 
 ## Non-Goals
 
-- Do NOT use `--mode workspace`.
+- Do NOT use browser-backed v1 or `--mode workspace`.
 - Do NOT skip the plan approval gate.
 - Do NOT execute multiple un-logged steps.
 - Do NOT write to local agent filesystem (no `TASK_LOG.md`, no `knowledge/` writes).
