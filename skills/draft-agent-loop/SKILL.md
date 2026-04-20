@@ -1,6 +1,6 @@
 ---
 name: draft-agent-loop
-version: "1.5.12"
+version: "1.5.13"
 description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
@@ -36,7 +36,7 @@ metadata:
 
 Use this skill to implement a rigorous human-agent collaboration loop. This is the "Human-in-the-Right-Loop" (HITRL) method, designed to eliminate "blind box" agent outcomes by forcing plan approval and result verification.
 
-> **Scope**: This is an instruction-only skill. It has no install scripts, code files, or declared filesystem paths. All persistence is through Draft pages (via the `draft-headless-pages` dependency). It does not write to local disk or agent memory.
+> **Scope**: This skill orchestrates remote agent workflows using the `draft` CLI. All persistence is through Draft pages (via the `draft-headless-pages` dependency). It does not write to local disk or agent memory.
 
 ## Trigger Guidance
 
@@ -113,7 +113,7 @@ Before executing any code or changes:
 3.  **Confirm Before Publishing**: Before publishing, explicitly confirm with the user: "I am about to publish the Task Journal for external review. Please confirm."
 4.  **Handoff**: On confirmation, publish the page and ask for approval.
     ```bash
-    draft page publish <id> --invite-code innosage --json
+    draft page publish <id> --invite-code "$GLOBAL_INVITE_CODE" --json
     ```
     **Handoff Phrase**: "I have initialized the Task Journal with the plan and requirements: [URL]. Please review the context and acceptance criteria. Once you are ready for me to proceed, please reply with **APPROVED** or **LGTM** here in the chat."
 
@@ -142,7 +142,7 @@ Once the execution is complete:
 2.  **Confirm Before Publishing**: Explicitly confirm with the user before re-publishing.
 3.  **Handoff**: On confirmation, re-publish the page.
     ```bash
-    draft page publish <id> --invite-code innosage --json
+    draft page publish <id> --invite-code "$GLOBAL_INVITE_CODE" --json
     ```
     **Handoff Phrase**: "I have completed the task. Please verify the results in the Task Journal: [URL]. If satisfied, reply with **DONE** or **✅** here in the chat."
 
