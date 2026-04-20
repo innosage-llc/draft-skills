@@ -2,8 +2,8 @@
 set -uo pipefail
 # Note: -e is intentionally omitted so we can handle per-skill failures gracefully.
 
-# publish_all_clawhub.sh
-# Automates Phase 1 (Preparation) and Phase 2 (Publication) for Draft skills.
+# publish_clawhub_skills.sh
+# Automates Phase 1 (Preparation) and Phase 2 (Publication) for ClawHub-published Draft skills.
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 GATE_SCRIPT="$REPO_ROOT/scripts/gate"
@@ -37,6 +37,7 @@ fi
 # 3. Publication
 SKILLS=(
   "draft-cli"
+  "draft-headless-pages"
   "draft-agent-loop"
 )
 
