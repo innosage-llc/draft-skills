@@ -37,7 +37,6 @@ fi
 # 3. Publication
 SKILLS=(
   "draft-cli"
-  "draft-headless-pages"
   "draft-agent-loop"
 )
 

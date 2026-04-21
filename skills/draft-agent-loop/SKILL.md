@@ -6,14 +6,14 @@ description: >
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
-  This skill depends on the draft-headless-pages skill. It assumes headless page workflows under `draft ... --runtime v2`, which fit remote OpenClaw-style isolated environments.
+  This skill depends on the canonical draft-cli skill. It assumes headless page workflows under `draft ... --runtime v2`, which fit remote OpenClaw-style isolated environments.
 metadata:
   clawdis:
     emoji: "🔄"
     dependencies:
-      - name: "toliuweijing/draft-headless-pages"
+      - name: "toliuweijing/draft-cli"
         type: "other"
-        url: "https://clawhub.ai/toliuweijing/draft-headless-pages"
+        url: "https://clawhub.ai/toliuweijing/draft-cli"
     requires:
       bins:
         - "draft"
@@ -34,7 +34,7 @@ metadata:
 
 Use this skill to implement a rigorous human-agent collaboration loop. This is the "Human-in-the-Right-Loop" (HITRL) method, designed to eliminate "blind box" agent outcomes by forcing plan approval and result verification.
 
-> **Scope**: This skill orchestrates remote agent workflows using the `draft` CLI. All persistence is through Draft pages (via the `draft-headless-pages` dependency). It does not write to local disk or agent memory.
+> **Scope**: This skill orchestrates remote agent workflows using the `draft` CLI. All persistence is through Draft pages (via the canonical `draft-cli` dependency). It does not write to local disk or agent memory.
 
 ## Trigger Guidance
 
@@ -50,14 +50,14 @@ Trigger this skill when:
 Do NOT trigger this skill when:
 
 - The user asks to do a task directly with no mention of approval or review gates.
-- The user only asks about raw Draft commands or page automation without approval gates (use `draft-headless-pages`).
+- The user only asks about raw Draft commands or page automation without approval gates (use `draft-cli`).
 - The user wants a local-file authoring workflow (authorship in local markdown).
 
 ## Core Rules
 
 - **Source of Truth**: The "Task Journal" Draft page. All plans, logs, and results live there.
 - **Environment**: Always use headless page mode through `draft ... --runtime v2`.
-- **Runtime dependency**: Follow the startup and page-operation rules from `draft-headless-pages`.
+- **Runtime dependency**: Follow the startup and page-operation rules from `draft-cli`.
 - **Handoff Mode**: **Blocking**. STOP and wait for human approval/sign-off in the chat before proceeding to the next phase.
 - **No Sensitive Data in Logs**: Do NOT include credentials, secrets, tokens, or PII in execution log entries or plan documents. Limit evidence to status indicators and non-sensitive file names.
 
@@ -67,14 +67,14 @@ Before doing anything, establish a stable Draft connection:
 
 ```bash
 # 1. Start the daemon in headless runtime v2
-draft start-server --runtime v2
+draft start-server
 
 # 2. Confirm the session is READY before proceeding
 draft status --json
 ```
 
-If `draft status` does not show a healthy `v2` headless session, follow the `draft-headless-pages` recovery pattern:
-- `DAEMON_OFFLINE` → re-run `draft start-server --runtime v2`
+If `draft status` does not show a healthy `v2` headless session, follow the `draft-cli` recovery pattern:
+- `DAEMON_OFFLINE` → re-run `draft start-server`
 - wrong runtime selected → stop and correct runtime before writing
 - Only proceed once `draft status --json` shows a healthy headless `v2` session
 
