@@ -700,14 +700,14 @@
     },
     {
       "id": "phase3-headless-image-guidance-present",
-      "title": "Headless pages skill documents image insertion and follow-up commands",
+      "title": "Canonical draft-cli skill documents image insertion and follow-up commands",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Insert an image into a Draft page from a local file in a headless v2 session, then update or delete it later.",
       "assertions": [
         {
           "type": "text_contains",
-          "target": "skill:draft-headless-pages",
+          "target": "skill",
           "tokens": [
             "## Image Insertion and Management",
             "draft page insert-image <page_id> /path/to/local/image.png --json",
@@ -723,14 +723,14 @@
     },
     {
       "id": "phase3-headless-public-comments-guidance-present",
-      "title": "Headless pages skill documents hosted public-comment retrieval",
+      "title": "Canonical draft-cli skill documents hosted public-comment retrieval",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Read public comments from a published Draft page in a headless v2 workflow without starting the local runtime for that hosted read.",
       "assertions": [
         {
           "type": "text_contains",
-          "target": "skill:draft-headless-pages",
+          "target": "skill",
           "tokens": [
             "## Public Comment Retrieval",
             "Do not start with `draft status`.",

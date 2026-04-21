@@ -3,9 +3,10 @@ name: draft-cli
 version: "1.5.10"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
-  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, or review comments on a "Draft page", "Draft doc", or via the "Draft CLI" (e.g., "my draft page named 'Founder Sync'", "publish this Draft page", "read public comments on this Draft preview URL", "Draft CLI").
-  This connects to the Draft PWA (draft.innosage.co) via a local daemon to read or modify living documents.
-  DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (e.g., "draft an email", "draft a response") or when referring to local markdown/text files with "draft" in the name (e.g., "draft.md", "investor_update_draft.md"). Only use when interacting with the actual InnoSage Draft web application or Draft CLI tool.
+  This is the canonical Draft operational skill and the main public mental model for `draft` and `draft page ...`.
+  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, or review comments on a Draft page/doc, or asks about the Draft CLI itself.
+  This connects to the Draft PWA via a local daemon to read or modify living documents.
+  DO NOT use this skill when "draft" is just a verb or when the request is about local markdown/text files rather than the actual InnoSage Draft app or CLI.
   When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
 metadata:
   clawdis:
@@ -43,12 +44,15 @@ This skill requires specific permissions to interact with the Draft PWA and your
 
 Before running Draft CLI commands, ensure `draft` is available on your PATH (see Install panel).
 
-### Operational Pattern: Check Connection First for Live Page Commands
+Non-trigger reminder:
+- DO NOT use this skill for generalized writing tasks where "draft" is used as a verb (for example `draft an email` or `draft a response`).
+
+### Operational Pattern: Check Connection First for Draft Page Commands
 
 Exception:
 - `draft public-comments ...` is a hosted read path and does **not** require the local daemon, browser pairing, or a `draft status` handshake.
-- Use this skill for the legacy browser-backed page path, explicit `v1_DEPRECATED` compatibility needs, or browser-retarget workflows.
-- If the environment is remote, headless, CI-like, or does not need a paired browser tab, prefer `draft-headless-pages` instead.
+- This skill is the default operational surface for `draft` and `draft page ...`.
+- Use `draft-review-loop` for local-first review workflows where workspace markdown remains the source of truth.
 
 To ensure a stable session, you MUST follow this sequence before executing any live Draft page command (like `page ls`, `page cat`, `page create`, `page append`, `page patch`, etc.):
 
@@ -80,32 +84,44 @@ draft status --json
 
 > [!IMPORTANT]
 > `draft start-server` now defaults to headless `v2`, which is the current Draft runtime SSOT.
-> Keep this skill focused on legacy browser-backed recovery and browser retarget workflows.
+> This skill is the canonical page-domain Draft skill.
 > `draft daemon` is not a general lifecycle command anymore; treat it as the browser pair/retarget command when status shows no browser or when you need to retarget the connected tab.
 
-### Hosted Read Pattern for Public Page Comments
+## Public Comment Retrieval
 
 Public comments are stored in a hosted sidecar store and read directly from the hosted API.
 For these commands:
 
+- Do not start with `draft status`.
+- Do not require `draft start-server`.
+- Do **not** require a paired browser tab.
+
+### Hosted Read Pattern for Public Page Comments
+
+- `draft public-comments ...` is a hosted read path.
 - Do **not** start with `draft status`.
 - Do **not** require `draft start-server`.
-- Do **not** require a paired browser tab.
+- Canonical preview URL example:
+
+```bash
+draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+draft public-comments list --page-id <page_id>
+```
 
 Preferred commands:
 
 ```bash
 # URL-first path
-draft public-comments list --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+draft public-comments list --url '<published_or_preview_url>' --json
 
 # Page-ID path
-draft public-comments list --page-id <page_id>
+draft public-comments list --page-id <page_id> --json
 
 # Explicit snapshot pin only when needed
 draft public-comments list --page-id <page_id> --publish-version <published_at_iso>
 
 # Inspect one comment in detail
-draft public-comments get <comment_id> --url 'https://draft.innosage.co/#/preview/<page_id>?mode=static'
+draft public-comments get <comment_id> --json
 ```
 
 Resolution behavior:
@@ -360,31 +376,31 @@ cat patch.diff | draft page patch <id>
 > draft page cat <id> | sed '1,4d' | sed '$d' | sed 's/ \[:: User Note: [^:]* :\]//g' > /tmp/before.md
 > ```
 
-### Inserting and Managing Images
+## Image Insertion and Management
 
 You can use the CLI to insert images from local files, update their alignment or width, and delete them.
 To insert an image into a page:
 
 ```bash
 # Insert an image with default alignment (left) and default width
-draft page insert-image <id> /path/to/local/image.png --json
+draft page insert-image <page_id> /path/to/local/image.png --json
 
 # Insert an image with specific alignment and width
-draft page insert-image <id> /path/to/local/image.jpg --align center --width 500 --json
+draft page insert-image <page_id> /path/to/local/image.jpg --align center --width 500 --json
 ```
 
-The output JSON will include a `local_id` (e.g., `local_id: "img-abc1234"`). **Save this `local_id`**, as it is required to update or delete the image.
+The output JSON will include a `local_id` (e.g., `local_id: "img-abc1234"`). Save the returned `local_id`, as it is required to update or delete the image.
 
 To update the alignment or width of an existing image block:
 
 ```bash
-draft page update-image <id> <local_id> --align right --json
+draft page update-image <page_id> <local_id> --align right --json
 ```
 
 To delete an existing image block:
 
 ```bash
-draft page delete-image <id> <local_id> --json
+draft page delete-image <page_id> <local_id> --json
 ```
 
 ## Common Workflows

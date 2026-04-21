@@ -22,7 +22,7 @@ This skill exists to isolate the Draft CLI development lane from other Draft wor
 
 - the user wants the installed global `draft` CLI on PATH
 - the task is normal Draft page automation unrelated to CLI development
-- the task is headless page automation for CI or remote agents; use `draft-headless-pages` instead
+- the task is normal page automation with the installed/global CLI; use `draft-cli` instead
 
 ## Development Contract
 
