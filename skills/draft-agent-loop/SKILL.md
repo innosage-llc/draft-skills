@@ -1,6 +1,6 @@
 ---
 name: draft-agent-loop
-version: "1.5.14"
+version: "1.6.0"
 description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.

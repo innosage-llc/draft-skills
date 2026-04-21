@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.5.10"
+version: "1.6.0"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
   This is the canonical Draft operational skill and the main public mental model for `draft` and `draft page ...`.
