@@ -1,6 +1,6 @@
 ---
 name: draft-review-loop
-version: "1.0"
+version: "1.0.1"
 description: >
   Run the local-first authoring plus Draft review handoff loop for workspace markdown files.
   Use this skill when the user asks to write or revise a document and explicitly wants human review in Draft,
@@ -18,8 +18,6 @@ metadata:
     requires:
       bins:
         - "draft"
-      env:
-        - "GLOBAL_INVITE_CODE"
     install:
       - id: "npm"
         kind: "node"
@@ -29,8 +27,8 @@ metadata:
         label: "Install draft-cli (npm)"
     envVars:
       - name: "GLOBAL_INVITE_CODE"
-        required: true
-        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
+        required: false
+        description: "The invite code used to publish Draft pages safely. Defaults to `innosage` during the free beta publish flow."
 ---
 
 # Draft Review Loop Skill
