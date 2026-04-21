@@ -71,10 +71,10 @@ If the user needs approval checkpoints and execution sign-off, use `draft-agent-
 
 ## Startup and Verification
 
-Always make the runtime explicit.
+`draft start-server` now defaults to `v2`. You may still pass `--runtime v2` when you need the command to be explicit in logs, examples, or audits.
 
 ```bash
-draft start-server --runtime v2
+draft start-server
 draft status --json
 ```
 
@@ -82,7 +82,7 @@ Proceed only when `draft status --json` shows a healthy headless session for `v2
 
 Operational rules:
 
-1. Start the daemon with `--runtime v2` before page commands.
+1. Start the daemon in `v2` before page commands. `draft start-server` is sufficient because `v2` is now the default.
 2. Check `draft status --json` before mutating content.
 3. Treat status JSON as the source of truth for daemon health and selected runtime.
 4. Treat publish-and-review as the standard human feedback path.
@@ -117,7 +117,7 @@ Usage guidance:
 
 Use this compact sequence unless the user asks for a different handoff:
 
-1. Start headless runtime: `draft start-server --runtime v2`
+1. Start headless runtime: `draft start-server`
 2. Verify health: `draft status --json`
 3. Create or locate the target page.
 4. Apply page mutations with `append`, `replace`, or `patch`.
@@ -128,7 +128,7 @@ Use this compact sequence unless the user asks for a different handoff:
 
 Image commands are regular page mutations in headless `v2`, so they follow the normal startup contract for this skill:
 
-1. Run `draft start-server --runtime v2`
+1. Run `draft start-server`
 2. Confirm `draft status --json`
 3. Use local file paths for image uploads
 4. Save the returned `local_id` for follow-up operations
@@ -219,7 +219,7 @@ Agent rules:
 
 Use these guardrails before retrying:
 
-- If the daemon is offline, rerun `draft start-server --runtime v2`, then `draft status --json`.
+- If the daemon is offline, rerun `draft start-server`, then `draft status --json`.
 - If status does not report `v2`, stop and fix runtime selection before writing.
 - If a command fails with a missing page ID or lookup error, rediscover the target page before mutating it.
 - If public comment retrieval fails, verify that you are using the published or preview URL path, or retry with `--page-id <page_id>` when only page identity is known.

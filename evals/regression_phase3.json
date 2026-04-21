@@ -241,7 +241,7 @@
     },
     {
       "id": "phase3-daemon-offline-recovery-sequence",
-      "title": "SKILL.md documents DAEMON_OFFLINE -> start-server -> recheck sequence",
+      "title": "SKILL.md documents DAEMON_OFFLINE -> start-server -> recheck sequence with v2 as default",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "My draft status returned DAEMON_OFFLINE. How do I recover?",
@@ -249,7 +249,7 @@
         {
           "type": "text_contains",
           "target": "skill",
-          "tokens": ["DAEMON_OFFLINE", "draft start-server"]
+          "tokens": ["DAEMON_OFFLINE", "draft start-server", "v2"]
         },
         {
           "type": "command_sequence",
@@ -263,7 +263,7 @@
     },
     {
       "id": "phase3-env-switch-sequence",
-      "title": "SKILL.md documents stop -> restart -> verify sequence for env switching",
+      "title": "SKILL.md documents stop -> restart -> verify sequence for env switching in legacy browser-backed mode",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Switch my Draft CLI connection from production to staging.",
@@ -274,6 +274,7 @@
           "sequence": [
             "draft stop-server",
             "draft start-server",
+            "--runtime v1_DEPRECATED",
             "--app https://markdown-editor-staging.web.app/",
             "draft daemon https://markdown-editor-staging.web.app/"
           ]
@@ -395,7 +396,7 @@
     },
     {
       "id": "phase3-browser-not-connected-recovery-sequence",
-      "title": "SKILL.md documents BROWSER_NOT_CONNECTED sequence",
+      "title": "SKILL.md documents BROWSER_NOT_CONNECTED as a browser pair/retarget sequence",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "My draft status returned BROWSER_NOT_CONNECTED. How do I recover?",
