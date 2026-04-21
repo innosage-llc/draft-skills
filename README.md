@@ -1,7 +1,7 @@
 # Draft Skills
 
 Agent skills for multiple Draft runtime planes:
-headless page automation for remote agents, browser-backed CLI for legacy local sessions, and workspace review flows for local markdown authorship.
+headless page automation for remote agents, legacy browser-backed CLI recovery for local sessions, and workspace review flows for local markdown authorship.
 
 These skills follow the [Agent Skills specification](https://agentskills.io/specification) so they can be used by any skills-compatible agent, including Claude Code, Codex CLI, and Cursor.
 
@@ -46,7 +46,7 @@ Use this decision model first:
 | ----------------------------------- | -------------- | --- |
 | Remote OpenClaw agent, Docker, CI, Linux worker, isolated runtime | [draft-headless-pages](skills/draft-headless-pages) | Headless `v2` page automation is the correct default for agents that do not share a browser session with the user. |
 | Remote agent with required human approval gates before and after execution | [draft-agent-loop](skills/draft-agent-loop) | Adds plan approval, execution logging, and sign-off on top of headless Draft pages. |
-| Local desktop session with browser-backed Draft CLI behavior | [draft-cli](skills/draft-cli) | Supports the browser-backed runtime path. Keep this for local/manual operation, not as the default remote-agent choice. |
+| Local desktop session with browser-backed Draft CLI behavior or explicit `v1_DEPRECATED` compatibility needs | [draft-cli](skills/draft-cli) | Supports the legacy browser-backed runtime path and browser retarget workflows. Keep this for local/manual operation, not as the default remote-agent choice. |
 | Local Draft CLI development from this repository with a need to avoid collisions with another Draft workflow on the same machine | [draft-cli-dev](skills/draft-cli-dev) | Forces the repo-local CLI path and a dedicated development port so development work stays isolated from installed/global Draft usage. |
 | Local repo markdown file is the source of truth and Draft is only the review surface | [draft-review-loop](skills/draft-review-loop) | Keeps authorship in local files and uses Draft for comments and review handoff. |
 
@@ -56,14 +56,14 @@ Use this decision model first:
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | [draft-headless-pages](skills/draft-headless-pages) | Headless Draft page automation for remote agents, Docker, CI, and Linux environments. This is the default Draft runtime skill for OpenClaw-style isolated environments. |
 | [draft-agent-loop](skills/draft-agent-loop) | Approval-gated human-in-the-loop workflow built on top of headless Draft pages for remote agents. |
-| [draft-cli](skills/draft-cli) | Operational skill for browser-backed or legacy Draft CLI commands. Useful for local desktop sessions, but not the default choice for remote OpenClaw agents. |
+| [draft-cli](skills/draft-cli) | Operational skill for legacy browser-backed or compatibility Draft CLI commands. Useful for local desktop sessions, but not the default choice for remote OpenClaw agents. |
 | [draft-cli-dev](skills/draft-cli-dev) | Development-lane skill for working on Draft CLI from this repo. Uses the repo-local CLI and a dedicated dev port to avoid collisions with installed/global Draft workflows on the same machine. |
 | [draft-review-loop](skills/draft-review-loop) | Workflow skill for local-first authoring with Draft review handoff. Guides agents to write/update workspace markdown first, then ask humans to review in Draft and apply accepted feedback back to the local file. |
 
 Boundary model:
 - `draft-headless-pages`: headless `v2` page automation for remote agents
 - `draft-agent-loop`: approval workflow layered on top of `draft-headless-pages`
-- `draft-cli`: browser-backed or legacy operational path
+- `draft-cli`: browser-backed compatibility path and browser retarget operations
 - `draft-cli-dev`: repo-local Draft CLI development lane with isolated port defaults
 - `draft-review-loop`: local-file review collaboration loop
 - Source of truth in `draft-review-loop`: local workspace markdown

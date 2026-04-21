@@ -49,7 +49,7 @@ What the wrapper does:
 
 ## Connection-First Workflow
 
-For live browser-backed or workspace commands, follow this sequence through the wrapper:
+For repo-local CLI development, start from status and then choose the runtime that matches the lane you are testing:
 
 ```bash
 skills/draft-cli-dev/scripts/run-local-draft.sh status --json
@@ -59,11 +59,17 @@ skills/draft-cli-dev/scripts/run-local-draft.sh status --json
 
 If status reports `DAEMON_OFFLINE`, start the daemon on the dev port.
 
+- default/current CLI lane: `skills/draft-cli-dev/scripts/run-local-draft.sh start-server`
+- explicit workspace lane: `skills/draft-cli-dev/scripts/run-local-draft.sh start-server --mode workspace --workspace "$PWD"`
+- legacy browser-backed compatibility lane: `skills/draft-cli-dev/scripts/run-local-draft.sh start-server --runtime v1_DEPRECATED`
+
 If status reports `BROWSER_NOT_CONNECTED`, run:
 
 ```bash
 skills/draft-cli-dev/scripts/run-local-draft.sh daemon
 ```
+
+Treat `daemon` as the browser pair/retarget command, not as the general startup path.
 
 Proceed only once `status --json` reports `READY` for the dev port.
 
@@ -79,6 +85,12 @@ Start local mode:
 
 ```bash
 skills/draft-cli-dev/scripts/run-local-draft.sh start-server
+```
+
+Start legacy browser-backed compatibility mode:
+
+```bash
+skills/draft-cli-dev/scripts/run-local-draft.sh start-server --runtime v1_DEPRECATED
 ```
 
 Start workspace mode:
@@ -116,6 +128,7 @@ This prevents the most common development conflict on a shared Mac where the dev
 
 - If the local CLI build is missing or stale, let the wrapper rebuild it.
 - If the dev daemon is offline, start it through the wrapper instead of using the global `draft`.
+- If the test case explicitly needs browser-backed behavior, start it with `--runtime v1_DEPRECATED`.
 - If the wrong daemon is active, stop the dev daemon through the wrapper and restart it on the dev port.
 - If another workflow is already using `31414`, either stop that conflicting process or rerun with an explicit `--port`.
 

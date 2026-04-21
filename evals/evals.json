@@ -5,13 +5,13 @@
             "id": 1,
             "name": "list-and-cat-with-connection-check",
             "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
-            "expected_output": "Agent starts with draft status --json, uses draft start-server for daemon lifecycle recovery when offline, uses draft daemon only for browser pairing/retarget when needed, confirms READY via draft status --json, then uses draft page ls --json and draft page cat <id> to return the page in markdown for review.",
+            "expected_output": "Agent starts with draft status --json, treats draft start-server as the default headless v2 recovery when offline, uses draft daemon only for browser pairing/retarget when a browser-backed session is actually needed, confirms READY via draft status --json, then uses draft page ls --json and draft page cat <id> to return the page in markdown for review.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent treats draft status --json as the authoritative readiness check",
                 "Agent runs draft start-server only when status indicates the daemon is offline",
-                "Agent runs draft daemon when status indicates the browser is not connected",
+                "Agent treats draft daemon as a browser pair/retarget command rather than a general startup command",
                 "Agent uses draft stop-server plus draft start-server when a lifecycle reset is required",
                 "Agent lists pages with draft page ls --json",
                 "Agent reads a specific page with draft page cat <id> for markdown review",
@@ -22,13 +22,13 @@
             "id": 5,
             "name": "diagnose-browser-missing-before-retry",
             "prompt": "My Draft command failed because the browser session seems missing. Diagnose the problem before retrying and tell me the right next command. Do not just retry the original command blindly.",
-            "expected_output": "Agent runs draft status --json first, identifies the explicit state, and recommends draft daemon only when the daemon is running but the browser is not connected; otherwise it recommends state-specific recovery.",
+            "expected_output": "Agent runs draft status --json first, identifies the explicit state, and recommends draft daemon only when the daemon is running but the browser is not connected and the workflow actually needs a browser-backed session; otherwise it recommends state-specific recovery.",
             "files": [],
             "expectations": [
                 "Agent starts by running draft status --json",
                 "Agent treats draft status as the authoritative diagnosis step",
                 "Agent does not retry the failed live command before checking status",
-                "Agent uses draft daemon when the status indicates browser-not-connected"
+                "Agent uses draft daemon only when the status indicates browser-not-connected and a browser-backed workflow is in scope"
             ]
         },
         {
