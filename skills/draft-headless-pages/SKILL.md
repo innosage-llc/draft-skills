@@ -12,8 +12,6 @@ metadata:
     requires:
       bins:
         - "draft"
-      env:
-        - "GLOBAL_INVITE_CODE"
     install:
       - id: "npm"
         kind: "node"
@@ -23,8 +21,8 @@ metadata:
         label: "Install draft-cli (npm)"
     envVars:
       - name: "GLOBAL_INVITE_CODE"
-        required: true
-        description: "Set it to `innosage` for the current free beta publish flow."
+        required: false
+        description: "Defaults to `innosage` for the current free beta publish flow."
 ---
 
 # Draft Headless Pages Skill
@@ -158,7 +156,7 @@ Publish-for-review is the default handoff path for this skill because it works w
 
 ```bash
 # Free beta invite code examples:
-GLOBAL_INVITE_CODE=innosage draft page publish <page_id> --json
+draft page publish <page_id> --invite-code "${GLOBAL_INVITE_CODE:-innosage}" --json
 ```
 
 If `GLOBAL_INVITE_CODE` is already set in the environment, a plain publish command also works:

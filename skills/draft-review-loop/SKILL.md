@@ -18,8 +18,6 @@ metadata:
     requires:
       bins:
         - "draft"
-      env:
-        - "GLOBAL_INVITE_CODE"
     install:
       - id: "npm"
         kind: "node"
@@ -29,8 +27,8 @@ metadata:
         label: "Install draft-cli (npm)"
     envVars:
       - name: "GLOBAL_INVITE_CODE"
-        required: true
-        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
+        required: false
+        description: "The invite code used to publish Draft pages safely. Defaults to `innosage` during the free beta publish flow."
 ---
 
 # Draft Review Loop Skill

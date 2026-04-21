@@ -13,8 +13,6 @@ metadata:
     requires:
       bins:
         - "draft"
-      env:
-        - "GLOBAL_INVITE_CODE"
     install:
       - id: "npm"
         kind: "node"
@@ -24,8 +22,8 @@ metadata:
         label: "Install draft-cli (npm)"
     envVars:
       - name: "GLOBAL_INVITE_CODE"
-        required: true
-        description: "The invite code required to publish Draft pages safely. It can be used for free during the beta test."
+        required: false
+        description: "The invite code used to publish Draft pages safely. Defaults to `innosage` during the free beta publish flow."
 ---
 
 # Draft CLI Skill
@@ -282,12 +280,11 @@ To publish a page to the web:
 
 ```bash
 # This will make the page publicly accessible via a unique URL.
-# NOTE: For free beta testing, you MUST provide an invite code.
-# You can use the --invite-code flag (RECOMMENDED):
-draft page publish <id> --invite-code innosage
+# Free beta publish flow defaults to `innosage` when no invite code is provided.
+draft page publish <id> --invite-code "${GLOBAL_INVITE_CODE:-innosage}"
 
-# OR set the environment variable:
-# GLOBAL_INVITE_CODE=innosage draft page publish <id>
+# If you want to spell out the free beta code directly, this is equivalent:
+draft page publish <id> --invite-code innosage
 ```
 
 To append content to the END of a page. You can pass the content as a string, but for multiline Markdown, it is usually safer and much more robust to pipe it via `stdin`:
