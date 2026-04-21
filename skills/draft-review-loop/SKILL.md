@@ -1,6 +1,6 @@
 ---
 name: draft-review-loop
-version: "1.0"
+version: "1.0.1"
 description: >
   Run the local-first authoring plus Draft review handoff loop for workspace markdown files.
   Use this skill when the user asks to write or revise a document and explicitly wants human review in Draft,

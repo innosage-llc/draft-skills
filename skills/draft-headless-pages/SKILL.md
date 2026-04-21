@@ -1,6 +1,6 @@
 ---
 name: draft-headless-pages
-version: "1.0.2"
+version: "1.0.3"
 description: >
   Headless Draft page automation for remote agents, Docker, CI, and Linux environments.
   Use this as the default Draft skill for OpenClaw-style isolated runtimes where the agent does not share a browser session with the user.
