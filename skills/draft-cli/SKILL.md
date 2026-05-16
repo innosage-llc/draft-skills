@@ -98,9 +98,12 @@ Use `draft secret open` for Secret Share reads:
 
 ```bash
 # Password-protected Secret Share URL
-draft secret open '<secret_url_or_id>' --password '<reader_password>'
+draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>'
 
 # Agent-friendly structured output
+draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>' --json
+
+# Optional environment fallback when the runtime already provides the secret
 draft secret open '<secret_url_or_id>' --password "$DRAFT_SECRET_PASSWORD" --json
 
 # Passwordless Secret Share URL that already includes ?key=<fragment_key>
@@ -120,7 +123,7 @@ Rules for agents:
 - Do **not** try `draft page cat <secret_id>`; Secret Share IDs are not live page IDs and will produce misleading `PAGE_NOT_FOUND` recovery paths.
 - Do **not** use `draft secret cat`; the published command is `draft secret open`.
 - Prefer `--json` when you need metadata such as `secret_id`, `page_id`, `title`, `burn_after_read`, `consumed`, and `markdown`.
-- For password-protected shares, pass `--password <reader_password>` or set `DRAFT_SECRET_PASSWORD`; the reader password is used only for local decryption and is not sent to the Worker.
+- For password-protected shares, pass the password the user provided in the private message via `--password <reader_password_from_private_message>`. Use `DRAFT_SECRET_PASSWORD` only when the runtime already provides that environment variable. The reader password is used only for local decryption and is not sent to the Worker.
 - For passwordless shares, keep the full URL with `?key=<fragment_key>` when available, or pass `--key <fragment_key>` with the secret ID.
 
 Version recovery:

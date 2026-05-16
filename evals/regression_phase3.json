@@ -841,7 +841,7 @@
       "title": "Secret Share contract: hosted encrypted reads use draft secret open",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The reader password is in DRAFT_SECRET_PASSWORD.",
+      "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The password is 1234.",
       "assertions": [
         {
           "type": "trigger_decision",
@@ -856,7 +856,7 @@
           "target": "skill",
           "tokens": [
             "## Secret Share Retrieval",
-            "draft secret open '<secret_url_or_id>' --password \"$DRAFT_SECRET_PASSWORD\" --json",
+            "draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>' --json",
             "Do **not** run `draft start-server` or `draft daemon` for Secret Share reads.",
             "Do **not** use `draft secret cat`; the published command is `draft secret open`.",
             "npm install -g @innosage/draft-cli@latest"
@@ -867,7 +867,7 @@
           "target": "eval:secret-share-open-hosted-read:expected_output",
           "sequence": [
             "skips draft status/start-server/daemon/page ls/page cat",
-            "draft secret open '<secret_url_or_id>' --password \"$DRAFT_SECRET_PASSWORD\" --json",
+            "draft secret open 'https://draft.innosage.co/#/secret/secret-123' --password '1234' --json",
             "updates @innosage/draft-cli to latest"
           ]
         }
