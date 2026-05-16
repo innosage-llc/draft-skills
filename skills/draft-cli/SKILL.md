@@ -1,13 +1,14 @@
 ---
 name: draft-cli
-version: "1.6.0"
+version: "1.6.1"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
-  This is the canonical Draft operational skill and the main public mental model for `draft` and `draft page ...`.
-  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, or review comments on a Draft page/doc, or asks about the Draft CLI itself.
+  This is the canonical Draft operational skill and the main public mental model for `draft`, `draft page ...`, and hosted read helpers such as `draft secret open`.
+  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, review comments on a Draft page/doc, open a Draft Secret Share link, or asks about the Draft CLI itself.
   This connects to the Draft PWA via a local daemon to read or modify living documents.
+  Hosted read commands such as `draft secret open` and `draft public-comments ...` read via HTTP/local crypto and do not require the local daemon.
   DO NOT use this skill when "draft" is just a verb or when the request is about local markdown/text files rather than the actual InnoSage Draft app or CLI.
-  When triggered, ALWAYS follow the "Connection First" operational pattern: check status before any other command, and start the background server if it is not running.
+  When triggered for live page/workspace commands, follow the "Connection First" operational pattern: check status before those commands, and start the background server if it is not running.
 metadata:
   clawdis:
     emoji: "📝"
@@ -38,6 +39,7 @@ This skill requires specific permissions to interact with the Draft PWA and your
 | Scope | Capability | Rationale |
 | :--- | :--- | :--- |
 | **Network** | `https://draft.innosage.co` | Required for the daemon to communicate with the Draft PWA. |
+| **Network** | `https://api.draft.innosage.co` | Required for hosted reads such as Secret Share records and public comments. |
 | **Processes** | `draft` binary | Used to manage the local daemon and execute operational commands. |
 
 ## Setup and Connection
@@ -51,6 +53,7 @@ Non-trigger reminder:
 
 Exception:
 - `draft public-comments ...` is a hosted read path and does **not** require the local daemon, browser pairing, or a `draft status` handshake.
+- `draft secret open ...` is a hosted read path that fetches an encrypted Secret Share record and decrypts locally. It does **not** require the local daemon, browser pairing, or a `draft status` handshake.
 - This skill is the default operational surface for `draft` and `draft page ...`.
 - Use `draft-review-loop` for local-first review workflows where workspace markdown remains the source of truth.
 
@@ -86,6 +89,52 @@ draft status --json
 > `draft start-server` now defaults to headless `v2`, which is the current Draft runtime SSOT.
 > This skill is the canonical page-domain Draft skill.
 > `draft daemon` is not a general lifecycle command anymore; treat it as the browser pair/retarget command when status shows no browser or when you need to retarget the connected tab.
+
+## Secret Share Retrieval
+
+Secret Share links are hosted encrypted snapshots, not live workspace pages. A URL containing `/#/secret/<secret_id>` must be handled with `draft secret open`, not `draft page cat`, `draft page ls`, or browser automation.
+
+Use `draft secret open` for Secret Share reads:
+
+```bash
+# Password-protected Secret Share URL
+draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>'
+
+# Agent-friendly structured output
+draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>' --json
+
+# Optional environment fallback when the runtime already provides the secret
+draft secret open '<secret_url_or_id>' --password "$DRAFT_SECRET_PASSWORD" --json
+
+# Passwordless Secret Share URL that already includes ?key=<fragment_key>
+draft secret open '<secret_url_with_key>'
+
+# Passwordless Secret Share by ID plus explicit fragment key
+draft secret open <secret_id> --key <fragment_key>
+
+# Inspect command availability
+draft secret open --help
+```
+
+Rules for agents:
+
+- Do **not** start with `draft status` for `draft secret open`.
+- Do **not** run `draft start-server` or `draft daemon` for Secret Share reads.
+- Do **not** try `draft page cat <secret_id>`; Secret Share IDs are not live page IDs and will produce misleading `PAGE_NOT_FOUND` recovery paths.
+- Do **not** use `draft secret cat`; the published command is `draft secret open`.
+- Prefer `--json` when you need metadata such as `secret_id`, `page_id`, `title`, `burn_after_read`, `consumed`, and `markdown`.
+- For password-protected shares, pass the password the user provided in the private message via `--password <reader_password_from_private_message>`. Use `DRAFT_SECRET_PASSWORD` only when the runtime already provides that environment variable. The reader password is used only for local decryption and is not sent to the Worker.
+- For passwordless shares, keep the full URL with `?key=<fragment_key>` when available, or pass `--key <fragment_key>` with the secret ID.
+
+Version recovery:
+
+```bash
+draft --version
+npm install -g @innosage/draft-cli@latest
+draft secret open --help
+```
+
+`draft secret open` is available in `@innosage/draft-cli` 0.11.27 and later. If an older installed CLI does not expose this command, update the CLI before falling back to browser automation. Browser automation is only a fallback when the native command is unavailable after update, the CLI cannot run in the environment, or the user needs visual-only rendering that the CLI output cannot provide.
 
 ## Public Comment Retrieval
 
@@ -142,6 +191,7 @@ draft page append <id> "More content" --json
 draft page replace <id> --heading "Status" --json
 draft page patch <id> --json
 draft page publish <id> --json
+draft secret open '<secret_url_or_id>' --password "$DRAFT_SECRET_PASSWORD" --json
 ```
 
 Use `draft page cat <id>` when you want the page content in plain markdown for human review. Use `draft page cat <id> --format json` only when you need the raw structured document data for parsing or automation. Use `draft page cat <id> --json` when you want a small structured envelope with page metadata plus content.
@@ -151,6 +201,7 @@ Prefer the JSON workflow for branching and retries:
 - Use `state`, `server_running`, `browser_connected`, and `read_write_ready` from `draft status --json` to decide what to do next.
 - Use JSON mutation responses to capture created page IDs and publish URLs without scraping terminal prose.
 - Keep human-readable commands for manual inspection or when the user explicitly wants prose output.
+- Keep hosted reads (`draft secret open` and `draft public-comments ...`) out of live-page connection recovery; their failures are HTTP, credential, expiration, or decryption problems, not daemon readiness problems.
 
 ### Troubleshooting
 

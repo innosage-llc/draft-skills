@@ -837,6 +837,67 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-secret-share-open-hosted-read-contract",
+      "title": "Secret Share contract: hosted encrypted reads use draft secret open",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The password is 1234.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:secret-share-open-hosted-read"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "## Secret Share Retrieval",
+            "draft secret open '<secret_url_or_id>' --password '<reader_password_from_private_message>' --json",
+            "Do **not** run `draft start-server` or `draft daemon` for Secret Share reads.",
+            "Do **not** use `draft secret cat`; the published command is `draft secret open`.",
+            "npm install -g @innosage/draft-cli@latest"
+          ]
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:secret-share-open-hosted-read:expected_output",
+          "sequence": [
+            "skips draft status/start-server/daemon/page ls/page cat",
+            "draft secret open 'https://draft.innosage.co/#/secret/secret-123' --password '1234' --json",
+            "updates @innosage/draft-cli to latest"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["secret-share", "hosted-read", "agent-native"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-secret-share-passwordless-key-contract",
+      "title": "Secret Share contract: passwordless links use URL fragment key or --key",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read a passwordless Draft Secret Share URL that already has ?key= in the link.",
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft secret open '<secret_url_with_key>'",
+            "draft secret open <secret_id> --key <fragment_key>",
+            "For passwordless shares, keep the full URL with `?key=<fragment_key>` when available"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["secret-share", "passwordless", "hosted-read"],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-tc20-page-annotate-verify-contract",
       "title": "TC20 contract: page annotation is verified through page comment discovery commands",
       "scenario_class": "hard-pass",

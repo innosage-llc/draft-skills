@@ -219,6 +219,21 @@
                 "Agent uses draft open <path> --json for handoff into Draft",
                 "Agent avoids implying fully headless live collaboration"
             ]
+        },
+        {
+            "id": 17,
+            "name": "secret-share-open-hosted-read",
+            "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The password is 1234.",
+            "expected_output": "Agent recognizes /#/secret/<secret_id> as a hosted encrypted Secret Share read, skips draft status/start-server/daemon/page ls/page cat, and runs draft secret open 'https://draft.innosage.co/#/secret/secret-123' --password '1234' --json. If draft secret open is unavailable, the agent updates @innosage/draft-cli to latest before using browser automation as a last resort.",
+            "files": [],
+            "expectations": [
+                "Agent uses draft secret open <secret-url-or-id> for Secret Share URLs",
+                "Agent passes the reader password from the private message with --password",
+                "Agent does not run draft status before hosted Secret Share reads",
+                "Agent does not use draft page cat or draft page ls for /#/secret/<id> URLs",
+                "Agent does not use draft secret cat because the published command is draft secret open",
+                "Agent updates @innosage/draft-cli@latest if draft secret open is unavailable"
+            ]
         }
     ]
 }
