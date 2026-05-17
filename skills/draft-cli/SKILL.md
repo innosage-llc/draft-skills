@@ -1,10 +1,10 @@
 ---
 name: draft-cli
-version: "1.6.2"
+version: "1.6.3"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
   This is the canonical Draft operational skill for `draft`, `draft page ...`, Secret Share, public comments, and Draft CLI auth.
-  Use this skill whenever the user asks to read, create, list, patch, append, publish, review comments on a Draft page/doc, open or create a Draft Secret Share, configure Draft CLI auth, or asks about the Draft CLI itself.
+  Use this skill when the user asks to read, create, list, patch, append, publish, review comments on a Draft page/doc, open or create a Draft Secret Share, configure Draft CLI auth, or asks about the Draft CLI itself.
   Live page/workspace commands connect to the Draft PWA through a local daemon.
   Hosted commands such as `draft secret open`, `draft secret create`, `draft auth ...`, and `draft public-comments ...` do not require the local daemon.
   DO NOT use this skill when "draft" is just a verb or when the request is about local markdown/text files rather than the actual InnoSage Draft app or CLI.
@@ -41,6 +41,18 @@ This skill requires specific permissions to interact with the Draft PWA and your
 | **Network** | `https://draft.innosage.co` | Required for the daemon to communicate with the Draft PWA. |
 | **Network** | `https://api.draft.innosage.co` | Required for hosted reads such as Secret Share records and public comments. |
 | **Processes** | `draft` binary | Used to manage the local daemon and execute operational commands. |
+
+## Write/Share Action Guardrail
+
+Draft write and share operations are intentional capabilities of this skill, but they require clear user intent.
+
+Before running `draft page create`, `draft page append`, `draft page replace`, `draft page patch`, `draft page publish`, `draft page annotate`, `draft secret create`, or workspace mutation commands:
+
+- Confirm the user requested that specific write/share action, not just a general Draft-related task.
+- Identify the target page, file, workspace target, or Markdown input before mutating anything.
+- Do not infer a publish/share action from a vague request to "prepare", "review", "open", or "read" content.
+- Review public or shareable outputs before approving or returning them, including published page URLs and Secret Share URLs.
+- If the target or action is ambiguous, ask a concise clarification question before modifying or exposing Draft content.
 
 ## Setup and Connection
 
