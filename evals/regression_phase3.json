@@ -898,6 +898,86 @@
       "source": "phase3-regression-corpus"
     },
     {
+      "id": "phase3-secret-share-create-hosted-write-contract",
+      "title": "Secret Share contract: hosted encrypted writes use draft secret create",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Create a Draft Secret Share from docs/brief.md that expires in 1 hour and return the share URL.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:secret-share-create-hosted-write"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "## Secret Share Creation",
+            "draft secret create --file ./brief.md --password \"<reader-password>\" --expires 1h --json",
+            "Do **not** run `draft start-server` or `draft daemon` for Secret Share creation/auth.",
+            "`DRAFT_SECRET_SHARE_API_KEY` is preferred for Secret Share automation.",
+            "Treat the returned `secret_url` as sensitive"
+          ]
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:secret-share-create-hosted-write:expected_output",
+          "sequence": [
+            "skips draft status/start-server/daemon",
+            "draft auth set-key",
+            "draft secret create --file docs/brief.md --expires 1h --json",
+            "treats the returned secret_url as sensitive"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["secret-share", "hosted-write", "auth", "agent-native"],
+      "source": "phase3-regression-corpus"
+    },
+    {
+      "id": "phase3-secret-share-auth-key-contract",
+      "title": "Secret Share contract: auth key setup uses draft auth",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Create Draft CLI auth configuration for my Secret Share API key and confirm it is set.",
+      "assertions": [
+        {
+          "type": "trigger_decision",
+          "expected": "activate"
+        },
+        {
+          "type": "artifact_exists",
+          "path": "eval:secret-share-auth-key-setup"
+        },
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft auth set-key \"<secret-share-api-key>\"",
+            "draft auth status --json",
+            "`draft auth ...` configures or inspects local Secret Share API key state.",
+            "Do **not** run `draft start-server` or `draft daemon` for Secret Share creation/auth."
+          ]
+        },
+        {
+          "type": "command_sequence",
+          "target": "eval:secret-share-auth-key-setup:expected_output",
+          "sequence": [
+            "draft auth set-key <secret-share-api-key>",
+            "draft auth status --json",
+            "without starting the Draft daemon or pairing a browser"
+          ]
+        }
+      ],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "tags": ["secret-share", "auth", "hosted-write"],
+      "source": "phase3-regression-corpus"
+    },
+    {
       "id": "phase3-tc20-page-annotate-verify-contract",
       "title": "TC20 contract: page annotation is verified through page comment discovery commands",
       "scenario_class": "hard-pass",

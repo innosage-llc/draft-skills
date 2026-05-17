@@ -1,12 +1,12 @@
 ---
 name: draft-cli
-version: "1.6.1"
+version: "1.7.1"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
-  This is the canonical Draft operational skill and the main public mental model for `draft`, `draft page ...`, and hosted read helpers such as `draft secret open`.
-  Use this skill whenever the user explicitly asks to read, create, list, patch, append, publish, review comments on a Draft page/doc, open a Draft Secret Share link, or asks about the Draft CLI itself.
-  This connects to the Draft PWA via a local daemon to read or modify living documents.
-  Hosted read commands such as `draft secret open` and `draft public-comments ...` read via HTTP/local crypto and do not require the local daemon.
+  This is the canonical Draft operational skill for `draft`, `draft page ...`, Secret Share, public comments, and Draft CLI auth.
+  Use this skill when the user asks to read, create, list, patch, append, publish, review comments on a Draft page/doc, open or create a Draft Secret Share, configure Draft CLI auth, or asks about the Draft CLI itself.
+  Live page/workspace commands connect to the Draft PWA through a local daemon.
+  Hosted commands such as `draft secret open`, `draft secret create`, `draft auth ...`, and `draft public-comments ...` do not require the local daemon.
   DO NOT use this skill when "draft" is just a verb or when the request is about local markdown/text files rather than the actual InnoSage Draft app or CLI.
   When triggered for live page/workspace commands, follow the "Connection First" operational pattern: check status before those commands, and start the background server if it is not running.
 metadata:
@@ -42,6 +42,22 @@ This skill requires specific permissions to interact with the Draft PWA and your
 | **Network** | `https://api.draft.innosage.co` | Required for hosted reads such as Secret Share records and public comments. |
 | **Processes** | `draft` binary | Used to manage the local daemon and execute operational commands. |
 
+## Write/Share Action Guardrail
+
+Draft write and share operations are intentional capabilities of this skill. They are denied by default unless the user explicitly requests both the exact action and the target.
+
+Read-only behavior is the safe fallback. If the user's request is ambiguous, inspect/list/read only, then ask a concise clarification question before modifying or exposing Draft content.
+
+Do **not** run any write/share command until the user has explicitly named the action and the target:
+
+- write commands: `draft page create`, `draft page append`, `draft page replace`, `draft page patch`, `draft page annotate`, and workspace mutation commands
+- share commands: `draft page publish` and `draft secret create`
+- target examples: page ID, workspace file path, workspace target, Markdown file, piped Markdown input, or selected anchor text
+
+Never infer a write/share action from requests to "prepare", "review", "open", "read", "inspect", "summarize", "check", "publish later", or "make this ready". Those requests are read-only unless the user separately asks for a concrete mutation or sharing command.
+
+Before returning a public or shareable URL, including a published page URL or Secret Share URL, review the target/output and confirm it is the requested shareable artifact.
+
 ## Setup and Connection
 
 Before running Draft CLI commands, ensure `draft` is available on your PATH (see Install panel).
@@ -54,6 +70,8 @@ Non-trigger reminder:
 Exception:
 - `draft public-comments ...` is a hosted read path and does **not** require the local daemon, browser pairing, or a `draft status` handshake.
 - `draft secret open ...` is a hosted read path that fetches an encrypted Secret Share record and decrypts locally. It does **not** require the local daemon, browser pairing, or a `draft status` handshake.
+- `draft secret create ...` is a hosted write path that encrypts Markdown locally before upload. It does **not** require the local daemon, browser pairing, or a `draft status` handshake.
+- `draft auth ...` configures or inspects local Secret Share API key state. It does **not** require the local daemon, browser pairing, or a `draft status` handshake.
 - This skill is the default operational surface for `draft` and `draft page ...`.
 - Use `draft-review-loop` for local-first review workflows where workspace markdown remains the source of truth.
 
@@ -89,6 +107,71 @@ draft status --json
 > `draft start-server` now defaults to headless `v2`, which is the current Draft runtime SSOT.
 > This skill is the canonical page-domain Draft skill.
 > `draft daemon` is not a general lifecycle command anymore; treat it as the browser pair/retarget command when status shows no browser or when you need to retarget the connected tab.
+
+## Secret Share Creation
+
+Secret Share creation publishes an encrypted Markdown snapshot to the hosted Worker. Encryption happens locally in the CLI before upload; the API key authorizes creation but does not decrypt the resulting share.
+
+Only create a Secret Share when the user explicitly asks to create, share, publish, or generate a Secret Share. If the user's intent is only to read a Secret Share link, use `draft secret open` instead.
+
+Do **not** start with `draft status` for `draft secret create` or `draft auth ...`.
+Do **not** run `draft start-server` or `draft daemon` for Secret Share creation/auth.
+
+Configure the premium Secret Share API key once:
+
+```bash
+draft auth set-key "<secret-share-api-key>"
+draft auth status
+draft auth status --json
+```
+
+For automation or CI, prefer environment variables over storing a key:
+
+```bash
+DRAFT_SECRET_SHARE_API_KEY="<secret-share-api-key>" \
+  draft secret create --file ./brief.md --json
+```
+
+Credential precedence:
+
+- `--api-key <secret-share-api-key>` overrides environment variables and stored credentials.
+- `DRAFT_SECRET_SHARE_API_KEY` is preferred for Secret Share automation.
+- `DRAFT_API_KEY` is accepted for compatibility.
+- A key stored with `draft auth set-key` is used when no flag or environment key is provided.
+
+Create a password-protected share from a Markdown file:
+
+```bash
+draft secret create --file ./brief.md --password "<reader-password>" --expires 1h --json
+```
+
+Create a passwordless share with a fragment key embedded in the returned URL:
+
+```bash
+draft secret create --file ./brief.md --expires 1h --json
+```
+
+Create from piped Markdown when writing temporary content:
+
+```bash
+cat ./brief.md | draft secret create --title "Brief" --expires 1h --json
+```
+
+Optional creation flags:
+
+```bash
+draft secret create --file ./brief.md --burn-after-read --json
+draft secret create --file ./brief.md --expires 5m --json
+draft secret create --file ./brief.md --expires never --json
+```
+
+Rules for agents:
+
+- Treat the returned `secret_url` as sensitive, especially passwordless URLs that include `?key=<fragment_key>`.
+- Share reader passwords out of band. The reader password is used only for local encryption/decryption and is not sent to the Worker.
+- Prefer `--json` so automation can capture `secret_id`, `secret_url`, `expires_at`, `burn_after_read`, and `requires_password`.
+- If creation fails with a missing-key error, ask for or configure the premium Secret Share API key; do not try to fix it with daemon/browser recovery.
+- Do not use `draft page publish` when the user specifically asked for a Secret Share. Published pages and Secret Shares are different sharing models.
 
 ## Secret Share Retrieval
 
