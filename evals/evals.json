@@ -234,6 +234,33 @@
                 "Agent does not use draft secret cat because the published command is draft secret open",
                 "Agent updates @innosage/draft-cli@latest if draft secret open is unavailable"
             ]
+        },
+        {
+            "id": 18,
+            "name": "secret-share-create-hosted-write",
+            "prompt": "Create a Draft Secret Share from docs/brief.md that expires in 1 hour and return the share URL.",
+            "expected_output": "Agent recognizes Secret Share creation as a hosted local-encryption write path, skips draft status/start-server/daemon, ensures a Secret Share API key is available via --api-key, DRAFT_SECRET_SHARE_API_KEY, DRAFT_API_KEY, or draft auth set-key, then runs draft secret create --file docs/brief.md --expires 1h --json and treats the returned secret_url as sensitive.",
+            "files": [],
+            "expectations": [
+                "Agent uses draft secret create --file <path> for Secret Share creation",
+                "Agent does not run draft status before hosted Secret Share creation",
+                "Agent does not run draft start-server or draft daemon for Secret Share creation",
+                "Agent understands credential precedence for --api-key, DRAFT_SECRET_SHARE_API_KEY, DRAFT_API_KEY, and draft auth set-key",
+                "Agent prefers --json and captures secret_url from the response",
+                "Agent treats the returned secret_url as sensitive"
+            ]
+        },
+        {
+            "id": 19,
+            "name": "secret-share-auth-key-setup",
+            "prompt": "Create Draft CLI auth configuration for my Secret Share API key and confirm it is set.",
+            "expected_output": "Agent uses draft auth set-key <secret-share-api-key> followed by draft auth status --json, without starting the Draft daemon or pairing a browser.",
+            "files": [],
+            "expectations": [
+                "Agent uses draft auth set-key <secret-share-api-key>",
+                "Agent verifies with draft auth status --json",
+                "Agent does not require draft status, draft start-server, or draft daemon for auth commands"
+            ]
         }
     ]
 }
