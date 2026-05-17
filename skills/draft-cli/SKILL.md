@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.6.3"
+version: "1.6.4"
 description: >
   Manage and interact with "Draft" pages and documents using the @innosage/draft-cli.
   This is the canonical Draft operational skill for `draft`, `draft page ...`, Secret Share, public comments, and Draft CLI auth.
@@ -44,15 +44,19 @@ This skill requires specific permissions to interact with the Draft PWA and your
 
 ## Write/Share Action Guardrail
 
-Draft write and share operations are intentional capabilities of this skill, but they require clear user intent.
+Draft write and share operations are intentional capabilities of this skill. They are denied by default unless the user explicitly requests both the exact action and the target.
 
-Before running `draft page create`, `draft page append`, `draft page replace`, `draft page patch`, `draft page publish`, `draft page annotate`, `draft secret create`, or workspace mutation commands:
+Read-only behavior is the safe fallback. If the user's request is ambiguous, inspect/list/read only, then ask a concise clarification question before modifying or exposing Draft content.
 
-- Confirm the user requested that specific write/share action, not just a general Draft-related task.
-- Identify the target page, file, workspace target, or Markdown input before mutating anything.
-- Do not infer a publish/share action from a vague request to "prepare", "review", "open", or "read" content.
-- Review public or shareable outputs before approving or returning them, including published page URLs and Secret Share URLs.
-- If the target or action is ambiguous, ask a concise clarification question before modifying or exposing Draft content.
+Do **not** run any write/share command until the user has explicitly named the action and the target:
+
+- write commands: `draft page create`, `draft page append`, `draft page replace`, `draft page patch`, `draft page annotate`, and workspace mutation commands
+- share commands: `draft page publish` and `draft secret create`
+- target examples: page ID, workspace file path, workspace target, Markdown file, piped Markdown input, or selected anchor text
+
+Never infer a write/share action from requests to "prepare", "review", "open", "read", "inspect", "summarize", "check", "publish later", or "make this ready". Those requests are read-only unless the user separately asks for a concrete mutation or sharing command.
+
+Before returning a public or shareable URL, including a published page URL or Secret Share URL, review the target/output and confirm it is the requested shareable artifact.
 
 ## Setup and Connection
 
