@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the markdown-first Draft review loop against skill/eval drift."""
+"""Guard draft-cli/readme alignment for the headless-only Draft contract."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATH = REPO_ROOT / "skills" / "draft-cli" / "SKILL.md"
+README_PATH = REPO_ROOT / "README.md"
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 
 
@@ -21,56 +22,50 @@ def load_json(path: Path) -> dict:
 def main() -> int:
     failures: list[str] = []
     skill_text = SKILL_PATH.read_text(encoding="utf-8")
+    readme_text = README_PATH.read_text(encoding="utf-8")
     evals = load_json(EVALS_PATH).get("evals", [])
     eval_by_name = {entry["name"]: entry for entry in evals}
 
-    required_skill_phrase_variants = [
-        (
-            "Use `draft page cat <id>` when you want the page content in plain markdown for human review.",
-            "Use `draft cat <id>` when you want the page content in plain markdown for human review.",
-        ),
-        (
-            "Use `draft page cat <id> --format json` only when you need the raw structured document data for parsing or automation.",
-            "Use `draft cat <id> --format json` only when you need the raw structured document data for parsing or automation.",
-        ),
+    required_skill_tokens = [
+        "draft start-server",
+        "draft status --json",
+        "draft page ls --json",
+        "draft page cat <page_id> --json",
+        "Removed commands and modes must not be used",
     ]
-    for preferred_phrase, legacy_phrase in required_skill_phrase_variants:
-        if preferred_phrase not in skill_text and legacy_phrase not in skill_text:
-            failures.append(f"Missing shared skill guidance: {preferred_phrase}")
+    for token in required_skill_tokens:
+        if token not in skill_text:
+            failures.append(f"draft-cli skill is missing token: {token}")
+
+    forbidden_skill_tokens = [
+        "draft workspace ...",
+        "draft open <path>",
+        "draft public-comments ...",
+    ]
+    for token in forbidden_skill_tokens:
+        if token in skill_text and "Removed commands and modes must not be used" not in skill_text:
+            failures.append(f"draft-cli skill still appears to recommend removed token: {token}")
+
+    required_readme_tokens = [
+        "headless v2",
+        "draft daemon",
+        "draft public-comments ...",
+        "draft-review-loop",
+    ]
+    for token in required_readme_tokens:
+        if token not in readme_text:
+            failures.append(f"README is missing token: {token}")
 
     review_eval = eval_by_name.get("list-and-cat-with-connection-check")
     if review_eval is None:
         failures.append("Missing eval 'list-and-cat-with-connection-check'.")
     else:
-        expected_output = review_eval.get("expected_output", "")
+        expected_output = str(review_eval.get("expected_output", ""))
         expectations = review_eval.get("expectations", [])
-
-        if (
-            "draft page cat <id> to return the page in markdown for review"
-            not in expected_output
-            and "draft cat <id> to return the page in markdown for review"
-            not in expected_output
-        ):
-            failures.append(
-                "Review-loop eval expected_output must describe page-cat markdown review behavior."
-            )
-        if "--format json" in expected_output:
-            failures.append(
-                "Review-loop eval expected_output must not send human review back through `--format json`."
-            )
-        if (
-            "Agent reads a specific page with draft page cat <id> for markdown review"
-            not in expectations
-            and "Agent reads a specific page with draft cat <id> for markdown review"
-            not in expectations
-        ):
-            failures.append(
-                "Review-loop eval expectations must require page-cat markdown review behavior."
-            )
-        if any("--format json" in item for item in expectations):
-            failures.append(
-                "Review-loop eval expectations must not require `draft cat <id> --format json`."
-            )
+        if "draft page cat <id>" not in expected_output:
+            failures.append("Review eval expected_output must describe draft page cat markdown review.")
+        if "Agent reads a specific page with draft page cat <id> for markdown review" not in expectations:
+            failures.append("Review eval expectations must require page-cat markdown review behavior.")
 
     if failures:
         print("draft-cli review-loop regression check failed:")

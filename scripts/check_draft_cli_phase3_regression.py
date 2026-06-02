@@ -64,7 +64,6 @@ def classify_draft_cli_prompt(prompt: str) -> str:
             "draft cli",
             "draft page",
             "draft doc",
-            "draft workspace",
             "draft",
             "pages",
         )
@@ -94,64 +93,8 @@ def classify_draft_cli_prompt(prompt: str) -> str:
 
 
 def classify_draft_review_loop_prompt(prompt: str) -> str:
-    text = prompt.lower()
-
-    non_trigger_patterns = [
-        r"\bdraft an email\b",
-        r"\bdraft a response\b",
-        r"\bdraft\.md\b",
-        r"\binvestor_update_draft\.md\b",
-    ]
-    if any(re.search(pattern, text) for pattern in non_trigger_patterns):
-        return "decline"
-
-    if "draft" not in text:
-        return "defer"
-
-    pure_command_intent = any(
-        token in text
-        for token in (
-            "how do i run",
-            "what command",
-            "command syntax",
-            "usage of",
-            "just the command",
-        )
-    ) and "review" not in text
-    if pure_command_intent:
-        return "decline"
-
-    workflow_tokens = (
-        "review in draft",
-        "review surface",
-        "open it in draft",
-        "open in draft",
-        "comments on",
-        "review comments",
-        "apply comments",
-        "handoff",
-    )
-    local_first_tokens = (
-        "local",
-        "workspace",
-        "repo",
-        "markdown file",
-        "source of truth",
-        "design doc",
-        "release notes",
-        "proposal",
-        "spec",
-        "revise",
-        "update the file",
-    )
-    has_workflow_token = any(token in text for token in workflow_tokens)
-    has_local_first_token = any(token in text for token in local_first_tokens)
-    if has_workflow_token and has_local_first_token:
-        return "activate"
-    if "review" in text and has_local_first_token:
-        return "activate"
-
-    return "defer"
+    # The workspace-backed review loop is retired.
+    return "decline"
 
 
 def classify_prompt_for_skill(skill_name: str, prompt: str) -> str:

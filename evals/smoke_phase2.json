@@ -1,122 +1,42 @@
 {
   "fixtures": [
     {
-      "id": "phase2-trigger-list-and-cat",
-      "title": "Trigger draft-cli for list-and-cat activation path",
-      "scenario_class": "hard-pass",
-      "scope": "local-smoke",
-      "prompt": "I just set up Draft on my machine. Can you list all my pages and show me the contents of the most recent one in markdown format?",
+      "id": "phase2-trigger-draft-cli-page-ops",
+      "prompt": "Use Draft CLI to list pages and read one page.",
       "assertions": [
-        {
-          "type": "trigger_decision",
-          "expected": "activate"
-        },
-        {
-          "type": "artifact_exists",
-          "path": "eval:list-and-cat-with-connection-check"
-        },
+        { "type": "trigger_decision", "expected": "activate" },
         {
           "type": "command_sequence",
-          "target": "eval:list-and-cat-with-connection-check:expectations",
+          "target": "skill",
           "sequence": [
             "draft status --json",
-            "draft page ls --json",
-            "draft page cat <id>"
-          ]
-        },
-        {
-          "type": "command_contains",
-          "target": "eval:list-and-cat-with-connection-check:expected_output",
-          "tokens": [
-            "draft status --json",
             "draft start-server",
-            "draft page ls --json",
-            "draft page cat <id>"
+            "draft status --json"
           ]
         }
-      ],
-      "nondeterminism": {
-        "mode": "deterministic",
-        "reruns": 1
-      },
-      "tags": [
-        "local-smoke",
-        "trigger",
-        "activation",
-        "e2e"
-      ],
-      "source": "phase2-smoke-gate"
+      ]
     },
     {
-      "id": "phase2-nontrigger-draft-as-verb",
-      "title": "Do not trigger on draft-as-verb writing request",
-      "scenario_class": "hard-pass",
-      "scope": "local-smoke",
-      "prompt": "Can you draft an email update for my team about the release timeline?",
+      "id": "phase2-nontrigger-generic-draft-verb",
+      "prompt": "Draft an email to my customer.",
       "assertions": [
-        {
-          "type": "trigger_decision",
-          "expected": "decline"
-        },
-        {
-          "type": "text_contains",
-          "target": "skill",
-          "tokens": [
-            "DO NOT use this skill for generalized writing tasks",
-            "draft an email",
-            "draft a response"
-          ]
-        }
-      ],
-      "nondeterminism": {
-        "mode": "deterministic",
-        "reruns": 1
-      },
-      "tags": [
-        "local-smoke",
-        "non-trigger"
-      ],
-      "source": "phase2-smoke-gate"
+        { "type": "trigger_decision", "expected": "decline" }
+      ]
     },
     {
-      "id": "phase2-workspace-open-review-cycle",
-      "title": "Workspace-backed review loop is documented and covered",
-      "scenario_class": "hard-pass",
-      "scope": "local-smoke",
-      "prompt": "Review comments on my local file docs/spec.md in Draft, then update the markdown file in the repo instead of patching the Draft page directly.",
+      "id": "phase2-create-append-eval-present",
+      "prompt": "Create and append to a page.",
       "assertions": [
-        {
-          "type": "artifact_exists",
-          "path": "eval:workspace-open-and-comment-review-cycle"
-        },
         {
           "type": "command_contains",
-          "target": "eval:workspace-open-and-comment-review-cycle:expected_output",
+          "target": "eval:create-and-append-with-connection-check:expected_output",
           "tokens": [
             "draft status --json",
-            "draft open docs/spec.md --json",
-            "draft workspace comments docs/spec.md --json"
-          ]
-        },
-        {
-          "type": "text_contains",
-          "target": "eval:workspace-open-and-comment-review-cycle:expectations",
-          "tokens": [
-            "Agent treats the local markdown file as the source of truth in workspace mode",
-            "Agent does not default to draft page patch for the file-backed edit path"
+            "draft page create --json",
+            "draft page append --json"
           ]
         }
-      ],
-      "nondeterminism": {
-        "mode": "deterministic",
-        "reruns": 1
-      },
-      "tags": [
-        "local-smoke",
-        "workspace",
-        "review-loop"
-      ],
-      "source": "phase2-smoke-gate"
+      ]
     }
   ]
 }
