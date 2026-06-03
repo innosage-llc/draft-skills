@@ -41,7 +41,6 @@ def main() -> int:
 
     required_skill_tokens = [
       "This workflow is retired",
-      "no longer supports `draft open` or `draft workspace ...`",
       "edit the local file directly with normal repository tools",
       "use `draft-cli` and the headless `draft page ...` command surface"
     ]

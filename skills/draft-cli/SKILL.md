@@ -4,8 +4,7 @@ version: "1.8.0"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
-  Live page commands use the headless v2 daemon only. Browser-backed relay, `draft daemon`,
-  runtime v1, CLI workspace mode, and `draft public-comments ...` are removed.
+  Live page commands use the headless v2 daemon.
   Do not use this skill when "draft" is only a verb or when the task is a generic local-file
   writing task unrelated to Draft CLI.
 metadata:
@@ -36,7 +35,6 @@ Use `draft` for headless page-domain Draft operations and hosted Secret Share he
 - `draft start-server` starts the only supported live-page runtime: headless v2.
 - `draft status --json` is the readiness check for page commands.
 - `READY` means the headless daemon is running and page read/write commands can proceed.
-- Removed commands and modes must not be used: `draft daemon`, `--runtime v1`, `--runtime v1_DEPRECATED`, `--mode workspace`, `draft open <path>`, `draft workspace ...`, and `draft public-comments ...`.
 
 ## Connection Pattern For Page Commands
 
@@ -51,7 +49,7 @@ draft status --json
 ```
 
 If the first status is already `READY`, proceed directly. If it reports `DAEMON_OFFLINE`, run
-`draft start-server`, then re-check status. Do not try to pair a browser.
+`draft start-server`, then re-check status.
 
 ## Page Commands
 
@@ -120,5 +118,3 @@ already provides it.
 - `PAGE_NOT_FOUND`: run `draft page ls --json` and retry with a valid page ID.
 - `PATCH_MISMATCH`: reread with `draft page cat <page_id>`, regenerate the patch, and retry.
 - Missing Secret Share API key: use `draft auth set-key`, `--api-key`, or `DRAFT_SECRET_SHARE_API_KEY`.
-
-Do not recover any error with `draft daemon` or a browser pairing step.

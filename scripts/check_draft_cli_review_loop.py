@@ -31,20 +31,22 @@ def main() -> int:
         "draft status --json",
         "draft page ls --json",
         "draft page cat <page_id> --json",
-        "Removed commands and modes must not be used",
     ]
     for token in required_skill_tokens:
         if token not in skill_text:
             failures.append(f"draft-cli skill is missing token: {token}")
 
     forbidden_skill_tokens = [
+        "draft daemon",
         "draft workspace ...",
         "draft open <path>",
         "draft public-comments ...",
+        "v1_DEPRECATED",
+        "--mode workspace",
     ]
     for token in forbidden_skill_tokens:
-        if token in skill_text and "Removed commands and modes must not be used" not in skill_text:
-            failures.append(f"draft-cli skill still appears to recommend removed token: {token}")
+        if token in skill_text:
+            failures.append(f"draft-cli skill includes removed command guidance token: {token}")
 
     required_readme_tokens = [
         "headless v2",

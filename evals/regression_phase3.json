@@ -18,22 +18,23 @@
       ]
     },
     {
-      "id": "phase3-removed-command-guidance",
-      "title": "Removed command guidance stays explicit",
+      "id": "phase3-supported-command-guidance",
+      "title": "Supported command guidance stays concise",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Which Draft CLI commands should never be used now?",
-      "tags": ["contract", "removed-surface"],
+      "prompt": "How should I use Draft CLI to create and edit a page?",
+      "tags": ["contract", "headless"],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "assertions": [
         {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "draft daemon",
-            "draft workspace ...",
-            "draft open <path>",
-            "draft public-comments ..."
+            "draft status --json",
+            "draft start-server",
+            "draft page create \"Title\" --json",
+            "draft page append <page_id> \"More content\" --json",
+            "draft page publish <page_id> --json"
           ]
         }
       ]

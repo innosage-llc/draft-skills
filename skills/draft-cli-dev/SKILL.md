@@ -16,7 +16,6 @@ installed global `draft` binary.
 - Prefer the repo-local CLI under `products/notion-editor/cli`.
 - Use development port `31414` by default.
 - The only live-page runtime is headless v2.
-- Do not use `draft daemon`, `--runtime v1_DEPRECATED`, `--mode workspace`, `draft open`, or `draft workspace ...`.
 
 ## Entry Point
 
