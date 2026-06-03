@@ -22,8 +22,6 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATHS = {
     "draft-cli": REPO_ROOT / "skills" / "draft-cli" / "SKILL.md",
-    "draft-headless-pages": REPO_ROOT / "skills" / "draft-headless-pages" / "SKILL.md",
-    "draft-review-loop": REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md",
 }
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 REGRESSION_FIXTURES_PATH = REPO_ROOT / "evals" / "regression_phase3.json"
@@ -64,7 +62,6 @@ def classify_draft_cli_prompt(prompt: str) -> str:
             "draft cli",
             "draft page",
             "draft doc",
-            "draft workspace",
             "draft",
             "pages",
         )
@@ -93,72 +90,9 @@ def classify_draft_cli_prompt(prompt: str) -> str:
     return "defer"
 
 
-def classify_draft_review_loop_prompt(prompt: str) -> str:
-    text = prompt.lower()
-
-    non_trigger_patterns = [
-        r"\bdraft an email\b",
-        r"\bdraft a response\b",
-        r"\bdraft\.md\b",
-        r"\binvestor_update_draft\.md\b",
-    ]
-    if any(re.search(pattern, text) for pattern in non_trigger_patterns):
-        return "decline"
-
-    if "draft" not in text:
-        return "defer"
-
-    pure_command_intent = any(
-        token in text
-        for token in (
-            "how do i run",
-            "what command",
-            "command syntax",
-            "usage of",
-            "just the command",
-        )
-    ) and "review" not in text
-    if pure_command_intent:
-        return "decline"
-
-    workflow_tokens = (
-        "review in draft",
-        "review surface",
-        "open it in draft",
-        "open in draft",
-        "comments on",
-        "review comments",
-        "apply comments",
-        "handoff",
-    )
-    local_first_tokens = (
-        "local",
-        "workspace",
-        "repo",
-        "markdown file",
-        "source of truth",
-        "design doc",
-        "release notes",
-        "proposal",
-        "spec",
-        "revise",
-        "update the file",
-    )
-    has_workflow_token = any(token in text for token in workflow_tokens)
-    has_local_first_token = any(token in text for token in local_first_tokens)
-    if has_workflow_token and has_local_first_token:
-        return "activate"
-    if "review" in text and has_local_first_token:
-        return "activate"
-
-    return "defer"
-
-
 def classify_prompt_for_skill(skill_name: str, prompt: str) -> str:
     if skill_name == "draft-cli":
         return classify_draft_cli_prompt(prompt)
-    if skill_name == "draft-review-loop":
-        return classify_draft_review_loop_prompt(prompt)
     raise ValueError(f"Unsupported skill classifier '{skill_name}'")
 
 

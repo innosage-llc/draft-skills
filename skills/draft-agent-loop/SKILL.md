@@ -6,7 +6,7 @@ description: >
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
   Trigger phrases: "work on this with my oversight", "check with me before you start", "use HITRL for this", "I want to review your plan first", "use draft-agent-loop".
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
-  This skill depends on the canonical draft-cli skill. It assumes headless page workflows under `draft ... --runtime v2`, which fit remote OpenClaw-style isolated environments.
+  This skill depends on the canonical draft-cli skill. It assumes headless page workflows, which fit remote OpenClaw-style isolated environments.
 metadata:
   clawdis:
     emoji: "🔄"
@@ -56,7 +56,7 @@ Do NOT trigger this skill when:
 ## Core Rules
 
 - **Source of Truth**: The "Task Journal" Draft page. All plans, logs, and results live there.
-- **Environment**: Always use headless page mode through `draft ... --runtime v2`.
+- **Environment**: Always use headless page mode through the `draft-cli` startup pattern.
 - **Runtime dependency**: Follow the startup and page-operation rules from `draft-cli`.
 - **Handoff Mode**: **Blocking**. STOP and wait for human approval/sign-off in the chat before proceeding to the next phase.
 - **No Sensitive Data in Logs**: Do NOT include credentials, secrets, tokens, or PII in execution log entries or plan documents. Limit evidence to status indicators and non-sensitive file names.
@@ -73,10 +73,9 @@ draft start-server
 draft status --json
 ```
 
-If `draft status` does not show a healthy `v2` headless session, follow the `draft-cli` recovery pattern:
+If `draft status` does not show a healthy headless session, follow the `draft-cli` recovery pattern:
 - `DAEMON_OFFLINE` → re-run `draft start-server`
-- wrong runtime selected → stop and correct runtime before writing
-- Only proceed once `draft status --json` shows a healthy headless `v2` session
+- Only proceed once `draft status --json` shows a healthy headless session
 
 ## Phase 1: Plan (Proposal & Approval)
 
@@ -171,7 +170,6 @@ If the user provides feedback or requests changes after Phase 3:
 
 ## Non-Goals
 
-- Do NOT use browser-backed v1 or `--mode workspace`.
 - Do NOT skip the plan approval gate.
 - Do NOT execute multiple un-logged steps.
 - Do NOT write to local agent filesystem (no `TASK_LOG.md`, no `knowledge/` writes).

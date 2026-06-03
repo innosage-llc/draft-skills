@@ -39,7 +39,6 @@ def classify_prompt(prompt: str) -> str:
             "draft cli",
             "draft page",
             "draft doc",
-            "draft workspace",
             "pages",
         )
     )
