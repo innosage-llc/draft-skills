@@ -22,8 +22,6 @@ from typing import Any
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SKILL_PATHS = {
     "draft-cli": REPO_ROOT / "skills" / "draft-cli" / "SKILL.md",
-    "draft-headless-pages": REPO_ROOT / "skills" / "draft-headless-pages" / "SKILL.md",
-    "draft-review-loop": REPO_ROOT / "skills" / "draft-review-loop" / "SKILL.md",
 }
 EVALS_PATH = REPO_ROOT / "evals" / "evals.json"
 REGRESSION_FIXTURES_PATH = REPO_ROOT / "evals" / "regression_phase3.json"
@@ -92,16 +90,9 @@ def classify_draft_cli_prompt(prompt: str) -> str:
     return "defer"
 
 
-def classify_draft_review_loop_prompt(prompt: str) -> str:
-    # The workspace-backed review loop is retired.
-    return "decline"
-
-
 def classify_prompt_for_skill(skill_name: str, prompt: str) -> str:
     if skill_name == "draft-cli":
         return classify_draft_cli_prompt(prompt)
-    if skill_name == "draft-review-loop":
-        return classify_draft_review_loop_prompt(prompt)
     raise ValueError(f"Unsupported skill classifier '{skill_name}'")
 
 

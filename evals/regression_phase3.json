@@ -58,22 +58,6 @@
           ]
         }
       ]
-    },
-    {
-      "id": "phase4-review-loop-retired",
-      "title": "draft-review-loop is retired",
-      "scenario_class": "hard-pass",
-      "scope": "regression",
-      "prompt": "Use draft-review-loop to open a local markdown file in Draft.",
-      "tags": ["workflow", "retired"],
-      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
-      "assertions": [
-        {
-          "type": "trigger_decision_for_skill",
-          "skill": "draft-review-loop",
-          "expected": "decline"
-        }
-      ]
     }
   ]
 }

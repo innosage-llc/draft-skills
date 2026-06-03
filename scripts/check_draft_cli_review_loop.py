@@ -52,7 +52,6 @@ def main() -> int:
         "headless v2",
         "draft daemon",
         "draft public-comments ...",
-        "draft-review-loop",
     ]
     for token in required_readme_tokens:
         if token not in readme_text:

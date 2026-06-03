@@ -44,7 +44,4 @@ python3 "$REPO_ROOT/scripts/check_draft_cli_phase2_smoke.py"
 echo "Running draft-cli Phase 3 regression corpus gate..."
 python3 "$REPO_ROOT/scripts/check_draft_cli_phase3_regression.py"
 
-echo "Running draft-review-loop Phase 4 workflow regression gate..."
-python3 "$REPO_ROOT/scripts/check_draft_review_loop_phase4.py"
-
 echo "All local gates passed."

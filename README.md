@@ -40,8 +40,6 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | --- | --- | --- |
 | Draft page reads/writes or Secret Share/auth commands | [draft-cli](skills/draft-cli) | Canonical headless Draft CLI skill. |
 | Working on the repo-local CLI in `products/notion-editor/cli` | [draft-cli-dev](skills/draft-cli-dev) | Uses the repo-local binary on an isolated port. |
-| User explicitly names `draft-headless-pages` | [draft-headless-pages](skills/draft-headless-pages) | Retired alias that redirects to `draft-cli`. |
-| User explicitly names `draft-review-loop` | [draft-review-loop](skills/draft-review-loop) | Retired workflow note; no longer a live command lane. |
 
 ## Skills
 
@@ -50,8 +48,6 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | [draft-cli](skills/draft-cli) | Headless `draft` / `draft page ...` operations plus hosted Secret Share/auth commands. |
 | [draft-agent-loop](skills/draft-agent-loop) | Approval-gated workflow built on top of headless Draft page operations. |
 | [draft-cli-dev](skills/draft-cli-dev) | Repo-local CLI development lane with default port `31414`. |
-| [draft-headless-pages](skills/draft-headless-pages) | Retired alias; use `draft-cli`. |
-| [draft-review-loop](skills/draft-review-loop) | Retired workflow note; local-file review handoff commands were removed from Draft CLI. |
 
 ## Merge Gate
 
@@ -74,4 +70,3 @@ Gate order:
 2. `draft-cli` review-loop regression guard
 3. Phase 2 smoke checks
 4. Phase 3 regression checks
-5. retired `draft-review-loop` Phase 4 checks
