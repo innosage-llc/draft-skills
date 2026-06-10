@@ -3,63 +3,87 @@
   "evals": [
     {
       "id": 1,
-      "name": "list-and-cat-with-connection-check",
-      "prompt": "Check Draft status, list pages, and read one page for review.",
-      "expected_output": "Agent runs draft status --json, restores readiness with draft start-server when offline, then uses draft page ls --json and draft page cat <id> to return the page in markdown for review.",
+      "name": "list-and-cat-with-default-workspace",
+      "prompt": "Use Draft CLI to check the configured workspace, list pages, and read one page for review.",
+      "expected_output": "Agent runs draft workspace status --json and draft workspace path --json, then uses draft --workspace-json <active_workspace_path> page ls --json and draft --workspace-json <active_workspace_path> page cat <id> to return the page in markdown for review from the configured JSON Workspace.",
       "files": [],
       "expectations": [
-        "Agent starts by running draft status --json",
-        "Agent runs draft start-server only when status indicates the daemon is offline",
-        "Agent reads a specific page with draft page cat <id> for markdown review"
+        "Agent starts by running draft workspace status --json",
+        "Agent confirms the configured workspace path before reading pages",
+        "Agent reads a specific page with draft --workspace-json <active_workspace_path> page cat <id> for markdown review"
       ]
     },
     {
       "id": 2,
-      "name": "create-and-append-with-connection-check",
-      "prompt": "Create a new Draft page called 'Sprint 42 Retro' and add three bullet points. Check readiness first.",
-      "expected_output": "Agent runs draft status --json first, restores readiness with draft start-server if needed, creates the page with draft page create --json, captures the page ID from JSON, then appends markdown bullets with draft page append --json.",
+      "name": "list-with-explicit-workspace-override",
+      "prompt": "Use Draft CLI against /tmp/draft-workspace to list pages without changing my default workspace.",
+      "expected_output": "Agent keeps the saved workspace unchanged and runs draft --workspace-json /tmp/draft-workspace page ls --json as the explicit JSON Workspace override.",
       "files": [],
       "expectations": [
-        "Agent starts by running draft status --json",
-        "Agent verifies readiness before mutating",
-        "Agent creates page with draft page create 'Sprint 42 Retro' --json",
-        "Agent appends content using draft page append <id> --json"
+        "Agent uses draft --workspace-json /tmp/draft-workspace page ls --json",
+        "Agent does not require draft start-server for explicit JSON Workspace reads",
+        "Agent does not change the saved workspace path for a one-off read"
       ]
     },
     {
       "id": 3,
-      "name": "secret-share-open-hosted-read",
-      "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The password is 1234.",
-      "expected_output": "Agent recognizes the link as a hosted Secret Share read, skips draft status and draft start-server, and runs draft secret open 'https://draft.innosage.co/#/secret/secret-123' --password '1234' --json.",
+      "name": "set-default-workspace-path-before-write",
+      "prompt": "Set /tmp/draft-workspace as the default Draft workspace, then create a page called 'Sprint 42 Retro' and add three bullet points.",
+      "expected_output": "Agent runs draft workspace set-path /tmp/draft-workspace --json, re-checks with draft workspace status --json, creates the page with draft --workspace-json /tmp/draft-workspace page create 'Sprint 42 Retro' --json, captures the page ID from JSON, then appends markdown bullets with draft --workspace-json /tmp/draft-workspace page append <id> --json.",
       "files": [],
       "expectations": [
-        "Agent uses draft secret open <secret-url-or-id> for Secret Share URLs",
-        "Agent does not run draft status before hosted Secret Share reads",
-        "Agent does not use draft page cat or draft page ls for /#/secret/<id> URLs"
+        "Agent sets the default workspace with draft workspace set-path /tmp/draft-workspace --json",
+        "Agent verifies workspace status before mutating",
+        "Agent creates page with draft --workspace-json /tmp/draft-workspace page create 'Sprint 42 Retro' --json",
+        "Agent appends content using draft --workspace-json /tmp/draft-workspace page append <id> --json"
       ]
     },
     {
       "id": 4,
-      "name": "secret-share-create-hosted-write",
-      "prompt": "Create a Secret Share from docs/brief.md that expires in 1 hour.",
-      "expected_output": "Agent skips draft status and draft start-server, ensures a Secret Share API key is available, then runs draft secret create --file docs/brief.md --expires 1h --json.",
+      "name": "older-cli-fallback-with-workspace-json",
+      "prompt": "My draft CLI says 'unknown command workspace'. Use /tmp/draft-workspace to read pages anyway.",
+      "expected_output": "Agent detects that workspace commands are unavailable, asks for or uses the provided folder, and falls back to draft --workspace-json /tmp/draft-workspace page ls --json instead of treating daemon startup as the primary recovery path.",
       "files": [],
       "expectations": [
-        "Agent does not run draft start-server for Secret Share creation",
+        "Agent treats unknown workspace commands as an older CLI compatibility case",
+        "Agent falls back to draft --workspace-json /tmp/draft-workspace page ls --json",
+        "Agent does not make draft start-server the primary recovery step"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "secret-share-open-hosted-read",
+      "prompt": "Read this Draft Secret Share link: https://draft.innosage.co/#/secret/secret-123. The password is 1234.",
+      "expected_output": "Agent recognizes the link as a hosted Secret Share read, skips workspace and daemon lifecycle commands, and runs draft secret open 'https://draft.innosage.co/#/secret/secret-123' --password '1234' --json.",
+      "files": [],
+      "expectations": [
+        "Agent uses draft secret open <secret-url-or-id> for Secret Share URLs",
+        "Agent does not run draft workspace status --json before hosted Secret Share reads",
+        "Agent does not use draft page cat or draft page ls for /#/secret/<id> URLs"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "secret-share-create-hosted-write",
+      "prompt": "Create a Secret Share from docs/brief.md that expires in 1 hour.",
+      "expected_output": "Agent skips workspace and daemon lifecycle commands, ensures a Secret Share API key is available, then runs draft secret create --file docs/brief.md --expires 1h --json.",
+      "files": [],
+      "expectations": [
+        "Agent does not run draft workspace status --json for Secret Share creation",
         "Agent ensures a Secret Share API key is available",
         "Agent runs draft secret create --file docs/brief.md --expires 1h --json"
       ]
     },
     {
-      "id": 5,
+      "id": 7,
       "name": "auth-set-key-status",
       "prompt": "Configure the Draft Secret Share API key and confirm that it is stored.",
-      "expected_output": "Agent runs draft auth set-key <secret-share-api-key> followed by draft auth status --json without starting the Draft daemon.",
+      "expected_output": "Agent runs draft auth set-key <secret-share-api-key> followed by draft auth status --json without requiring workspace setup or daemon startup.",
       "files": [],
       "expectations": [
         "Agent runs draft auth set-key <secret-share-api-key>",
         "Agent runs draft auth status --json",
-        "Agent does not run draft start-server for auth commands"
+        "Agent does not run draft workspace status --json for auth commands"
       ]
     }
   ]

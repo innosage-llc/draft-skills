@@ -2,16 +2,15 @@
   "fixtures": [
     {
       "id": "phase2-trigger-draft-cli-page-ops",
-      "prompt": "Use Draft CLI to list pages and read one page.",
+      "prompt": "Use Draft CLI to inspect the current workspace, list pages, and read one page.",
       "assertions": [
         { "type": "trigger_decision", "expected": "activate" },
         {
           "type": "command_sequence",
           "target": "skill",
           "sequence": [
-            "draft status --json",
-            "draft start-server",
-            "draft status --json"
+            "draft workspace status --json",
+            "draft workspace path --json"
           ]
         }
       ]
@@ -24,16 +23,31 @@
       ]
     },
     {
-      "id": "phase2-create-append-eval-present",
-      "prompt": "Create and append to a page.",
+      "id": "phase2-default-workspace-write-eval-present",
+      "prompt": "Set the workspace path, then create and append to a page.",
       "assertions": [
         {
           "type": "command_contains",
-          "target": "eval:create-and-append-with-connection-check:expected_output",
+          "target": "eval:set-default-workspace-path-before-write:expected_output",
           "tokens": [
-            "draft status --json",
-            "draft page create --json",
-            "draft page append --json"
+            "draft workspace set-path /tmp/draft-workspace --json",
+            "draft workspace status --json",
+            "draft --workspace-json /tmp/draft-workspace page create 'Sprint 42 Retro' --json",
+            "draft --workspace-json /tmp/draft-workspace page append <id> --json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase2-explicit-workspace-override-eval-present",
+      "prompt": "Read a different workspace without changing the default.",
+      "assertions": [
+        {
+          "type": "command_contains",
+          "target": "eval:list-with-explicit-workspace-override:expected_output",
+          "tokens": [
+            "draft --workspace-json /tmp/draft-workspace page ls --json",
+            "saved workspace unchanged"
           ]
         }
       ]

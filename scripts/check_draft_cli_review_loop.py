@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard draft-cli/readme alignment for the headless-only Draft contract."""
+"""Guard draft-cli/readme alignment for the JSON Workspace-first Draft contract."""
 
 from __future__ import annotations
 
@@ -27,10 +27,11 @@ def main() -> int:
     eval_by_name = {entry["name"]: entry for entry in evals}
 
     required_skill_tokens = [
-        "draft start-server",
-        "draft status --json",
-        "draft page ls --json",
-        "draft page cat <page_id> --json",
+        "draft workspace status --json",
+        "draft workspace path --json",
+        "draft workspace set-path <folder> --json",
+        "draft --workspace-json <folder> page ls --json",
+        "draft --workspace-json <folder> page cat <page_id> --json",
     ]
     for token in required_skill_tokens:
         if token not in skill_text:
@@ -38,7 +39,6 @@ def main() -> int:
 
     forbidden_skill_tokens = [
         "draft daemon",
-        "draft workspace ...",
         "draft open <path>",
         "draft public-comments ...",
         "v1_DEPRECATED",
@@ -49,7 +49,8 @@ def main() -> int:
             failures.append(f"draft-cli skill includes removed command guidance token: {token}")
 
     required_readme_tokens = [
-        "headless v2",
+        "JSON Workspace",
+        "`draft --workspace-json <folder>` remains the explicit override",
         "draft daemon",
         "draft public-comments ...",
     ]
@@ -57,15 +58,17 @@ def main() -> int:
         if token not in readme_text:
             failures.append(f"README is missing token: {token}")
 
-    review_eval = eval_by_name.get("list-and-cat-with-connection-check")
+    review_eval = eval_by_name.get("list-and-cat-with-default-workspace")
     if review_eval is None:
-        failures.append("Missing eval 'list-and-cat-with-connection-check'.")
+        failures.append("Missing eval 'list-and-cat-with-default-workspace'.")
     else:
         expected_output = str(review_eval.get("expected_output", ""))
         expectations = review_eval.get("expectations", [])
-        if "draft page cat <id>" not in expected_output:
-            failures.append("Review eval expected_output must describe draft page cat markdown review.")
-        if "Agent reads a specific page with draft page cat <id> for markdown review" not in expectations:
+        if "draft workspace status --json" not in expected_output:
+            failures.append("Review eval expected_output must describe workspace status checks.")
+        if "draft --workspace-json <active_workspace_path> page cat <id>" not in expected_output:
+            failures.append("Review eval expected_output must describe workspace-anchored draft page cat markdown review.")
+        if "Agent reads a specific page with draft --workspace-json <active_workspace_path> page cat <id> for markdown review" not in expectations:
             failures.append("Review eval expectations must require page-cat markdown review behavior.")
 
     if failures:

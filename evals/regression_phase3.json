@@ -1,47 +1,85 @@
 {
   "fixtures": [
     {
-      "id": "phase3-headless-recovery-sequence",
-      "title": "Headless page operations recover from DAEMON_OFFLINE with start-server only",
+      "id": "phase3-default-workspace-sequence",
+      "title": "Default page operations anchor to workspace metadata first",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "Draft status says DAEMON_OFFLINE. Recover and then list pages.",
-      "tags": ["recovery", "daemon-offline"],
+      "prompt": "Check the configured Draft workspace and then list pages.",
+      "tags": ["workspace", "default-workspace"],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "assertions": [
         { "type": "trigger_decision", "expected": "activate" },
         {
           "type": "text_contains",
           "target": "skill",
-          "tokens": ["draft status --json", "draft start-server", "draft page ls --json"]
+          "tokens": ["draft workspace status --json", "draft workspace path --json", "draft --workspace-json <active_workspace_path> page ls --json"]
         }
       ]
     },
     {
-      "id": "phase3-supported-command-guidance",
-      "title": "Supported command guidance stays concise",
+      "id": "phase3-explicit-workspace-override-guidance",
+      "title": "Explicit workspace override stays documented for one-off reads and writes",
       "scenario_class": "hard-pass",
       "scope": "regression",
-      "prompt": "How should I use Draft CLI to create and edit a page?",
-      "tags": ["contract", "headless"],
+      "prompt": "How should I use Draft CLI with a different JSON Workspace folder for one command?",
+      "tags": ["contract", "workspace-override"],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "assertions": [
         {
           "type": "text_contains",
           "target": "skill",
           "tokens": [
-            "draft status --json",
-            "draft start-server",
-            "draft page create \"Title\" --json",
-            "draft page append <page_id> \"More content\" --json",
-            "draft page publish <page_id> --json"
+            "draft --workspace-json <folder> page ls --json",
+            "draft --workspace-json <folder> page create \"Title\" --json",
+            "draft --workspace-json <folder> page append <page_id> \"More content\" --json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase3-set-workspace-path-guidance",
+      "title": "Setting the default workspace path stays part of the contract",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "How do I make a JSON Workspace folder the default Draft workspace before editing pages?",
+      "tags": ["contract", "workspace-set-path"],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft workspace set-path <folder> --json",
+            "draft workspace status --json",
+            "draft --workspace-json <folder> page create \"Title\" --json"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phase3-older-cli-fallback-guidance",
+      "title": "Older CLI fallback prefers explicit workspace-json over daemon recovery",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "My Draft CLI does not support workspace commands. How should I keep working?",
+      "tags": ["compatibility", "older-cli"],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "draft workspace --help",
+            "draft --workspace-json <folder> page ls --json",
+            "ask for the JSON Workspace folder path or ask them to upgrade the CLI"
           ]
         }
       ]
     },
     {
       "id": "phase3-secret-open-hosted-read",
-      "title": "Secret Share reads skip daemon lifecycle",
+      "title": "Secret Share reads skip workspace and daemon lifecycle",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Read a Draft Secret Share link with a password.",
@@ -52,7 +90,7 @@
           "type": "text_contains",
           "target": "eval:secret-share-open-hosted-read:expected_output",
           "tokens": [
-            "skips draft status",
+            "skips workspace and daemon lifecycle commands",
             "draft secret open",
             "--password '1234' --json"
           ]

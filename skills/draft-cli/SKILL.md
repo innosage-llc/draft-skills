@@ -4,7 +4,7 @@ version: "1.8.0"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
-  Live page commands use the headless v2 daemon.
+  Prefer JSON Workspace page operations anchored by workspace status/path metadata.
   Do not use this skill when "draft" is only a verb or when the task is a generic local-file
   writing task unrelated to Draft CLI.
 metadata:
@@ -28,48 +28,94 @@ metadata:
 
 # Draft CLI Skill
 
-Use `draft` for headless page-domain Draft operations and hosted Secret Share helpers.
+Use `draft` for JSON Workspace page-domain Draft operations and hosted Secret Share helpers.
 
 ## Current Runtime Contract
 
-- `draft start-server` starts the only supported live-page runtime: headless v2.
-- `draft status --json` is the readiness check for page commands.
-- `READY` means the headless daemon is running and page read/write commands can proceed.
+- Prefer the saved JSON Workspace as the default page target.
+- Use workspace metadata commands before page commands so you know which folder and source the CLI is using.
+- Until headless storage is removed, pass the resolved workspace path with `--workspace-json <folder>`
+  for page commands that must operate on JSON Workspace data.
 
-## Connection Pattern For Page Commands
+## Workspace-First Pattern For Page Commands
 
 For page commands such as `draft page ls`, `draft page cat`, `draft page create`,
 `draft page append`, `draft page replace`, `draft page patch`, `draft page annotate`, and
 `draft page publish`:
 
 ```bash
-draft status --json
-draft start-server
-draft status --json
+draft workspace status --json
+draft workspace path --json
 ```
 
-If the first status is already `READY`, proceed directly. If it reports `DAEMON_OFFLINE`, run
-`draft start-server`, then re-check status.
+Use the returned `active_workspace_path` to anchor page commands explicitly:
+
+```bash
+draft --workspace-json <active_workspace_path> page ls --json
+draft --workspace-json <active_workspace_path> page cat <page_id> --json
+```
+
+For an explicit folder override, anchor the command with `--workspace-json`:
+
+```bash
+draft --workspace-json <folder> page ls --json
+draft --workspace-json <folder> page cat <page_id> --json
+```
+
+If the user wants that folder to become the default workspace, set it first:
+
+```bash
+draft workspace set-path <folder> --json
+draft workspace status --json
+```
+
+Use the workspace metadata to confirm whether the CLI is operating on the saved default path or an
+explicit override before you describe results back to the user.
+
+## Version Detection And Older CLI Fallback
+
+Newer CLIs can expose workspace metadata commands such as:
+
+```bash
+draft workspace status --json
+draft workspace path --json
+draft workspace set-path <folder> --json
+```
+
+If those commands are unavailable, detect that once and fall back safely:
+
+```bash
+draft workspace --help
+draft --workspace-json <folder> page ls --json
+```
+
+- If `draft workspace --help` or `draft workspace status --json` fails with an unknown-command
+  style error, assume the CLI is older.
+- On older CLIs, require an explicit folder and run page commands with
+  `draft --workspace-json <folder> ...`.
+- If the user did not provide a folder and the CLI lacks workspace commands, ask for the JSON Workspace folder path or ask them to upgrade the CLI.
 
 ## Page Commands
 
-Prefer explicit `draft page ...` commands:
+Prefer explicit `draft page ...` commands under a JSON Workspace target. In the transition period,
+include `--workspace-json <folder>` so the command cannot accidentally hit legacy headless storage:
 
 ```bash
-draft page ls --json
-draft page cat <page_id> --json
-draft page create "Title" --json
-draft page append <page_id> "More content" --json
-draft page replace <page_id> --heading "Status" "Updated body" --json
-draft page patch <page_id> --json < change.diff
-draft page annotate <page_id> --anchor "exact text" --note "Reviewer note" --json
-draft page comments <page_id> --json
-draft page comment <comment_id> <page_id> --json
-draft page publish <page_id> --json
+draft --workspace-json <folder> page ls --json
+draft --workspace-json <folder> page cat <page_id> --json
+draft --workspace-json <folder> page create "Title" --json
+draft --workspace-json <folder> page append <page_id> "More content" --json
+draft --workspace-json <folder> page replace <page_id> --heading "Status" "Updated body" --json
+draft --workspace-json <folder> page patch <page_id> --json < change.diff
+draft --workspace-json <folder> page annotate <page_id> --anchor "exact text" --note "Reviewer note" --json
+draft --workspace-json <folder> page comments <page_id> --json
+draft --workspace-json <folder> page comment <comment_id> <page_id> --json
+draft --workspace-json <folder> page publish <page_id> --json
 ```
 
-Use `draft page cat <id>` when you want the page content in plain markdown for human review.
-Use `draft page cat <id> --format json` only when you need raw structured document data for parsing or automation.
+Use `draft --workspace-json <folder> page cat <id>` when you want the page content in plain
+markdown for human review. Use `--json` only when you need raw structured document data for parsing
+or automation.
 
 Top-level page aliases can still exist during compatibility windows, but agents should use the
 `draft page ...` namespace.
@@ -79,16 +125,16 @@ Top-level page aliases can still exist during compatibility windows, but agents 
 Read-only behavior is the safe fallback. Do not run write/share commands unless the user explicitly
 asks for the exact action and target.
 
-- write commands: `draft page create`, `draft page append`, `draft page replace`, `draft page patch`, `draft page annotate`
-- share commands: `draft page publish`, `draft secret create`
+- write commands: `draft --workspace-json <folder> page create`, `draft --workspace-json <folder> page append`, `draft --workspace-json <folder> page replace`, `draft --workspace-json <folder> page patch`, `draft --workspace-json <folder> page annotate`
+- share commands: `draft --workspace-json <folder> page publish`, `draft secret create`
 
 Before returning a public or shareable URL, review the command output and confirm it is the requested
 artifact.
 
 ## Secret Share
 
-Secret Share commands are hosted/local-crypto helpers and do not require `draft status` or
-`draft start-server`.
+Secret Share commands are hosted/local-crypto helpers and do not require workspace checks,
+`draft status`, or `draft start-server`.
 
 Configure the API key:
 
@@ -114,7 +160,10 @@ already provides it.
 
 ## Error Handling
 
-- `DAEMON_OFFLINE`: run `draft start-server`, then `draft status --json`.
-- `PAGE_NOT_FOUND`: run `draft page ls --json` and retry with a valid page ID.
-- `PATCH_MISMATCH`: reread with `draft page cat <page_id>`, regenerate the patch, and retry.
+- Unknown `draft workspace ...` command: fall back to `draft --workspace-json <folder> ...` and
+  ask for the folder path when it is missing.
+- Missing configured workspace path: use `draft workspace set-path <folder> --json` when the user
+  wants a default, or use `draft --workspace-json <folder> ...` for a one-off command.
+- `PAGE_NOT_FOUND`: run `draft --workspace-json <folder> page ls --json` and retry with a valid page ID.
+- `PATCH_MISMATCH`: reread with `draft --workspace-json <folder> page cat <page_id>`, regenerate the patch, and retry.
 - Missing Secret Share API key: use `draft auth set-key`, `--api-key`, or `DRAFT_SECRET_SHARE_API_KEY`.
