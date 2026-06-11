@@ -32,6 +32,10 @@ def main() -> int:
         "draft workspace set-path <folder> --json",
         "draft --workspace-json <folder> page ls --json",
         "draft --workspace-json <folder> page cat <page_id> --json",
+        "page body markdown only",
+        "decorated human `page cat` output",
+        "`page cat --json` block output",
+        "`draft page insert-image` returns `local_id`",
     ]
     for token in required_skill_tokens:
         if token not in skill_text:
@@ -70,6 +74,39 @@ def main() -> int:
             failures.append("Review eval expected_output must describe workspace-anchored draft page cat markdown review.")
         if "Agent reads a specific page with draft --workspace-json <active_workspace_path> page cat <id> for markdown review" not in expectations:
             failures.append("Review eval expectations must require page-cat markdown review behavior.")
+
+    patch_eval = eval_by_name.get("patch-json-workspace-body-surface")
+    if patch_eval is None:
+        failures.append("Missing eval 'patch-json-workspace-body-surface'.")
+    else:
+        expected_output = str(patch_eval.get("expected_output", ""))
+        expectations = patch_eval.get("expectations", [])
+        required_patch_tokens = [
+            "extracts only the page body markdown",
+            "does not build a diff from decorated page cat headers",
+            "verifies the patch",
+            "only then runs draft --workspace-json <active_workspace_path> page annotate",
+        ]
+        for token in required_patch_tokens:
+            if token not in expected_output:
+                failures.append(f"Patch eval expected_output is missing token: {token}")
+        if "Agent builds the patch from page body markdown only" not in expectations:
+            failures.append("Patch eval expectations must require body markdown patch generation.")
+
+    image_eval = eval_by_name.get("image-local-id-mutation-flow")
+    if image_eval is None:
+        failures.append("Missing eval 'image-local-id-mutation-flow'.")
+    else:
+        expected_output = str(image_eval.get("expected_output", ""))
+        required_image_tokens = [
+            "captures the returned local_id",
+            "page update-image <id> <local_id>",
+            "page delete-image <id> <local_id>",
+            "image block id as the same identifier",
+        ]
+        for token in required_image_tokens:
+            if token not in expected_output:
+                failures.append(f"Image eval expected_output is missing token: {token}")
 
     if failures:
         print("draft-cli review-loop regression check failed:")
