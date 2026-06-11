@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.8.0"
+version: "1.9.0"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
