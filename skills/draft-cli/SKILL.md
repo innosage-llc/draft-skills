@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.9.0"
+version: "1.9.1"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
@@ -110,12 +110,41 @@ draft --workspace-json <folder> page patch <page_id> --json < change.diff
 draft --workspace-json <folder> page annotate <page_id> --anchor "exact text" --note "Reviewer note" --json
 draft --workspace-json <folder> page comments <page_id> --json
 draft --workspace-json <folder> page comment <comment_id> <page_id> --json
+draft --workspace-json <folder> page insert-image <page_id> ./image.png --json
+draft --workspace-json <folder> page update-image <page_id> <local_id> --width 320 --json
+draft --workspace-json <folder> page delete-image <page_id> <local_id> --json
 draft --workspace-json <folder> page publish <page_id> --json
 ```
 
 Use `draft --workspace-json <folder> page cat <id>` when you want the page content in plain
 markdown for human review. Use `--json` only when you need raw structured document data for parsing
 or automation.
+
+## Patch Contract
+
+`draft page patch` applies unified diffs to the page body markdown only. Do not generate patches
+from decorated human `page cat` output that includes `Title:`, `ID:`, or `---` separator lines, and
+do not generate patches from `page cat --json` block output.
+
+Patch workflow:
+
+```bash
+draft --workspace-json <folder> page cat <page_id>
+# Extract only the body markdown, build a unified diff against that body, then:
+draft --workspace-json <folder> page patch <page_id> --json < change.diff
+draft --workspace-json <folder> page cat <page_id> --json
+```
+
+Verify the patch output or follow-up `page cat` before running downstream commands that depend on
+the edited text, such as `page annotate --anchor "new text"`. If patch returns `PATCH_MISMATCH`,
+reread the current page body markdown, regenerate a fresh diff against that exact body surface, and
+retry.
+
+## Image Mutation Contract
+
+`draft page insert-image` returns `local_id`. Use that returned `local_id` for subsequent
+`update-image` and `delete-image` commands. In `page cat --json` compatibility output, the same
+identifier is exposed as the image block `id`.
 
 Top-level page aliases can still exist during compatibility windows, but agents should use the
 `draft page ...` namespace.
@@ -165,5 +194,6 @@ already provides it.
 - Missing configured workspace path: use `draft workspace set-path <folder> --json` when the user
   wants a default, or use `draft --workspace-json <folder> ...` for a one-off command.
 - `PAGE_NOT_FOUND`: run `draft --workspace-json <folder> page ls --json` and retry with a valid page ID.
-- `PATCH_MISMATCH`: reread with `draft --workspace-json <folder> page cat <page_id>`, regenerate the patch, and retry.
+- `PATCH_MISMATCH`: reread with `draft --workspace-json <folder> page cat <page_id>`, extract the page body markdown only, regenerate the patch against that exact body surface, and retry.
+- `ANCHOR_NOT_FOUND`: reread the current page before annotating; do not annotate text that a failed patch did not create.
 - Missing Secret Share API key: use `draft auth set-key`, `--api-key`, or `DRAFT_SECRET_SHARE_API_KEY`.

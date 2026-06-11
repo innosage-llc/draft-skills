@@ -1,7 +1,7 @@
 {
   "name": "@innosage/draft-skills-local",
   "private": true,
-  "version": "1.5.4",
+  "version": "1.5.5",
   "scripts": {
     "smoke": "python3 ./scripts/check_draft_cli_phase2_smoke.py",
     "regression": "python3 ./scripts/check_draft_cli_phase3_regression.py",
