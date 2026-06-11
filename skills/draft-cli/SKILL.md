@@ -149,6 +149,29 @@ identifier is exposed as the image block `id`.
 Top-level page aliases can still exist during compatibility windows, but agents should use the
 `draft page ...` namespace.
 
+## Public Preview Feedback
+
+Public Draft preview and published URLs expose review feedback through the public page surface, not
+through JSON Workspace page commands. When the task starts from a public preview or published URL,
+fetch the public URL first, inspect its metadata/frontmatter for `comments_api_url`, then fetch
+`comments_api_url` directly and summarize the returned feedback.
+
+This direct public-page feedback read path does not require `draft`, `draft workspace status`,
+`draft status`, a JSON Workspace folder, a daemon, or browser pairing. Do not run
+`draft --workspace-json <folder> page comments <page_id> --json` just because the user supplied a
+public URL.
+
+Example for "read feedback from this public Draft preview URL":
+
+1. Fetch the provided public preview or published URL.
+2. Find `comments_api_url` in the page metadata/frontmatter.
+3. Fetch `comments_api_url` directly.
+4. Summarize returned comment bodies, quotes, thread state, author metadata, and timestamps.
+
+If JSON Workspace comment commands return empty for a page that also has a public preview/published
+URL, do not conclude there is no feedback until you have checked that public URL for
+`comments_api_url`.
+
 ## Write And Share Guardrail
 
 Read-only behavior is the safe fallback. Do not run write/share commands unless the user explicitly

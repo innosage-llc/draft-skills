@@ -157,6 +157,35 @@
           ]
         }
       ]
+    },
+    {
+      "id": "phase3-public-preview-feedback-direct-read",
+      "title": "Public preview feedback reads use comments_api_url directly",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read feedback from this Draft public preview URL.",
+      "tags": ["public-preview", "feedback", "hosted-read"],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "Public Preview Feedback",
+            "comments_api_url",
+            "This direct public-page feedback read path does not require `draft`"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:public-preview-feedback-direct-read:expected_output",
+          "tokens": [
+            "fetches the public preview URL",
+            "comments_api_url directly",
+            "without requiring draft"
+          ]
+        }
+      ]
     }
   ]
 }
