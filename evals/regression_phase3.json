@@ -160,7 +160,7 @@
     },
     {
       "id": "phase3-public-preview-feedback-direct-read",
-      "title": "Public preview feedback reads use comments_api_url directly",
+      "title": "Public preview feedback reads use public metadata endpoints directly",
       "scenario_class": "hard-pass",
       "scope": "regression",
       "prompt": "Read feedback from this Draft public preview URL.",
@@ -173,6 +173,10 @@
           "tokens": [
             "Public Preview Feedback",
             "comments_api_url",
+            "task_toggles_api_url",
+            "source_snapshot_url",
+            "Treat the public preview or published URL as the primary",
+            "Retrieval order for public review reads",
             "This direct public-page feedback read path does not require `draft`"
           ]
         },
@@ -180,8 +184,11 @@
           "type": "text_contains",
           "target": "eval:public-preview-feedback-direct-read:expected_output",
           "tokens": [
-            "fetches the public preview URL",
+            "fetches the public preview URL first",
+            "parses page metadata/frontmatter",
             "comments_api_url directly",
+            "task_toggles_api_url",
+            "source_snapshot_url as a lower-priority structured published-content snapshot",
             "without requiring draft"
           ]
         }

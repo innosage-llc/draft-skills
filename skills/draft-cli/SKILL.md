@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.9.2"
+version: "1.9.3"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
@@ -152,9 +152,10 @@ Top-level page aliases can still exist during compatibility windows, but agents 
 ## Public Preview Feedback
 
 Public Draft preview and published URLs expose review feedback through the public page surface, not
-through JSON Workspace page commands. When the task starts from a public preview or published URL,
-fetch the public URL first, inspect its metadata/frontmatter for `comments_api_url`, then fetch
-`comments_api_url` directly and summarize the returned feedback.
+through JSON Workspace page commands. Treat the public preview or published URL as the primary
+machine-readable entrypoint for public review workflows. When the task starts from a public preview
+or published URL, fetch that public URL first, parse its metadata/frontmatter, then use the
+returned endpoints in priority order.
 
 This direct public-page feedback read path does not require `draft`, `draft workspace status`,
 `draft status`, a JSON Workspace folder, a daemon, or browser pairing. Do not run
@@ -164,13 +165,31 @@ public URL.
 Example for "read feedback from this public Draft preview URL":
 
 1. Fetch the provided public preview or published URL.
-2. Find `comments_api_url` in the page metadata/frontmatter.
-3. Fetch `comments_api_url` directly.
-4. Summarize returned comment bodies, quotes, thread state, author metadata, and timestamps.
+2. Parse metadata/frontmatter and read `comments_api_url` and `task_toggles_api_url` as the P0
+   endpoints.
+3. Fetch `comments_api_url` directly to read human feedback and comments.
+4. Fetch `task_toggles_api_url` directly to read review toggle state and task decisions.
+5. If `source_snapshot_url` is present, treat it as a P1 optional structured published-content
+   snapshot that helps match comments and toggles to the exact published body.
+6. Summarize feedback and decision state, using `source_snapshot_url` only when it helps disambiguate
+   the published content under review.
+
+Retrieval order for public review reads:
+
+1. Fetch public URL.
+2. Parse metadata/frontmatter.
+3. Fetch `comments_api_url`.
+4. Fetch `task_toggles_api_url`.
+5. Optionally fetch `source_snapshot_url`.
+6. Summarize feedback and decision state.
 
 If JSON Workspace comment commands return empty for a page that also has a public preview/published
-URL, do not conclude there is no feedback until you have checked that public URL for
-`comments_api_url`.
+URL, do not conclude there is no feedback or no decisions until you have checked that public URL for
+`comments_api_url` and `task_toggles_api_url`.
+
+CLI comment commands such as `draft --workspace-json <folder> page comments <page_id> --json` are
+primarily for private or local Draft page workflows, live workspace pages, or local page
+annotations. They are not the default public review path for preview or published URLs.
 
 ## Write And Share Guardrail
 
