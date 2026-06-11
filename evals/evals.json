@@ -110,6 +110,22 @@
         "Agent uses local_id for update-image and delete-image",
         "Agent treats page cat --json image block id as the same identifier"
       ]
+    },
+    {
+      "id": 10,
+      "name": "public-preview-feedback-direct-read",
+      "prompt": "Read feedback from this Draft public preview URL: https://draft.innosage.co/preview/page-123.",
+      "expected_output": "Agent fetches the public preview URL first, parses page metadata/frontmatter, reads comments_api_url and task_toggles_api_url as the primary public review endpoints, fetches comments_api_url directly to read human feedback, fetches task_toggles_api_url directly to read review toggle state and task decisions, optionally uses source_snapshot_url as a lower-priority structured published-content snapshot, and summarizes feedback plus decision state without requiring draft, workspace status, a daemon, browser pairing, or draft page comments.",
+      "files": [],
+      "expectations": [
+        "Agent fetches the public preview URL first",
+        "Agent parses public page metadata/frontmatter before calling review endpoints",
+        "Agent extracts comments_api_url and task_toggles_api_url from public page metadata/frontmatter",
+        "Agent fetches comments_api_url directly to read feedback",
+        "Agent fetches task_toggles_api_url directly to read review toggle state and task decisions",
+        "Agent treats source_snapshot_url as optional lower-priority context when present",
+        "Agent does not require draft workspace status or draft page comments for public URL feedback"
+      ]
     }
   ]
 }
