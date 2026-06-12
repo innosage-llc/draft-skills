@@ -131,10 +131,6 @@ draft --workspace-json <folder> page publish <page_id> --json
   discover candidate page IDs or titles, then switch back to `draft --workspace-json <folder> page
   cat <page_id>` for authoritative rendered output.
 
-Use `draft --workspace-json <folder> page cat <id>` when you want the page content in plain
-markdown for human review. Use `--json` only when you need raw structured document data for parsing
-or automation.
-
 ## Patch Contract
 
 `draft page patch` applies unified diffs to the page body markdown only. Do not generate patches
