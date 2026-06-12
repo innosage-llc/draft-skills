@@ -31,7 +31,13 @@ def main() -> int:
         "draft workspace path --json",
         "draft workspace set-path <folder> --json",
         "draft --workspace-json <folder> page ls --json",
+        "draft --workspace-json <folder> page search \"phrase\" --json",
         "draft --workspace-json <folder> page cat <page_id> --json",
+        "Agent-Native Read Guidance",
+        "manual rendering from `pages/*.json`",
+        "raw workspace JSON files as a last resort",
+        "prefer `draft --workspace-json <folder> page search \"phrase\" --json`",
+        "On older CLIs without page search, use `rg` over workspace page files only",
         "page body markdown only",
         "decorated human `page cat` output",
         "`page cat --json` block output",
@@ -74,6 +80,16 @@ def main() -> int:
             failures.append("Review eval expected_output must describe workspace-anchored draft page cat markdown review.")
         if "Agent reads a specific page with draft --workspace-json <active_workspace_path> page cat <id> for markdown review" not in expectations:
             failures.append("Review eval expectations must require page-cat markdown review behavior.")
+        read_tokens = [
+            "preferred agent-native rendered read surface",
+            "page cat --json for structured automation only",
+            "does not fall back to raw workspace JSON unless lower-level recovery or inspection is required",
+        ]
+        for token in read_tokens:
+            if token not in expected_output:
+                failures.append(f"Review eval expected_output is missing token: {token}")
+        if "Agent prefers page cat markdown over raw workspace JSON for rendered page reads" not in expectations:
+            failures.append("Review eval expectations must require page-cat markdown as the preferred rendered read surface.")
 
     patch_eval = eval_by_name.get("patch-json-workspace-body-surface")
     if patch_eval is None:

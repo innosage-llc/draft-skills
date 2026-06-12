@@ -18,6 +18,44 @@
       ]
     },
     {
+      "id": "phase3-agent-native-read-guidance",
+      "title": "Rendered page reads prefer page cat markdown over JSON and raw workspace files",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "What should an agent read first when it needs the rendered content of a Draft page?",
+      "tags": ["contract", "read-surface", "json-workspace"],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "assertions": [
+        {
+          "type": "text_contains",
+          "target": "skill",
+          "tokens": [
+            "Agent-Native Read Guidance",
+            "Prefer `draft --workspace-json <folder> page cat <page_id>`",
+            "preserves links, marks, tables, images, ordered lists, line",
+            "breaks, and custom blocks better than manual rendering from `pages/*.json`.",
+            "Use `draft --workspace-json <folder> page cat <page_id> --json` only when you need",
+            "structured",
+            "block data for parsing or automation.",
+            "It is larger than the markdown read surface.",
+            "raw workspace JSON files as a last resort",
+            "prefer `draft --workspace-json <folder> page search \"phrase\" --json`",
+            "On older CLIs without page search, use `rg` over workspace page files only",
+            "authoritative rendered output"
+          ]
+        },
+        {
+          "type": "text_contains",
+          "target": "eval:list-and-cat-with-default-workspace:expected_output",
+          "tokens": [
+            "preferred agent-native rendered read surface",
+            "page cat --json for structured automation only",
+            "does not fall back to raw workspace JSON unless lower-level recovery or inspection is required"
+          ]
+        }
+      ]
+    },
+    {
       "id": "phase3-explicit-workspace-override-guidance",
       "title": "Explicit workspace override stays documented for one-off reads and writes",
       "scenario_class": "hard-pass",

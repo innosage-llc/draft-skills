@@ -1,6 +1,6 @@
 ---
 name: draft-cli
-version: "1.9.4"
+version: "1.9.5"
 description: >
   Manage InnoSage Draft pages and hosted Secret Shares using the @innosage/draft-cli.
   Use this skill for `draft`, `draft page ...`, `draft secret ...`, and `draft auth ...`.
@@ -102,6 +102,7 @@ include `--workspace-json <folder>` so the command cannot accidentally hit legac
 
 ```bash
 draft --workspace-json <folder> page ls --json
+draft --workspace-json <folder> page search "phrase" --json
 draft --workspace-json <folder> page cat <page_id> --json
 draft --workspace-json <folder> page create "Title" --json
 draft --workspace-json <folder> page append <page_id> "More content" --json
@@ -116,9 +117,19 @@ draft --workspace-json <folder> page delete-image <page_id> <local_id> --json
 draft --workspace-json <folder> page publish <page_id> --json
 ```
 
-Use `draft --workspace-json <folder> page cat <id>` when you want the page content in plain
-markdown for human review. Use `--json` only when you need raw structured document data for parsing
-or automation.
+### Agent-Native Read Guidance
+
+- Prefer `draft --workspace-json <folder> page cat <page_id>` for rendered page reads meant for
+  human review. The markdown surface preserves links, marks, tables, images, ordered lists, line
+  breaks, and custom blocks better than manual rendering from `pages/*.json`.
+- Use `draft --workspace-json <folder> page cat <page_id> --json` only when you need structured
+  block data for parsing or automation. It is larger than the markdown read surface.
+- Treat raw workspace JSON files as a last resort for recovery or low-level inspection, not the
+  default read path.
+- For discovery, prefer `draft --workspace-json <folder> page search "phrase" --json` when the CLI
+  supports it. On older CLIs without page search, use `rg` over workspace page files only to
+  discover candidate page IDs or titles, then switch back to `draft --workspace-json <folder> page
+  cat <page_id>` for authoritative rendered output.
 
 ## Patch Contract
 
