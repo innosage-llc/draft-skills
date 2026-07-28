@@ -3,8 +3,12 @@
   "private": true,
   "version": "1.5.6",
   "scripts": {
+    "prepare": "husky",
     "smoke": "python3 ./scripts/check_draft_cli_phase2_smoke.py",
     "regression": "python3 ./scripts/check_draft_cli_phase3_regression.py",
     "gate": "./scripts/gate"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
   }
 }
