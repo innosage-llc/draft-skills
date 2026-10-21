@@ -3,6 +3,10 @@
 Agent skills for InnoSage Draft.
 
 Current contract:
+- canonical `draft-cli` skill1.10.0 adds saved PNG/JPEG inventory → original local
+  extraction → image-capable runtime viewing; feature-detect `page get-image`.
+  This requires the Product #4022 command build; older npm CLI versions may not
+  include it. A skill update alone does not install/publish a new CLI binary.
 - live page commands prefer the configured JSON Workspace and workspace metadata commands
 - `draft --workspace-json <folder>` remains the explicit override for one-off page operations
 - hosted Secret Share and auth commands stay supported
@@ -51,6 +55,12 @@ git clone https://github.com/innosage-llc/draft-skills.git ~/.opencode/skills/dr
 | [draft-cli-dev](skills/draft-cli-dev) | Repo-local CLI development lane with default port `31414`. |
 
 ## Merge Gate
+
+Image support is distributed through the existing Git/marketplace/manual routes
+above. Check the installed `skills/draft-cli/SKILL.md` version and CLI command
+capability together. Local Codex image viewing has been exercised with isolated
+synthetic PNG/JPEG outputs; this does not claim every model/runtime or ChatGPT Web
+consumes CLI files. No separate inference service is introduced.
 
 Run the local gate before merging:
 
