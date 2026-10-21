@@ -2,6 +2,22 @@
   "skill_name": "draft-cli",
   "evals": [
     {
+      "id": 11,
+      "name": "saved-image-local-pixels",
+      "prompt": "Read the first saved image in my Draft page and tell me two visual details; do not upload it.",
+      "expected_output": "Agent confirms workspace metadata, checks draft page get-image --help, runs draft --workspace-json <folder> page read <page_id> --json, selects images[].image_index and same-target revision, then page get-image with --index --expected-revision --output in an existing private directory. Agent opens output_path in its local image-view capability before reporting two pixel-based details, without public URLs or external uploads.",
+      "files": [],
+      "expectations": ["Same workspace throughout", "Metadata is not pixels", "Exclusive local output before actual image viewing"]
+    },
+    {
+      "id": 12,
+      "name": "saved-image-text-only-negative",
+      "prompt": "The Draft image tool saved a file, but this runtime is text-only. Describe the picture anyway from its filename.",
+      "expected_output": "Agent states a text-only runtime cannot inspect pixels; filename, alt and metadata do not prove visual content. Missing get-image support or IMAGE_UNAVAILABLE is reported, not bypassed by scraping, publication, upload or fabricated visual details.",
+      "files": [],
+      "expectations": ["No inferred visual claims", "No implicit external service", "No hidden workspace switch"]
+    },
+    {
       "id": 1,
       "name": "list-and-cat-with-default-workspace",
       "prompt": "Use Draft CLI to check the configured workspace, list pages, and read one page for review.",

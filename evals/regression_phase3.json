@@ -1,6 +1,20 @@
 {
   "fixtures": [
     {
+      "id": "phase3-saved-image-pixels",
+      "title": "Saved image extraction is workspace-bound and pixels precede visual claims",
+      "scenario_class": "hard-pass",
+      "scope": "regression",
+      "prompt": "Read a saved Draft image and explain what it shows without uploading it.",
+      "tags": ["image", "privacy", "pixels"],
+      "nondeterminism": { "mode": "deterministic", "reruns": 1 },
+      "assertions": [
+        { "type": "text_contains", "target": "skill", "tokens": ["version: \"1.10.0\"", "draft page get-image --help", "page read <page_id> --json", "--index 0 --expected-revision <revision> --output", "images[].image_index", "output_path", "local image-view capability", "text-only", "not vision evidence", "IMAGE_UNAVAILABLE", "INVALID_OUTPUT", "CONFLICT", "No automatic public URL"] },
+        { "type": "text_contains", "target": "eval:saved-image-local-pixels:expected_output", "tokens": ["same-target revision", "opens output_path", "without public URLs or external uploads"] },
+        { "type": "text_contains", "target": "eval:saved-image-text-only-negative:expected_output", "tokens": ["cannot inspect pixels", "not bypassed", "fabricated visual details"] }
+      ]
+    },
+    {
       "id": "phase3-default-workspace-sequence",
       "title": "Default page operations anchor to workspace metadata first",
       "scenario_class": "hard-pass",
