@@ -9,7 +9,7 @@
       "tags": ["image", "privacy", "pixels"],
       "nondeterminism": { "mode": "deterministic", "reruns": 1 },
       "assertions": [
-        { "type": "text_contains", "target": "skill", "tokens": ["version: \"1.10.0\"", "draft page get-image --help", "page read <page_id> --json", "--index 0 --expected-revision <revision> --output", "images[].image_index", "output_path", "local image-view capability", "text-only", "not vision evidence", "IMAGE_UNAVAILABLE", "INVALID_OUTPUT", "CONFLICT", "No automatic public URL"] },
+        { "type": "text_contains", "target": "skill", "tokens": ["version: \"1.10.1\"", "draft page get-image --help", "page read <page_id> --json", "--index 0 --expected-revision <revision> --output", "images[].image_index", "output_path", "local image-view capability", "text-only", "not vision evidence", "IMAGE_UNAVAILABLE", "INVALID_OUTPUT", "CONFLICT", "No automatic public URL"] },
         { "type": "text_contains", "target": "eval:saved-image-local-pixels:expected_output", "tokens": ["same-target revision", "opens output_path", "without public URLs or external uploads"] },
         { "type": "text_contains", "target": "eval:saved-image-text-only-negative:expected_output", "tokens": ["cannot inspect pixels", "not bypassed", "fabricated visual details"] }
       ]
@@ -238,7 +238,7 @@
           "tokens": [
             "fetches the public preview URL first",
             "parses page metadata/frontmatter",
-            "comments_api_url directly",
+            "validates comments_api_url directly",
             "task_toggles_api_url",
             "source_snapshot_url as a lower-priority structured published-content snapshot",
             "without requiring draft"

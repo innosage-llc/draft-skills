@@ -1,6 +1,6 @@
 ---
 name: draft-agent-loop
-version: "1.6.0"
+version: "1.6.1"
 description: >
   Enforce a Human-in-the-Right-Loop (HITRL) lifecycle for remote agents.
   Use this skill when the user wants structured oversight over an agent task: plan approval before execution, evidence-logged execution, and result sign-off before closure.
@@ -8,7 +8,7 @@ description: >
   DO NOT use for tasks where the user simply asks to do something without requesting approval gates. Use draft-cli for raw Draft commands.
   This skill depends on the canonical draft-cli skill. It assumes headless page workflows, which fit remote OpenClaw-style isolated environments.
 metadata:
-  clawdis:
+  openclaw:
     emoji: "🔄"
     dependencies:
       - name: "toliuweijing/draft-cli"
@@ -20,14 +20,11 @@ metadata:
     install:
       - id: "npm"
         kind: "node"
-        package: "@innosage/draft-cli"
+        package: "@innosage/draft-cli@1.0.171"
         bins:
           - "draft"
         label: "Install draft-cli (npm)"
-    envVars:
-      - name: "GLOBAL_INVITE_CODE"
-        required: false
-        description: "The invite code used to publish Draft pages safely. Defaults to `innosage` during the free beta publish flow."
+
 ---
 
 # Draft Agent Loop Skill (HITRL)
@@ -110,7 +107,7 @@ Before executing any code or changes:
 3.  **Confirm Before Publishing**: Before publishing, explicitly confirm with the user: "I am about to publish the Task Journal for external review. Please confirm."
 4.  **Handoff**: On confirmation, publish the page and ask for approval.
     ```bash
-    draft page publish <id> --invite-code "${GLOBAL_INVITE_CODE:-innosage}" --json
+    draft page publish <id> --json
     ```
     **Handoff Phrase**: "I have initialized the Task Journal with the plan and requirements: [URL]. Please review the context and acceptance criteria. Once you are ready for me to proceed, please reply with **APPROVED** or **LGTM** here in the chat."
 
@@ -139,7 +136,7 @@ Once the execution is complete:
 2.  **Confirm Before Publishing**: Explicitly confirm with the user before re-publishing.
 3.  **Handoff**: On confirmation, re-publish the page.
     ```bash
-    draft page publish <id> --invite-code "${GLOBAL_INVITE_CODE:-innosage}" --json
+    draft page publish <id> --json
     ```
     **Handoff Phrase**: "I have completed the task. Please verify the results in the Task Journal: [URL]. If satisfied, reply with **DONE** or **✅** here in the chat."
 
