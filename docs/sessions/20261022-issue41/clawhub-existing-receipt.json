@@ -1,0 +1,110 @@
+{
+  "observed_at_utc": "2026-10-22T12:27:48.055810+00:00",
+  "method": "Read-only documented HTTP GET; no new scan submission/publication",
+  "owner": "toliuweijing",
+  "slug": "draft-cli",
+  "latest": "1.9.5",
+  "version": "1.9.5",
+  "remote_files": [
+    {
+      "path": "SKILL.md",
+      "size": 11178,
+      "sha256": "72fbf588d345c5ae9f116c3e8c440b0e5fee35c45510cb59e81b44411d6bb49b",
+      "contentType": "text/markdown"
+    },
+    {
+      "path": "skill-card.md",
+      "size": 1881,
+      "sha256": "072e412c8b8acd2c9d9457e8998983fcf7d64c799b9ecf434daaca6a806f641b",
+      "contentType": "text/markdown"
+    }
+  ],
+  "downloaded_skill_sha256": "72fbf588d345c5ae9f116c3e8c440b0e5fee35c45510cb59e81b44411d6bb49b",
+  "security": {
+    "status": "suspicious",
+    "hasWarnings": true,
+    "checkedAt": 1789538123727,
+    "model": null,
+    "hasScanResult": true,
+    "sha256hash": "1dc3c9fb164519ed3cbf3782f1ab67e5afe49fd64f5c1a2cd0a15d5b6ed375f0",
+    "virustotalUrl": "https://www.virustotal.com/gui/file/1dc3c9fb164519ed3cbf3782f1ab67e5afe49fd64f5c1a2cd0a15d5b6ed375f0",
+    "scanners": {
+      "vt": {
+        "status": "clean",
+        "verdict": null,
+        "normalizedStatus": "clean",
+        "analysis": null,
+        "source": "engines",
+        "checkedAt": 1781267526210
+      },
+      "skillspector": {
+        "status": "suspicious",
+        "normalizedStatus": "suspicious",
+        "score": 18,
+        "severity": "LOW",
+        "recommendation": "CAUTION",
+        "issueCount": 2,
+        "checkedAt": 1789538123727
+      },
+      "llm": {
+        "status": "suspicious",
+        "verdict": "suspicious",
+        "normalizedStatus": "suspicious",
+        "confidence": "high",
+        "summary": "The skill mostly matches its Draft CLI purpose, but it tells agents to automatically follow URLs from public page metadata without validation, which can expose unintended internal or sensitive resources.",
+        "dimensions": [
+          {
+            "detail": "Local workspace access and Draft network access are proportionate for the skill, but unrestricted metadata-derived outbound requests are broader than needed for public Draft feedback and could use the agent runtime as a network vantage point.",
+            "label": "Credentials",
+            "name": "environment_proportionality",
+            "rating": "concern"
+          },
+          {
+            "detail": "The skill installs the npm executable package @innosage/draft-cli without a pinned version or integrity information, which is common for CLI helper skills but leaves installs dependent on the current registry package.",
+            "label": "Install Mechanism",
+            "name": "install_mechanism",
+            "rating": "note"
+          },
+          {
+            "detail": "Write and share commands are guarded by explicit-user-request language, but public feedback instructions direct automatic retrieval of comments_api_url, task_toggles_api_url, and optional source_snapshot_url from remote metadata with no HTTPS, same-origin, allowlist, redirect, private-network, or response-size constraints.",
+            "label": "Instruction Scope",
+            "name": "instruction_scope",
+            "rating": "concern"
+          },
+          {
+            "detail": "No background persistence, hooks, services, or memory-writing behavior were found; the skill does include credential-oriented commands such as draft auth set-key and Secret Share password/API-key handling, which are expected for this purpose and disclosed.",
+            "label": "Persistence & Privilege",
+            "name": "persistence_privilege",
+            "rating": "note"
+          },
+          {
+            "detail": "The Draft page, publish, comment, image, auth, and Secret Share workflows are coherent with the stated purpose, but the public preview feedback workflow expands beyond CLI-mediated Draft operations into direct fetching of user-supplied pages and metadata-provided endpoints without stated destination limits.",
+            "label": "Purpose & Capability",
+            "name": "purpose_capability",
+            "rating": "concern"
+          }
+        ],
+        "guidance": "Install only if you are comfortable with the agent using the Draft CLI and making network requests for Draft pages. For public preview feedback, use trusted Draft URLs and avoid asking the agent to fetch arbitrary public pages until the skill adds URL validation or trusted-domain restrictions. Review Draft write, publish, auth, and Secret Share actions before approving them.",
+        "findings": "[SDI-1] expected: The public review workflow is related to Draft feedback, but the artifact supports the concern because it instructs direct fetching of a user-provided public URL and then endpoints returned by that page without validation.\n[SDI-2] expected: The endpoint traversal is meant to retrieve comments and task decisions, but the skill text does not restrict metadata-derived URLs to trusted Draft origins or safe address ranges.\n[T09] expected: The cited behavior is present in the artifact; the concern is under-scoped URL handling rather than evidence of malicious intent.\n[T08] expected: The npm CLI install is expected for a Draft CLI skill, but the artifact does not pin @innosage/draft-cli to a reviewed version or integrity value.",
+        "agenticRiskFindings": null,
+        "riskSummary": null,
+        "model": null,
+        "checkedAt": 1789538123727
+      }
+    }
+  },
+  "moderation": {
+    "scope": "skill",
+    "sourceVersion": {
+      "version": "1.9.5",
+      "createdAt": 1781267283905
+    },
+    "matchesRequestedVersion": true,
+    "isPendingScan": false,
+    "isMalwareBlocked": false,
+    "isSuspicious": false,
+    "isHiddenByMod": false,
+    "isRemoved": false
+  },
+  "release_candidate": "1.10.1, not published; separate user approval pending"
+}

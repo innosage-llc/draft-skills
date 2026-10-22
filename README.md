@@ -3,10 +3,10 @@
 Agent skills for InnoSage Draft.
 
 Current contract:
-- canonical `draft-cli` skill1.10.0 adds saved PNG/JPEG inventory → original local
+- canonical `draft-cli` skill1.10.1 includes saved PNG/JPEG inventory → original local
   extraction → image-capable runtime viewing; feature-detect `page get-image`.
-  This requires the Product #4022 command build; older npm CLI versions may not
-  include it. A skill update alone does not install/publish a new CLI binary.
+  The verified npm pin is `@innosage/draft-cli@1.0.171`; older CLI versions may
+  not include it. A skill update alone does not upgrade the CLI binary.
 - live page commands prefer the configured JSON Workspace and workspace metadata commands
 - `draft --workspace-json <folder>` remains the explicit override for one-off page operations
 - hosted Secret Share and auth commands stay supported
@@ -81,3 +81,26 @@ Gate order:
 2. `draft-cli` review-loop regression guard
 3. Phase 2 smoke checks
 4. Phase 3 regression checks
+5. Offline security guidance, distribution and release preflight checks
+
+
+## Public feedback and release consistency
+
+Skill1.10.1 adds bounded first-party feedback guidance and removes obsolete invite
+setup. Public feedback stays no-auth/no-daemon; a fetch runtime must actually
+restrict destination IPs and disable redirects or the agent must skip retrieval.
+The deterministic fixtures are reference policy checks, not a network sandbox or
+proof of agent compliance. See [distribution/release notes](docs/distribution.md)
+for verified npm/installer sources, active mirrors, archive regeneration, release
+approval and exact remote artifact/audit receipts.
+
+```bash
+python3 scripts/check_draft_cli_security.py
+python3 scripts/check_skill_distribution.py
+python3 scripts/check_release_preflight.py
+./scripts/publish_clawhub_skills.sh --dry-run --skill draft-cli
+```
+
+Dry-run is the default and never commits or publishes. Public release requires
+separate approval and explicit `--publish`; a successful upload is not proof of
+remote source equality or audit PASS.
