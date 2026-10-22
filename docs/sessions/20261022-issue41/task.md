@@ -19,7 +19,8 @@
   different artifacts and remain unchanged.
 - Initial full gate and real dry-run pass, plus 66 offline negative/positive policy
   cases and publisher regression tests. Independent dirty-diff review found no blocking security issue; final committed-head
-  review remains pending. Added existing remote artifact/audit receipt.
+  review PASS on 8650a336afd162a9ca5388bfaffd4d947fb9fc45 and product router
+  8f403f21ce6537d44c58cb0ca453442c7b31256f. Added existing remote artifact/audit receipt.
 - Public release/rescan NOT RUN, no permission supplied. Issue remains open.
 
 - Existing ClawHub GET inspection: owner toliuweijing, latest1.9.5, exact-file
@@ -28,3 +29,7 @@
   no claims of observed invocation. Standalone missing canonical source stops safely.
 - Residual test limits: enforcement/redirect/duplicate-field/response-conflict flags
   are offline model inputs, not real tool, agent, DNS or frontmatter parser tests.
+
+- Corrected preflight regression invocation cwd to the temporary repo's parent,
+  exercising the documented out-of-repository path anchoring. Recheck/review of
+  this small final delta required before handoff.

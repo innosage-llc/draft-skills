@@ -29,7 +29,7 @@ def main():
         before = subprocess.check_output(['git','status','--porcelain'],cwd=repo)
         # Invoke from outside repo: all reads still belong to script's repository.
         result = subprocess.run(['bash',str(repo / 'scripts/publish_clawhub_skills.sh'),'--dry-run'],
-                                cwd=tmp,env=env,capture_output=True,text=True,check=True)
+                                cwd=repo.parent,env=env,capture_output=True,text=True,check=True)
         assert 'DRY RUN' in result.stdout
         assert (repo / 'gate-ran').exists()
         (repo / 'gate-ran').unlink()
